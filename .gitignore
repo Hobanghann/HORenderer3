@@ -1,0 +1,12 @@
+.*
+!.git
+!.gitignore
+!.gitattributes
+!.gitmodules
+
+lib/
+!lib/
+!lib/stb.cc
+!lib/CMakeLists.txt
+
+build
