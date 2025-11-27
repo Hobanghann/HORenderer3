@@ -2,9 +2,9 @@
 
 #include <string>
 
+#include "core/macros.h"
 #include "math_defs.h"
 #include "math_funcs.h"
-#include "src/macros.h"
 
 namespace ho {
 
