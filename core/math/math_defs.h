@@ -3,7 +3,7 @@
 #include <cmath>
 #include <limits>
 
-#include "src/macros.h"
+#include "core/macros.h"
 
 #ifdef DOUBLE_PRECISION
 typedef double real;
