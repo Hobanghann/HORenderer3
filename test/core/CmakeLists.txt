@@ -4,12 +4,14 @@ message("\n######## Start to process Core Test. ########\n")
 # Set Test's Name
 ##########################################################
 set(MATH_TEST_NAME math_tests)
+set(TEMPLATES_TEST_NAME templates_tests)
 set(TIME_TEST_NAME time_tests)
 
 ##########################################################
 # Process Subdirectories
 ##########################################################
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/math)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/templates)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/time)
 
 message("\n######## Processing Core Test finished. ########\n")
