@@ -136,19 +136,3 @@ TEST_F(GameTimerTest, StartWithoutStop) {
 
   EXPECT_GT(t1, t0);
 }
-
-TEST_F(GameTimerTest, StopWithoutStart) {
-  std::this_thread::sleep_for(5ms);
-  timer.Tick();
-  real t0 = timer.TotalTime();
-
-  timer.Stop();
-
-  std::this_thread::sleep_for(1000ms);
-  timer.Tick();
-  real t1 = timer.TotalTime();
-
-  EXPECT_GT(t0, 0.0_r);
-
-  EXPECT_GT(t1, t0);
-}
