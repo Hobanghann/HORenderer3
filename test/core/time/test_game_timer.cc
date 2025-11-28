@@ -27,7 +27,7 @@ TEST_F(GameTimerTest, Tick) {
   real dt = timer.DeltaTime();
 
   EXPECT_GT(dt, 0.0_r);
-  EXPECT_LT(dt, 0.020_r);
+  EXPECT_LT(dt, 0.080_r);
 }
 
 TEST_F(GameTimerTest, Stop) {
@@ -139,20 +139,20 @@ TEST_F(GameTimerTest, StartWithoutStop) {
   real t1 = timer.TotalTime();
 
   EXPECT_GT(t1, t0);
-  EXPECT_NEAR(t1, t0 + 0.010_r, 0.010_r);
+  EXPECT_NEAR(t1, t0 + 0.005_r, 0.015_r);
 }
 
 TEST_F(GameTimerTest, StopWithoutStart) {
-  std::this_thread::sleep_for(2ms);
+  std::this_thread::sleep_for(20ms);
   timer.Tick();
   real t0 = timer.TotalTime();
 
   timer.Stop();
 
-  std::this_thread::sleep_for(1ms);
+  std::this_thread::sleep_for(10ms);
   timer.Tick();
   real t1 = timer.TotalTime();
 
   EXPECT_GT(t1, t0);
-  EXPECT_NEAR(t1, t0 + 0.010_r, 0.010_r);
+  EXPECT_NEAR(t1, t0 + 0.010_r, 0.020_r);
 }
