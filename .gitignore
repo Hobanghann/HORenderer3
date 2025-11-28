@@ -4,9 +4,13 @@
 !.gitattributes
 !.gitmodules
 
-lib/
-!lib/
+lib/*
 !lib/stb.cc
+!lib/half.hpp
 !lib/CMakeLists.txt
+
+test/*
+!test/core/
+!test/CMakeLists.txt
 
 build
