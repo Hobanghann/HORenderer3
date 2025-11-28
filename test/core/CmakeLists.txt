@@ -8,6 +8,13 @@ set(TEMPLATES_TEST_NAME templates_tests)
 set(TIME_TEST_NAME time_tests)
 
 ##########################################################
+# Set Test Suite Prefix
+##########################################################
+set(MATH_PREFIX Core.Math.)
+set(TEMPLATES_PREFIX Core.Templates.)
+set(TIME_PREFIX Core.Time.)
+
+##########################################################
 # Process Subdirectories
 ##########################################################
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/math)
