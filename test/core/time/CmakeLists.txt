@@ -26,7 +26,6 @@ set_target_properties(${TIME_TEST_NAME} PROPERTIES FOLDER "Test/core")
 ################################################################################
 # Add test
 ################################################################################
-add_test(NAME ${TIME_TEST_NAME} COMMAND $<TARGET_FILE:${TIME_TEST_NAME}>)
 gtest_discover_tests(${TIME_TEST_NAME}
   DISCOVERY_TIMEOUT 30
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

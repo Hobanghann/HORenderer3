@@ -26,7 +26,6 @@ set_target_properties(${MATH_TEST_NAME} PROPERTIES FOLDER "Test/core")
 ################################################################################
 # Add test
 ################################################################################
-add_test(NAME ${MATH_TEST_NAME} COMMAND $<TARGET_FILE:${MATH_TEST_NAME}>)
 gtest_discover_tests(${MATH_TEST_NAME}
   DISCOVERY_TIMEOUT 30
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
