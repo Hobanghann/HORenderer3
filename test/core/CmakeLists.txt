@@ -1,0 +1,13 @@
+message("\n######## Start to process Core Test. ########\n")
+
+##########################################################
+# Set Test's Name
+##########################################################
+set(MATH_TEST_NAME math_tests)
+
+##########################################################
+# Process Subdirectories
+##########################################################
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/math)
+
+message("\n######## Processing Core Test finished. ########\n")
