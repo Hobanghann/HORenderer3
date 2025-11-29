@@ -23,6 +23,7 @@ if (MSVC)
         /permissive-  # strict C++ mode
         /Zc:__cplusplus
         /Zc:preprocessor
+        /wd4201 # allow anonymous struct, union
     )
 
 else ()
@@ -38,11 +39,12 @@ else ()
         -Wformat=2
         -Wcast-qual
         -Wcast-align
+        -fms-extensions # allow anonymous struct, union
     )
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         add_compile_options(
-            -Wuseless-cast
+            -Wuseless-cast            
         )
 
     elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
