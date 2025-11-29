@@ -16,19 +16,26 @@ enable_testing()
 ##########################################################
 # Set Compiler Options
 ##########################################################
+add_library(warning_flags INTERFACE)
+
 if (MSVC)
-    add_compile_options(
-        /W4           # strong warnings
-        /WX           # warnings as errors
-        /permissive-  # strict C++ mode
+    target_compile_options(
+        warning_flags
+        INTERFACE
+        /W4               # strong warnings
+        /WX               # warnings as errors
+        /permissive-      # strict C++ mode
         /Zc:__cplusplus
         /Zc:preprocessor
-        /wd4201 # allow anonymous struct, union
+        /wd4201           # allow anonymous struct, union
+        /wd4723           # disable: potential divide by zero (false positive)
     )
 
 else ()
     # Common flags for GCC/Clang
-    add_compile_options(
+    target_compile_options(
+        warning_flags
+        INTERFACE
         -Werror -Wall -Wextra -Wpedantic
         -Wconversion -Wsign-conversion
         -Wshadow -Wundef
@@ -43,13 +50,17 @@ else ()
     )
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        add_compile_options(
+        target_compile_options(
+            warning_flags
+            INTERFACE
             -Wuseless-cast            
         )
 
     elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         # Clang: careful, do NOT use -Weverything (extremely noisy)
-        add_compile_options(
+        target_compile_options(
+            warning_flags
+            INTERFACE
             -Wfloat-equal
             -Woverloaded-virtual
             -Wmissing-prototypes
