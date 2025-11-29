@@ -14,6 +14,51 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 enable_testing()
 
 ##########################################################
+# Set Compiler Options
+##########################################################
+if (MSVC)
+    add_compile_options(
+        /W4           # strong warnings
+        /WX           # warnings as errors
+        /permissive-  # strict C++ mode
+        /Zc:__cplusplus
+        /Zc:preprocessor
+    )
+
+else ()
+    # Common flags for GCC/Clang
+    add_compile_options(
+        -Werror -Wall -Wextra -Wpedantic
+        -Wconversion -Wsign-conversion
+        -Wshadow -Wundef
+        -Wunreachable-code
+        -Wstrict-aliasing
+        -Wnull-dereference
+        -Wdouble-promotion
+        -Wformat=2
+        -Wcast-qual
+        -Wcast-align
+    )
+
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        add_compile_options(
+            -Wuseless-cast
+        )
+
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        # Clang: careful, do NOT use -Weverything (extremely noisy)
+        add_compile_options(
+            -Wfloat-equal
+            -Woverloaded-virtual
+            -Wmissing-prototypes
+            -Wtautological-compare
+            -Wno-c++98-compat
+            -Wno-c++98-compat-pedantic
+        )
+    endif ()
+endif ()
+
+##########################################################
 # Set module's Name
 ##########################################################
 set(PLATFORMS_NAME platforms)
