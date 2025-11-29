@@ -204,6 +204,19 @@ struct Color32 {
   std::uint8_t g;
   std::uint8_t b;
   std::uint8_t a;
+
+ private:
+  _ALWAYS_INLINE_ constexpr uint8_t UpperU8(int v) const {
+    return static_cast<uint8_t>(math::Min(255, v));
+  }
+  _ALWAYS_INLINE_ constexpr uint8_t LowerU8(int v) const {
+    return static_cast<uint8_t>(math::Max(v, 0));
+  }
+  _ALWAYS_INLINE_ constexpr uint8_t DivU8(uint8_t x, uint8_t y) const {
+    return y == 0 ? 255
+                  : static_cast<uint8_t>(static_cast<real>(x) /
+                                         static_cast<real>(y));
+  }
 };
 
 constexpr Color32::Color32() : r(0), g(0), b(0), a(255) {}
@@ -231,67 +244,65 @@ constexpr bool Color32::operator!=(const Color32& rhs) const {
 }
 
 constexpr Color32 Color32::operator+(const Color32& rhs) const {
-  return Color32(math::Min(255, r + rhs.r), math::Min(255, g + rhs.g),
-                 math::Min(255, b + rhs.b), math::Min(255, a + rhs.a));
+  return Color32(UpperU8(r + rhs.r), UpperU8(g + rhs.g), UpperU8(b + rhs.b),
+                 UpperU8(a + rhs.a));
 }
 constexpr Color32& Color32::operator+=(const Color32& rhs) {
-  r = math::Min(255, r + rhs.r);
-  g = math::Min(255, g + rhs.g);
-  b = math::Min(255, b + rhs.b);
-  a = math::Min(255, a + rhs.a);
+  r = UpperU8(r + rhs.r);
+  g = UpperU8(g + rhs.g);
+  b = UpperU8(b + rhs.b);
+  a = UpperU8(a + rhs.a);
   return *this;
 }
 
 constexpr Color32 Color32::operator-(const Color32& rhs) const {
-  return Color32(math::Max(0, r - rhs.r), math::Max(0, g - rhs.g),
-                 math::Max(0, b - rhs.b), math::Max(0, a - rhs.a));
+  return Color32(LowerU8(r - rhs.r), LowerU8(g - rhs.g), LowerU8(b - rhs.b),
+                 LowerU8(a - rhs.a));
 }
 constexpr Color32& Color32::operator-=(const Color32& rhs) {
-  r = math::Max(0, r - rhs.r);
-  g = math::Max(0, g - rhs.g);
-  b = math::Max(0, b - rhs.b);
-  a = math::Max(0, a - rhs.a);
+  r = LowerU8(r - rhs.r);
+  g = LowerU8(g - rhs.g);
+  b = LowerU8(b - rhs.b);
+  a = LowerU8(a - rhs.a);
   return *this;
 }
 
 constexpr Color32 Color32::operator*(const Color32& rhs) const {
-  return Color32(math::Min(255, r * rhs.r), math::Min(255, g * rhs.g),
-                 math::Min(255, b * rhs.b), math::Min(255, a * rhs.a));
+  return Color32(UpperU8(r * rhs.r), UpperU8(g * rhs.g), UpperU8(b * rhs.b),
+                 UpperU8(a * rhs.a));
 }
 
 constexpr Color32& Color32::operator*=(const Color32& rhs) {
-  r = math::Min(255, r * rhs.r);
-  g = math::Min(255, g * rhs.g);
-  b = math::Min(255, b * rhs.b);
-  a = math::Min(255, a * rhs.a);
+  r = UpperU8(r * rhs.r);
+  g = UpperU8(g * rhs.g);
+  b = UpperU8(b * rhs.b);
+  a = UpperU8(a * rhs.a);
   return *this;
 }
 
 constexpr Color32 Color32::operator*(std::uint8_t scalar) const {
-  return Color32(math::Min(255, r * scalar), math::Min(255, g * scalar),
-                 math::Min(255, b * scalar), math::Min(255, a * scalar));
+  return Color32(UpperU8(r * scalar), UpperU8(g * scalar), UpperU8(b * scalar),
+                 UpperU8(a * scalar));
 }
 
 constexpr Color32& Color32::operator*=(std::uint8_t scalar) {
-  r = math::Min(255, r * scalar);
-  g = math::Min(255, g * scalar);
-  b = math::Min(255, b * scalar);
-  a = math::Min(255, a * scalar);
+  r = UpperU8(r * scalar);
+  g = UpperU8(g * scalar);
+  b = UpperU8(b * scalar);
+  a = UpperU8(a * scalar);
   return *this;
 }
 
 constexpr Color32 Color32::operator/(const Color32& rhs) const {
-  return Color32(rhs.r == 0 ? 255 : (uint8_t)((real)r / (real)rhs.r),
-                 rhs.g == 0 ? 255 : (uint8_t)((real)g / (real)rhs.g),
-                 rhs.b == 0 ? 255 : (uint8_t)((real)b / (real)rhs.b),
-                 rhs.a == 0 ? 255 : (uint8_t)((real)a / (real)rhs.a));
+  return Color32(DivU8(r, rhs.r), DivU8(g, rhs.g), DivU8(b, rhs.b),
+                 DivU8(a, rhs.a));
 }
 
 constexpr Color32& Color32::operator/=(const Color32& rhs) {
-  r = rhs.r == 0 ? 255 : (uint8_t)((real)r / (real)rhs.r);
-  g = rhs.g == 0 ? 255 : (uint8_t)((real)g / (real)rhs.g);
-  b = rhs.b == 0 ? 255 : (uint8_t)((real)b / (real)rhs.b);
-  a = rhs.a == 0 ? 255 : (uint8_t)((real)a / (real)rhs.a);
+  r = DivU8(r, rhs.r);
+  g = DivU8(g, rhs.g);
+  b = DivU8(b, rhs.b);
+  a = DivU8(a, rhs.a);
   return *this;
 }
 
@@ -299,9 +310,8 @@ constexpr Color32 Color32::operator/(std::uint8_t scalar) const {
   if (scalar == 0) {
     return Color32(255, 255, 255, 255);
   }
-  return Color32(
-      (uint8_t)((real)r / (real)scalar), (uint8_t)((real)g / (real)scalar),
-      (uint8_t)((real)b / (real)scalar), (uint8_t)((real)a / (real)scalar));
+  return Color32(DivU8(r, scalar), DivU8(g, scalar), DivU8(b, scalar),
+                 DivU8(a, scalar));
 }
 
 constexpr Color32& Color32::operator/=(std::uint8_t scalar) {
@@ -311,10 +321,10 @@ constexpr Color32& Color32::operator/=(std::uint8_t scalar) {
     b = 255;
     a = 255;
   }
-  r = (uint8_t)((real)r / (real)scalar);
-  g = (uint8_t)((real)g / (real)scalar);
-  b = (uint8_t)((real)b / (real)scalar);
-  a = (uint8_t)((real)a / (real)scalar);
+  r = DivU8(r, scalar);
+  g = DivU8(g, scalar);
+  b = DivU8(b, scalar);
+  a = DivU8(a, scalar);
   return *this;
 }
 
@@ -324,11 +334,13 @@ _ALWAYS_INLINE_ constexpr Color32 operator*(std::uint8_t scalar,
 }
 
 constexpr real Color32::Luminance() const {
-  return 0.2126_r * (real)r + 0.7152_r * (real)g + 0.0722_r * (real)b;
+  return 0.2126_r * static_cast<real>(r) + 0.7152_r * static_cast<real>(g) +
+         0.0722_r * static_cast<real>(b);
 }
 constexpr real Color32::Luminance(real rweight, real gweight,
                                   real bweight) const {
-  return (real)r * rweight + (real)g * gweight + (real)b * bweight;
+  return static_cast<real>(r) * rweight + static_cast<real>(g) * gweight +
+         static_cast<real>(b) * bweight;
 }
 
 std::uint8_t Color32::ToR8() const { return r; }

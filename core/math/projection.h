@@ -104,8 +104,8 @@ Projection::Projection(const Matrix4x4& m) : matrix(m) {
   const double m22 = static_cast<double>(m.data[2][2]);
   const double m23 = static_cast<double>(m.data[2][3]);
 
-   // If matrix is invalid or uninitialized, fallback to zero projection.
-  if (math::IsZeroApprox(m00)) {
+  // If matrix is invalid or uninitialized, fallback to zero projection.
+  if (math::IsZeroApprox(static_cast<real>(m00))) {
     fov = 0.0_r;
     aspect_ratio = 0.0_r;
     near = 0.0_r;
@@ -161,10 +161,10 @@ void Projection::set_aspect_ratio(real p_width, real p_height) {
 }
 void Projection::set_near_dist(real p_near) {
   near = p_near;
-  const real far = get_far_dist();
+  const real f = get_far_dist();
   // Compute using double precision to minimize accumulated rounding error.
   const double nd = static_cast<double>(near);
-  const double fd = static_cast<double>(far);
+  const double fd = static_cast<double>(f);
   const double inv_nf = 1.0 / (nd - fd);
 
   matrix.data[2][2] = static_cast<real>(-(nd + fd) * inv_nf);
@@ -173,9 +173,9 @@ void Projection::set_near_dist(real p_near) {
 
 void Projection::set_far_dist(real p_far) {
   far = p_far;
-  const real near = get_near_dist();
+  const real n = get_near_dist();
   // Use double precision for consistent accuracy with set_near_dist().
-  const double nd = static_cast<double>(near);
+  const double nd = static_cast<double>(n);
   const double fd = static_cast<double>(far);
   const double inv_nf = 1.0 / (nd - fd);
 

@@ -32,11 +32,11 @@ struct Quaternion {
   constexpr Quaternion operator*(const Quaternion& rhs) const;
   constexpr Quaternion& operator*=(const Quaternion& rhs);
 
-  constexpr Quaternion operator*(real scalar) const;
-  constexpr Quaternion& operator*=(real scalar);
+  constexpr Quaternion operator*(real p_scalar) const;
+  constexpr Quaternion& operator*=(real p_scalar);
 
-  constexpr Quaternion operator/(real scalar) const;
-  constexpr Quaternion& operator/=(real scalar);
+  constexpr Quaternion operator/(real p_scalar) const;
+  constexpr Quaternion& operator/=(real p_scalar);
 
   constexpr Quaternion operator-() const;
 
@@ -134,23 +134,23 @@ constexpr Quaternion& Quaternion::operator*=(const Quaternion& rhs) {
   return *this;
 }
 
-constexpr Quaternion Quaternion::operator*(real scalar) const {
-  return Quaternion(scalar * x, scalar * y, scalar * z, scalar * w);
+constexpr Quaternion Quaternion::operator*(real p_scalar) const {
+  return Quaternion(p_scalar * x, p_scalar * y, p_scalar * z, p_scalar * w);
 }
-constexpr Quaternion& Quaternion::operator*=(real scalar) {
-  x *= scalar;
-  y *= scalar;
-  z *= scalar;
-  w *= scalar;
+constexpr Quaternion& Quaternion::operator*=(real p_scalar) {
+  x *= p_scalar;
+  y *= p_scalar;
+  z *= p_scalar;
+  w *= p_scalar;
   return *this;
 }
 
-constexpr Quaternion Quaternion::operator/(real scalar) const {
-  const real inv_s = 1.0_r / scalar;
+constexpr Quaternion Quaternion::operator/(real p_scalar) const {
+  const real inv_s = 1.0_r / p_scalar;
   return *this * inv_s;
 }
-constexpr Quaternion& Quaternion::operator/=(real scalar) {
-  const real inv_s = 1.0_r / scalar;
+constexpr Quaternion& Quaternion::operator/=(real p_scalar) {
+  const real inv_s = 1.0_r / p_scalar;
   x *= inv_s;
   y *= inv_s;
   z *= inv_s;
@@ -162,8 +162,8 @@ constexpr Quaternion Quaternion::operator-() const {
   return Quaternion(-x, -y, -z, -w);
 }
 
-constexpr Quaternion operator*(real scalar, const Quaternion& q) {
-  return q * scalar;
+constexpr Quaternion operator*(real p_scalar, const Quaternion& q) {
+  return q * p_scalar;
 }
 
 constexpr bool Quaternion::operator==(const Quaternion& rhs) const {

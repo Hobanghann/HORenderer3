@@ -183,7 +183,7 @@ TEST(InterpFuncsTest, Lerp3DDegenerateCase) {
 TEST(InterpFuncsTest, PcerpW2DNormalCase) {
   Vector2 inv_w(1.0_r, 0.5_r);  // w1=1, w2=2
   Vector2 bary(0.25_r, 0.75_r);
-  // denom = 0.25*1 + 0.75*0.5 = 0.625 → 1/0.625 = 1.6
+  // denom = 0.25*1 + 0.75*0.5 = 0.625 -> 1/0.625 = 1.6
   real w = Pcerp_W(inv_w, bary);
   EXPECT_NEAR(w, 1.6_r, math::EPSILON_CMP);
 }
@@ -210,7 +210,7 @@ TEST(InterpFuncsTest, PcerpW3DNormalCase) {
   Vector3 inv_w(1.0_r, 0.5_r, 0.25_r);
   Vector3 bary(0.2_r, 0.3_r, 0.5_r);
   // denom = 0.2*1 + 0.3*0.5 + 0.5*0.25 = 0.475
-  // result = 1/0.475 ≈ 2.10526
+  // result = 1/0.475 almost 2.10526
   EXPECT_NEAR(Pcerp_W(inv_w, bary), 2.10526_r, math::EPSILON_CMP);
 }
 
@@ -276,7 +276,7 @@ TEST(InterpFuncsTest, PcerpWithInvW3DNormalCase) {
   Vector3 inv_w(1.0_r, 0.5_r, 0.25_r);
   Vector3 bary(0.2_r, 0.3_r, 0.5_r);
   real a1 = 10.0_r, a2 = 20.0_r, a3 = 30.0_r;
-  real interpolated_w = Pcerp_W(inv_w, bary);  // 1 / (0.475) ≈ 2.10526
+  real interpolated_w = Pcerp_W(inv_w, bary);  // 1 / (0.475) almost 2.10526
 
   real result = Pcerp(a1, a2, a3, bary, inv_w, interpolated_w);
   // numerator = 0.2*1*10 + 0.3*0.5*20 + 0.5*0.25*30 = 2 + 3 + 3.75 = 8.75
@@ -315,7 +315,7 @@ TEST(InterpFuncsTest, PcerpWithInvW3DDegenerateCase) {
 }
 
 TEST(InterpFuncsTest, Pcerp2DNormalCase) {
-  // a1=10, a2=20 → w1=1, w2=2
+  // a1=10, a2=20 -> w1=1, w2=2
   Vector4 v1(0.0_r, 0.0_r, 0.0_r, 1.0_r);
   Vector4 v2(1.0_r, 0.0_r, 0.0_r, 2.0_r);
   Vector2 bary(0.25_r, 0.75_r);
@@ -354,7 +354,7 @@ TEST(InterpFuncsTest, Pcerp2DDegenerateCase) {
 }
 
 TEST(InterpFuncsTest, Pcerp3DNormalCase) {
-  // a1=10, a2=20, a3=30 → w1=1, w2=2, w3=4
+  // a1=10, a2=20, a3=30 -> w1=1, w2=2, w3=4
   Vector4 v1(0.0_r, 0.0_r, 0.0_r, 1.0_r);
   Vector4 v2(1.0_r, 0.0_r, 0.0_r, 2.0_r);
   Vector4 v3(0.0_r, 1.0_r, 0.0_r, 4.0_r);
@@ -367,7 +367,7 @@ TEST(InterpFuncsTest, Pcerp3DNormalCase) {
   // denom = 0.2*1 + 0.3*0.5 + 0.5*0.25 = 0.475
   // numerator = 0.2*1*10 + 0.3*0.5*20 + 0.5*0.25*30
   //            = 2 + 3 + 3.75 = 8.75
-  // result = (1/0.475)*8.75 ≈ 18.42
+  // result = (1/0.475)*8.75 almost 18.42
   EXPECT_NEAR(res, 18.42_r, 0.01_r);
 }
 
