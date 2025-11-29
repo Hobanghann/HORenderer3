@@ -2,7 +2,7 @@
 # CMake settings
 ##########################################################
 
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.20)
 include(FetchContent)
 set(MAIN_PROJECT_NAME HORenderer)
 
@@ -52,8 +52,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             -Wtautological-compare
             -Wno-c++98-compat
             -Wno-c++98-compat-pedantic
-            -Wno-gnu-anonymous-struct    # allow anonymous struct
-            -Wno-gnu-anonymous-union    # allow anonymous union
+            -Wno-gnu-anonymous-struct    # allow anonymous struct/union
             -Wno-double-promotion       # allow float to double promotion
         )
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")        
