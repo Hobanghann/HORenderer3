@@ -31,44 +31,43 @@ if (MSVC)
         /wd4723           # disable: potential divide by zero (false positive)
     )
 
-else ()
-    # Common flags for GCC/Clang
-    target_compile_options(
-        warning_flags
-        INTERFACE
-        -Werror -Wall -Wextra -Wpedantic
-        -Wconversion -Wsign-conversion
-        -Wshadow -Wundef
-        -Wunreachable-code
-        -Wstrict-aliasing
-        -Wnull-dereference
-        -Wdouble-promotion
-        -Wformat=2
-        -Wcast-qual
-        -Wcast-align
-        -fms-extensions # allow anonymous struct, union
-    )
-
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        target_compile_options(
-            warning_flags
-            INTERFACE
-            -Wuseless-cast            
-        )
-
-    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         # Clang: careful, do NOT use -Weverything (extremely noisy)
         target_compile_options(
             warning_flags
             INTERFACE
-            -Wfloat-equal
+            -Werror -Wall -Wextra
+            -Wconversion -Wsign-conversion
+            -Wshadow -Wundef
+            -Wunreachable-code
+            -Wstrict-aliasing
+            -Wnull-dereference
+            -Wdouble-promotion
+            -Wformat=2
+            -Wcast-qual
+            -Wcast-align
+            -fms-extensions
             -Woverloaded-virtual
             -Wmissing-prototypes
             -Wtautological-compare
             -Wno-c++98-compat
             -Wno-c++98-compat-pedantic
+            -Wno-gnu-anonymous-struct    # allow anonymous struct
+            -Wno-gnu-anonymous-union    # allow anonymous union
+            -Wno-double-promotion       # allow float to double promotion
         )
-    endif ()
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")        
+    message(FATAL_ERROR
+        "GCC is not supported by HORenderer due to its restrictions on "
+        "anonymous aggregates with non-POD members. "
+        "Please use Clang or MSVC instead."
+    )
+else()
+    message(WARNING
+        "Unknown compiler '${CMAKE_CXX_COMPILER_ID}'. "
+        "HORenderer officially supports only MSVC and Clang. "
+        "Compilation may work, but is not tested."
+    )
 endif ()
 
 ##########################################################
