@@ -207,7 +207,6 @@ TEST_F(Transform3DTest, RotationAxisAngleLocal) {
 TEST_F(Transform3DTest, RotationEuler) {
   Transform3D t(b_pitch, Vector3(1.0_r, 2.0_r, 3.0_r));
   real angle = PI / 4.0_r;
-  Basis3D b = b_pitch;
 
   Transform3D t1;
 

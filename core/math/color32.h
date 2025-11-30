@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstring>
 #include <string>
 
 #include "math_defs.h"
@@ -158,8 +159,8 @@ struct Color32 {
 
   constexpr Color32();
   constexpr Color32(const Color32&) = default;
-  constexpr Color32(std::uint8_t red, std::uint8_t green, std::uint8_t blue,
-                    std::uint8_t alpha = 255);
+  constexpr Color32(uint8_t red, uint8_t green, uint8_t blue,
+                    uint8_t alpha = 255);
   explicit Color32(const Color128& c);
   constexpr Color32& operator=(const Color32& rhs);
   ~Color32() = default;
@@ -173,14 +174,14 @@ struct Color32 {
   constexpr Color32 operator*(const Color32& rhs) const;
   constexpr Color32& operator*=(const Color32& rhs);
 
-  constexpr Color32 operator*(std::uint8_t scalar) const;
-  constexpr Color32& operator*=(std::uint8_t scalar);
+  constexpr Color32 operator*(uint8_t scalar) const;
+  constexpr Color32& operator*=(uint8_t scalar);
 
   constexpr Color32 operator/(const Color32& rhs) const;
   constexpr Color32& operator/=(const Color32& rhs);
 
-  constexpr Color32 operator/(std::uint8_t scalar) const;
-  constexpr Color32& operator/=(std::uint8_t scalar);
+  constexpr Color32 operator/(uint8_t scalar) const;
+  constexpr Color32& operator/=(uint8_t scalar);
 
   constexpr bool operator==(const Color32& rhs) const;
   constexpr bool operator!=(const Color32& rhs) const;
@@ -188,22 +189,22 @@ struct Color32 {
   constexpr real Luminance() const;
   constexpr real Luminance(real rweight, real gweight, real bweight) const;
 
-  _ALWAYS_INLINE_ std::uint8_t ToR8() const;
-  _ALWAYS_INLINE_ std::uint16_t ToRG8() const;
-  _ALWAYS_INLINE_ std::uint32_t ToRGB8() const;
-  _ALWAYS_INLINE_ std::uint32_t ToRGBA8() const;
-  _ALWAYS_INLINE_ std::uint32_t ToBGRA8() const;
-  _ALWAYS_INLINE_ std::uint32_t ToARGB8() const;
-  _ALWAYS_INLINE_ std::uint32_t ToABGR8() const;
-  _ALWAYS_INLINE_ std::uint8_t ToL8() const;
-  _ALWAYS_INLINE_ std::uint16_t ToLA8() const;
+  _ALWAYS_INLINE_ uint8_t ToR8() const;
+  _ALWAYS_INLINE_ uint16_t ToRG8() const;
+  _ALWAYS_INLINE_ uint32_t ToRGB8() const;
+  _ALWAYS_INLINE_ uint32_t ToRGBA8() const;
+  _ALWAYS_INLINE_ uint32_t ToBGRA8() const;
+  _ALWAYS_INLINE_ uint32_t ToARGB8() const;
+  _ALWAYS_INLINE_ uint32_t ToABGR8() const;
+  _ALWAYS_INLINE_ uint8_t ToL8() const;
+  _ALWAYS_INLINE_ uint16_t ToLA8() const;
 
   std::string ToString() const;
 
-  std::uint8_t r;
-  std::uint8_t g;
-  std::uint8_t b;
-  std::uint8_t a;
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+  uint8_t a;
 
  private:
   _ALWAYS_INLINE_ constexpr uint8_t UpperU8(int v) const {
@@ -220,8 +221,8 @@ struct Color32 {
 };
 
 constexpr Color32::Color32() : r(0), g(0), b(0), a(255) {}
-constexpr Color32::Color32(std::uint8_t red, std::uint8_t green,
-                           std::uint8_t blue, std::uint8_t alpha)
+constexpr Color32::Color32(uint8_t red, uint8_t green, uint8_t blue,
+                           uint8_t alpha)
     : r(red), g(green), b(blue), a(alpha) {}
 
 constexpr Color32& Color32::operator=(const Color32& rhs) {
@@ -280,12 +281,12 @@ constexpr Color32& Color32::operator*=(const Color32& rhs) {
   return *this;
 }
 
-constexpr Color32 Color32::operator*(std::uint8_t scalar) const {
+constexpr Color32 Color32::operator*(uint8_t scalar) const {
   return Color32(UpperU8(r * scalar), UpperU8(g * scalar), UpperU8(b * scalar),
                  UpperU8(a * scalar));
 }
 
-constexpr Color32& Color32::operator*=(std::uint8_t scalar) {
+constexpr Color32& Color32::operator*=(uint8_t scalar) {
   r = UpperU8(r * scalar);
   g = UpperU8(g * scalar);
   b = UpperU8(b * scalar);
@@ -306,7 +307,7 @@ constexpr Color32& Color32::operator/=(const Color32& rhs) {
   return *this;
 }
 
-constexpr Color32 Color32::operator/(std::uint8_t scalar) const {
+constexpr Color32 Color32::operator/(uint8_t scalar) const {
   if (scalar == 0) {
     return Color32(255, 255, 255, 255);
   }
@@ -314,7 +315,7 @@ constexpr Color32 Color32::operator/(std::uint8_t scalar) const {
                  DivU8(a, scalar));
 }
 
-constexpr Color32& Color32::operator/=(std::uint8_t scalar) {
+constexpr Color32& Color32::operator/=(uint8_t scalar) {
   if (scalar == 0) {
     r = 255;
     g = 255;
@@ -328,8 +329,7 @@ constexpr Color32& Color32::operator/=(std::uint8_t scalar) {
   return *this;
 }
 
-_ALWAYS_INLINE_ constexpr Color32 operator*(std::uint8_t scalar,
-                                            const Color32& c) {
+_ALWAYS_INLINE_ constexpr Color32 operator*(uint8_t scalar, const Color32& c) {
   return c * scalar;
 }
 
@@ -343,76 +343,76 @@ constexpr real Color32::Luminance(real rweight, real gweight,
          static_cast<real>(b) * bweight;
 }
 
-std::uint8_t Color32::ToR8() const { return r; }
-std::uint16_t Color32::ToRG8() const {
+uint8_t Color32::ToR8() const { return r; }
+uint16_t Color32::ToRG8() const {
   uint8_t out[2];
   out[0] = r;
   out[1] = g;
   uint16_t dst;
-  std::memcpy(&dst, out, 2);
+  memcpy(&dst, out, 2);
   return dst;
 }
-std::uint32_t Color32::ToRGB8() const {
+uint32_t Color32::ToRGB8() const {
   uint8_t out[4];
   out[0] = r;
   out[1] = g;
   out[2] = b;
   out[3] = 0;
   uint32_t dst;
-  std::memcpy(&dst, out, 4);
+  memcpy(&dst, out, 4);
   return dst;
 }
-std::uint32_t Color32::ToRGBA8() const {
+uint32_t Color32::ToRGBA8() const {
   uint8_t out[4];
   out[0] = r;
   out[1] = g;
   out[2] = b;
   out[3] = a;
   uint32_t dst;
-  std::memcpy(&dst, out, 4);
+  memcpy(&dst, out, 4);
   return dst;
 }
 
-std::uint32_t Color32::ToBGRA8() const {
+uint32_t Color32::ToBGRA8() const {
   uint8_t out[4];
   out[0] = b;
   out[1] = g;
   out[2] = r;
   out[3] = a;
   uint32_t dst;
-  std::memcpy(&dst, out, 4);
+  memcpy(&dst, out, 4);
   return dst;
 }
 
-std::uint32_t Color32::ToARGB8() const {
+uint32_t Color32::ToARGB8() const {
   uint8_t out[4];
   out[0] = a;
   out[1] = r;
   out[2] = g;
   out[3] = b;
   uint32_t dst;
-  std::memcpy(&dst, out, 4);
+  memcpy(&dst, out, 4);
   return dst;
 }
 
-std::uint32_t Color32::ToABGR8() const {
+uint32_t Color32::ToABGR8() const {
   uint8_t out[4];
   out[0] = a;
   out[1] = b;
   out[2] = g;
   out[3] = r;
   uint32_t dst;
-  std::memcpy(&dst, out, 4);
+  memcpy(&dst, out, 4);
   return dst;
 }
 
-std::uint8_t Color32::ToL8() const { return r; }
-std::uint16_t Color32::ToLA8() const {
+uint8_t Color32::ToL8() const { return r; }
+uint16_t Color32::ToLA8() const {
   uint8_t out[2];
   out[0] = r;
   out[1] = a;
   uint16_t dst;
-  std::memcpy(&dst, out, 2);
+  memcpy(&dst, out, 2);
   return dst;
 }
 

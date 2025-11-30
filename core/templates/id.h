@@ -14,7 +14,7 @@ class ID {
 
   static const ID NULL_ID;
 
-  constexpr std::uint64_t id() const { return id_; }
+  constexpr uint64_t id() const { return id_; }
 
   constexpr bool operator==(const ID<T>& rhs) const { return id_ == rhs.id_; }
   constexpr bool operator!=(const ID<T>& rhs) const { return !(*this == rhs); }
@@ -23,7 +23,7 @@ class ID {
   constexpr bool IsValid() const { return !IsNULL(); }
 
   constexpr ID& Increment() {
-    assert(id_ != std::numeric_limits<std::uint64_t>::max());
+    assert(id_ != std::numeric_limits<uint64_t>::max());
     id_++;
     return *this;
   }
@@ -35,7 +35,7 @@ class ID {
   }
 
  private:
-  std::uint64_t id_;
+  uint64_t id_;
 };
 
 template <typename T>
@@ -53,7 +53,7 @@ namespace std {
 template <typename T>
 struct hash<ho::ID<T>> {
   std::size_t operator()(const ho::ID<T>& id) const {
-    return std::hash<std::uint64_t>{}(id.id());
+    return std::hash<uint64_t>{}(id.id());
   }
 };
 }  // namespace std

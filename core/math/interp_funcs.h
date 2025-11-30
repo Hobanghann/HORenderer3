@@ -1,11 +1,11 @@
 #pragma once
 
+#include "math_defs.h"
 #include "math_funcs.h"
 #include "quaternion.h"
 #include "vector2.h"
 #include "vector3.h"
 #include "vector4.h"
-#include "math_defs.h"
 
 namespace ho {
 namespace math {
@@ -115,8 +115,8 @@ _ALWAYS_INLINE_ T Pcerp(const T& a1, const T& a2, const T& a3,
           inv_w.z * barycentric.z * a3);
 }
 
-Quaternion Slerp(const Quaternion& q1, const Quaternion& q2,
-                 const Vector2& barycentric) {
+_ALWAYS_INLINE_ Quaternion Slerp(const Quaternion& q1, const Quaternion& q2,
+                                 const Vector2& barycentric) {
   real cos = q1.Dot(q2);
   if (math::IsEqualApprox(cos, 1.0_r) || math::IsEqualApprox(cos, -1.0_r)) {
     return q1;
@@ -136,8 +136,8 @@ Quaternion Slerp(const Quaternion& q1, const Quaternion& q2,
   return alpha * q1 + beta * adj_q2;
 }
 
-Quaternion SlerpLong(const Quaternion& q1, const Quaternion& q2,
-                     const Vector2& barycentric) {
+_ALWAYS_INLINE_ Quaternion SlerpLong(const Quaternion& q1, const Quaternion& q2,
+                                     const Vector2& barycentric) {
   real cos = q1.Dot(q2);
   if (math::IsEqualApprox(cos, 1.0_r) || math::IsEqualApprox(cos, -1.0_r)) {
     return q1;
