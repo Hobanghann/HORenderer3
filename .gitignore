@@ -5,6 +5,7 @@
 !.gitmodules
 !.github/
 !.clang-format
+!.clang-tidy
 
 build*/
 build/
