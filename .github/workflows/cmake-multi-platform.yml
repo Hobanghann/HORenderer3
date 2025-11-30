@@ -1,5 +1,9 @@
 name: CMake Build & Test
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [ "*" ]
@@ -14,9 +18,15 @@ jobs:
       matrix:
         os: [windows-latest]
         build_type: [Debug, Release]
-        c_compiler: [cl]
-        cpp_compiler: [cl]
-        
+        c_compiler: [cl, clang]
+        cpp_compiler: [cl, clang++]
+
+        exclude:
+          - c_compiler: cl
+            cpp_compiler: clang++
+          - c_compiler: clang
+            cpp_compiler: cl
+
     runs-on: ${{ matrix.os }}
     
     steps:
