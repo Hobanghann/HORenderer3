@@ -1,0 +1,134 @@
+name: CI Pipeline
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  clang-format:
+    name: clang-format
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install LLVM
+      run: sudo apt-get update && sudo apt-get install -y clang-format
+
+    - name: Run clang-format check
+      id: format_check
+      run: |
+        echo "Running clang-format check..."
+
+        mkdir formatted
+        error_count=0
+
+        for file in $(find core platforms test -name "*.h" -o -name "*.cc"); do
+          mkdir -p formatted/$(dirname "$file")
+          clang-format "$file" > formatted/"$file"
+
+          if ! diff -q "$file" formatted/"$file" >/dev/null; then
+            echo ""
+            echo "-------------------------------------"
+            echo "  !! FORMAT MISMATCH: $file  !!"
+            echo "-------------------------------------"
+            diff -u "$file" formatted/"$file"
+            error_count=$((error_count+1))
+          fi
+        done
+
+        echo ""
+        echo "======== SUMMARY ========"
+        if [ "$error_count" -eq 0 ]; then
+          echo "[O] All files are properly formatted!"
+        else
+          echo "[X] $error_count file(s) need formatting."
+          exit 1
+        fi
+
+  build:
+    name: build
+    needs: clang-format 
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Debug, Release]
+        c_compiler: [cl, clang]
+        cpp_compiler: [cl, clang++]
+
+        exclude:
+          - c_compiler: cl
+            cpp_compiler: clang++
+          - c_compiler: clang
+            cpp_compiler: cl
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v4
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Configure CMake
+      run: >
+        cmake -S ${{ github.workspace }}
+        -B ${{ steps.strings.outputs.build-output-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.c_compiler }}-${{ matrix.cpp_compiler }}
+        path: ${{ steps.strings.outputs.build-output-dir }}
+
+  test:
+    name: test
+    needs: build
+    strategy: 
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        build_type: [Debug, Release]
+        c_compiler: [cl, clang]
+        cpp_compiler: [cl, clang++]
+
+        exclude:
+          - c_compiler: cl
+            cpp_compiler: clang++
+          - c_compiler: clang
+            cpp_compiler: cl
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Download artifacts 
+      uses: actions/download-artifact@v4 
+      with: 
+        name: build-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.c_compiler }}-${{ matrix.cpp_compiler }}
+
+    - name: Test Core.Math
+      run: ctest -R ^Core\.Math --build-config ${{ matrix.build_type }}
+
+    - name: Test Core.Templates
+      run: ctest -R ^Core\.Templates --build-config ${{ matrix.build_type }}
+
+    - name: Test Core.Time
+      run: ctest -R ^Core\.Time --build-config ${{ matrix.build_type }}
