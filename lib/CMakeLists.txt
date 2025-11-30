@@ -14,7 +14,6 @@ set(INI_PARSER_NAME inicpp)
 
 #Declare download targets
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ CACHE PATH "Missing description." FORCE)
 FetchContent_Declare(${ASSIMP_NAME}
 GIT_REPOSITORY https://github.com/assimp/assimp.git
 GIT_TAG master)
@@ -23,12 +22,10 @@ set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
 set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ CACHE PATH "Missing description." FORCE)
 FetchContent_Declare(${IMAGE_LOADER_NAME}
 GIT_REPOSITORY https://github.com/nothings/stb.git
 GIT_TAG master)
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ CACHE PATH "Missing description." FORCE)
 FetchContent_Declare(${INI_PARSER_NAME}
 GIT_REPOSITORY https://github.com/Rookfighter/inifile-cpp.git
 GIT_TAG main)
@@ -44,7 +41,7 @@ FetchContent_Populate(${IMAGE_LOADER_NAME})
 message ("#### Downloading " ${IMAGE_LOADER_NAME} " finished. ####")
 
 add_library(${IMAGE_LOADER_NAME} STATIC ${CMAKE_CURRENT_SOURCE_DIR}/${IMAGE_LOADER_NAME}.cc)
-target_include_directories(${IMAGE_LOADER_NAME} INTERFACE ${${IMAGE_LOADER_NAME}_SOURCE_DIR})
+target_include_directories(${IMAGE_LOADER_NAME} PRIVATE ${${IMAGE_LOADER_NAME}_SOURCE_DIR})
 
 message ("#### Start to Download " ${INI_PARSER_NAME} "... ####")
 FetchContent_MakeAvailable(${INI_PARSER_NAME})
@@ -59,20 +56,47 @@ target_include_directories(half INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 ################################################################################
 # Set library properties
 ################################################################################
-set_target_properties(${ASSIMP_NAME} PROPERTIES FOLDER "ThirdParty/assimp")
-set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "ThirdParty/assimp")
-set_target_properties(zlibstatic PROPERTIES FOLDER "ThirdParty/assimp")
 
-set_target_properties(${IMAGE_LOADER_NAME} PROPERTIES FOLDER "ThirdParty/stb")
+# Assimp targets
+if (TARGET ${ASSIMP_NAME})
+    set_target_properties(${ASSIMP_NAME} PROPERTIES FOLDER "ThirdParty/assimp")
+endif()
 
-set_target_properties(${INI_PARSER_NAME} PROPERTIES FOLDER "ThirdParty/ini")
+if (TARGET UpdateAssimpLibsDebugSymbolsAndDLLs)
+    set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "ThirdParty/assimp")
+endif()
 
-set_target_properties(half PROPERTIES FOLDER "ThirdParty/half")
+if (TARGET zlibstatic)
+    set_target_properties(zlibstatic PROPERTIES FOLDER "ThirdParty/assimp")
+endif()
+
+# stb
+if (TARGET ${IMAGE_LOADER_NAME})
+    set_target_properties(${IMAGE_LOADER_NAME} PROPERTIES FOLDER "ThirdParty/stb")
+endif()
+
+# ini parser
+if (TARGET ${INI_PARSER_NAME})
+    set_target_properties(${INI_PARSER_NAME} PROPERTIES FOLDER "ThirdParty/ini")
+endif()
+
+# half
+if (TARGET half)
+    set_target_properties(half PROPERTIES FOLDER "ThirdParty/half")
+endif()
 
 ################################################################################
 # Add library target
 ################################################################################
 add_library(${THIRD_PARTY_NAME} INTERFACE)
 target_link_libraries(${THIRD_PARTY_NAME} INTERFACE ${ASSIMP_NAME} ${IMAGE_LOADER_NAME} inicpp half)
+target_include_directories(
+  ${THIRD_PARTY_NAME}
+  INTERFACE
+  ${${ASSIMP_NAME}_SOURCE_DIR}/include
+  ${${IMAGE_LOADER_NAME}_SOURCE_DIR}
+  ${${INI_PARSER_NAME}_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  )
 
 message("\n\n\n######## Processing ${THIRD_PARTY_NAME} finished. ########\n\n\n")

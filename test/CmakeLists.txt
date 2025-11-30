@@ -6,7 +6,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 ##########################################################
 set(GTEST_NAME googletest)
 
-set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ CACHE PATH "Missing description." FORCE)
 FetchContent_Declare(${GTEST_NAME}
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG v1.14.0
@@ -20,10 +19,11 @@ message ("#### Downloading " ${GTEST_NAME} " finished. ####")
 ################################################################################
 # Set Google Test properties
 ################################################################################
-set_target_properties(gmock PROPERTIES FOLDER "Test/gtest")
-set_target_properties(gmock_main PROPERTIES FOLDER "Test/gtest")
-set_target_properties(gtest PROPERTIES FOLDER "Test/gtest")
-set_target_properties(gtest_main PROPERTIES FOLDER "Test/gtest")
+foreach(tgt gmock gmock_main gtest gtest_main)
+    if (TARGET ${tgt})
+        set_target_properties(${tgt} PROPERTIES FOLDER "Test/gtest")
+    endif()
+endforeach()
 
 ################################################################################
 # Process subdirectories

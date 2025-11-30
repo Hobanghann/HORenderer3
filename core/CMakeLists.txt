@@ -26,5 +26,5 @@ PUBLIC
   ${CMAKE_SOURCE_DIR}/lib
   ${CMAKE_SOURCE_DIR}
 	)
-target_link_libraries(${CORE_NAME} PUBLIC ${THIRD_PARTY_NAME})
+target_link_libraries(${CORE_NAME} PUBLIC warning_flags ${THIRD_PARTY_NAME})
 message("\n\n\n######## Processing ${CORE_NAME} module finished. ########\n\n\n")

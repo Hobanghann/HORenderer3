@@ -11,9 +11,9 @@ typedef double real;
 typedef float real;
 #endif
 
-constexpr real operator"" _r(long double v) { return static_cast<real>(v); }
+constexpr real operator""_r(long double v) { return static_cast<real>(v); }
 
-constexpr real operator"" _r(unsigned long long v) {
+constexpr real operator""_r(unsigned long long v) {
   return static_cast<real>(v);
 }
 

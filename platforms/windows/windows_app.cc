@@ -113,8 +113,8 @@ void Window::ShowMessageBox(const std::wstring& title, const std::wstring& text,
   MessageBoxW(handle_, text.c_str(), text.c_str(), type);
 }
 
-std::uint32_t* Window::CreateCPUBackBuffer(uint32_t buffer_width,
-                                           uint32_t buffer_height) {
+uint32_t* Window::CreateCPUBackBuffer(uint32_t buffer_width,
+                                      uint32_t buffer_height) {
   if (back_buffer_count_ >= MAX_BACK_BUFFER_COUNT) {
     return nullptr;
   }
@@ -136,7 +136,7 @@ std::uint32_t* Window::CreateCPUBackBuffer(uint32_t buffer_width,
     return nullptr;
   }
 
-  std::uint32_t* color_buffer = nullptr;
+  uint32_t* color_buffer = nullptr;
   // create bitmap for back buffer
   back_buffers_[back_buffer_count_].bitmap =
       CreateDIBSection(back_buffers_[back_buffer_count_].dc,

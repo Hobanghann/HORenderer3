@@ -39,6 +39,11 @@ add_library(${PLATFORMS_NAME} STATIC ${ALL_FILES})
 ################################################################################
 # Set target properties
 ################################################################################
+target_link_libraries(
+  ${PLATFORMS_NAME}
+  PUBLIC
+  warning_flags
+)
 target_include_directories(
   ${PLATFORMS_NAME}
   PUBLIC
@@ -61,6 +66,7 @@ target_include_directories(
 target_link_libraries(
   ${MAIN_PROJECT_NAME}
   PUBLIC
+  warning_flags
   ${PLATFORMS_NAME}
   ${THIRD_PARTY_NAME}
   ${CORE_NAME})

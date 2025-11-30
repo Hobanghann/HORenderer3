@@ -3,14 +3,8 @@
 !.gitignore
 !.gitattributes
 !.gitmodules
+!.github/
 
-lib/*
-!lib/stb.cc
-!lib/half.hpp
-!lib/CMakeLists.txt
+build*/
+build/
 
-test/*
-!test/core/
-!test/CMakeLists.txt
-
-build

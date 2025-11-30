@@ -18,13 +18,15 @@ TEST(Color32Test, Constructors) {
   EXPECT_EQ(c1.b, 255);
   EXPECT_EQ(c1.a, 255);
 
-  Color32 c2(300, 300, 300, 300);
+  Color32 c2(static_cast<uint8_t>(300), static_cast<uint8_t>(300),
+             static_cast<uint8_t>(300), static_cast<uint8_t>(300));
   EXPECT_EQ(c2.r, 44);
   EXPECT_EQ(c2.g, 44);
   EXPECT_EQ(c2.b, 44);
   EXPECT_EQ(c2.a, 44);
 
-  Color32 c3(-10, -10, -10, -10);
+  Color32 c3(static_cast<uint8_t>(-10), static_cast<uint8_t>(-10),
+             static_cast<uint8_t>(-10), static_cast<uint8_t>(-10));
   EXPECT_EQ(c3.r, 246);
   EXPECT_EQ(c3.g, 246);
   EXPECT_EQ(c3.b, 246);
@@ -69,7 +71,7 @@ TEST(Color32Test, Addition) {
 TEST(Color32Test, Subtraction) {
   Color32 a(100, 150, 200, 250);
   Color32 b(110, 100, 220, 10);
-  EXPECT_EQ(a-b, Color32(0, 50, 0, 240));  // floor to 0
+  EXPECT_EQ(a - b, Color32(0, 50, 0, 240));  // floor to 0
 
   a -= b;
   EXPECT_EQ(a, Color32(0, 50, 0, 240));  // not same!
