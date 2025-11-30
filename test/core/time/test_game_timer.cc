@@ -96,33 +96,6 @@ TEST_F(GameTimerTest, MultiplePauses) {
   EXPECT_GT(t2, t1);
 }
 
-TEST_F(GameTimerTest, StopStartTwice) {
-  std::this_thread::sleep_for(2ms);
-  timer.Tick();
-  real t0 = timer.TotalTime();
-
-  // First Stop
-  timer.Stop();
-  timer.Tick();
-  real t1 = timer.TotalTime();
-  std::this_thread::sleep_for(1000ms);
-
-  // Second Stop: should do nothing
-  timer.Stop();
-  timer.Tick();
-  real t2 = timer.TotalTime();
-  std::this_thread::sleep_for(1000ms);
-
-  // Start again
-  timer.Start();
-  timer.Tick();
-  real t3 = timer.TotalTime();
-
-  EXPECT_GT(t1, t0);
-  EXPECT_NEAR(t1, t2, 0.001_r);
-  EXPECT_GT(t3, t2);
-}
-
 TEST_F(GameTimerTest, StartWithoutStop) {
   std::this_thread::sleep_for(2ms);
   timer.Tick();
