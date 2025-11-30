@@ -2,7 +2,7 @@
 # CMake settings
 ##########################################################
 
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.20)
 include(FetchContent)
 set(MAIN_PROJECT_NAME HORenderer)
 
@@ -12,6 +12,62 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 enable_testing()
+
+##########################################################
+# Set Compiler Options
+##########################################################
+add_library(warning_flags INTERFACE)
+
+if (MSVC)
+    target_compile_options(
+        warning_flags
+        INTERFACE
+        /W4               # strong warnings
+        /WX               # warnings as errors
+        /permissive-      # strict C++ mode
+        /Zc:__cplusplus
+        /Zc:preprocessor
+        /wd4201           # allow anonymous struct, union
+        /wd4723           # disable: potential divide by zero (false positive)
+    )
+
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        # Clang: careful, do NOT use -Weverything (extremely noisy)
+        target_compile_options(
+            warning_flags
+            INTERFACE
+            -Werror -Wall -Wextra
+            -Wconversion -Wsign-conversion
+            -Wshadow -Wundef
+            -Wunreachable-code
+            -Wstrict-aliasing
+            -Wnull-dereference
+            -Wdouble-promotion
+            -Wformat=2
+            -Wcast-qual
+            -Wcast-align
+            -fms-extensions
+            -Woverloaded-virtual
+            -Wmissing-prototypes
+            -Wtautological-compare
+            -Wno-c++98-compat
+            -Wno-c++98-compat-pedantic
+            -Wno-gnu-anonymous-struct    # allow anonymous struct/union
+            -Wno-double-promotion       # allow float to double promotion
+        )
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")        
+    message(FATAL_ERROR
+        "GCC is not supported by HORenderer due to its restrictions on "
+        "anonymous aggregates with non-POD members. "
+        "Please use Clang or MSVC instead."
+    )
+else()
+    message(WARNING
+        "Unknown compiler '${CMAKE_CXX_COMPILER_ID}'. "
+        "HORenderer officially supports only MSVC and Clang. "
+        "Compilation may work, but is not tested."
+    )
+endif ()
 
 ##########################################################
 # Set module's Name

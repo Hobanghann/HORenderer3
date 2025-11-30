@@ -117,9 +117,9 @@ constexpr Basis3D::Basis3D(const Vector3& basis_x, const Vector3& basis_y,
 constexpr Basis3D::Basis3D(real scale_x, real scale_y, real scale_z,
                            const Vector3& basis_x, const Vector3& basis_y,
                            const Vector3& basis_z)
-    : row0(scale_x * basis_x.x, scale_y* basis_y.x, scale_x * basis_z.x),
-      row1(scale_x * basis_x.y, scale_y* basis_y.y, scale_x * basis_z.y),
-      row2(scale_x * basis_x.z, scale_y* basis_y.z, scale_x * basis_z.z) {}
+    : row0(scale_x * basis_x.x, scale_y * basis_y.x, scale_z * basis_z.x),
+      row1(scale_x * basis_x.y, scale_y * basis_y.y, scale_z * basis_z.y),
+      row2(scale_x * basis_x.z, scale_y * basis_y.z, scale_z * basis_z.z) {}
 constexpr Basis3D::Basis3D(const Matrix3x3& m) : matrix(m) {}
 constexpr Basis3D::Basis3D(const Quaternion& q)
     : matrix(Matrix3x3::FromQuaternion(q)) {}

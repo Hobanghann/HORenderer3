@@ -1,5 +1,7 @@
 #include "sphere.h"
 
+#include <cstdint>
+
 #include "math_funcs.h"
 
 namespace ho {
@@ -15,8 +17,8 @@ Sphere Sphere::ConstructCentroidFromPositions(
   Vector3 s_center;
   real radius = 0;
 
-  std::uint32_t n = 0;
-  for (std::uint32_t i = 0; i < positions.size(); i++) {
+  uint32_t n = 0;
+  for (uint32_t i = 0; i < positions.size(); i++) {
     // construct sphere center
     n += 1;
     const Vector3& x = Vector3(positions[i]);
@@ -25,7 +27,7 @@ Sphere Sphere::ConstructCentroidFromPositions(
 
   // construct sphere radius
   real max_squared_distance = 0;
-  for (std::uint32_t i = 0; i < positions.size(); i++) {
+  for (uint32_t i = 0; i < positions.size(); i++) {
     real squared_distance = math::SqrdDistance(s_center, positions[i]);
     max_squared_distance = math::Max(max_squared_distance, squared_distance);
   }
@@ -77,7 +79,7 @@ Sphere Sphere::ConstructRitterFromPositions(
   real x_max = -math::REAL_MAX, y_max = -math::REAL_MAX,
        z_max = -math::REAL_MAX;
 
-  for (std::uint32_t i = 0; i < positions.size(); i++) {
+  for (uint32_t i = 0; i < positions.size(); i++) {
     const Vector3& p = positions[i];
     if (p.x < x_min) {
       x_min = p.x;
@@ -133,7 +135,7 @@ Sphere Sphere::ConstructRitterFromPositions(
   real radius = math::Sqrt(math::SqrdDistance(a, b)) * 0.5_r;
 
   // Ritter expansion: adjust only when a point lies outside the current sphere
-  for (std::uint32_t i = 0; i < positions.size(); i++) {
+  for (uint32_t i = 0; i < positions.size(); i++) {
     const Vector3& p = positions[i];
     const real d2 = math::SqrdDistance(p, center);
 

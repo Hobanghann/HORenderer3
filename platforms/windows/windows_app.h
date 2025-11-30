@@ -37,8 +37,7 @@ class Window {
   void ShowMessageBox(const std::wstring& title, const std::wstring& text,
                       UINT type = MB_ICONERROR);
 
-  std::uint32_t* CreateCPUBackBuffer(uint32_t buffer_width,
-                                     uint32_t buffer_height);
+  uint32_t* CreateCPUBackBuffer(uint32_t buffer_width, uint32_t buffer_height);
 
   void CopyCPUBuffer(const void* external_memory, uint32_t external_width,
                      uint32_t external_height);

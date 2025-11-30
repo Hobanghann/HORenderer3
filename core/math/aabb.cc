@@ -1,12 +1,13 @@
 #include "aabb.h"
 
+#include <cstdint>
 #include <string>
 
 #include "math_funcs.h"
 
 namespace ho {
 
-  AABB AABB::ConstructFromPositions(const std::vector<Vector3>& positions) {
+AABB AABB::ConstructFromPositions(const std::vector<Vector3>& positions) {
   if (positions.size() == 0) {
     return AABB();
   }
@@ -17,7 +18,7 @@ namespace ho {
   Vector3 max_edges =
       Vector3(-math::REAL_MAX, -math::REAL_MAX, -math::REAL_MAX);
 
-  for (std::uint32_t i = 0; i < positions.size(); i++) {
+  for (uint32_t i = 0; i < positions.size(); i++) {
     // construct aabb edges
     if (positions[i].x > max_edges.x) {
       max_edges.x = positions[i].x;
@@ -40,7 +41,6 @@ namespace ho {
   }
   return AABB(min_edges, max_edges);
 }
-
 
 std::string AABB::ToString() const {
   char buf[100];
