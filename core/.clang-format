@@ -1,0 +1,32 @@
+BasedOnStyle: google
+Language: Cpp
+
+# Indentation & Width
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ColumnLimit: 120
+
+# Namespace Formatting
+NamespaceIndentation: All
+
+# Braces & Initializer List Style
+BreakBeforeBraces: Attach
+BraceWrapping:
+  AfterFunction: false
+  AfterClass: false
+  AfterControlStatement: Never
+
+PackConstructorInitializers: NextLine
+
+# Includes
+IncludeBlocks: Regroup
+SortIncludes: true
+
+# Spacing rules
+SpacesInAngles: Never
+SpaceBeforeParens: ControlStatements
+PointerAlignment: Left
+
+# Extra modern C++ quality-of-life
+FixNamespaceComments: true
+InsertTrailingCommas: None
