@@ -4,6 +4,7 @@
 !.gitattributes
 !.gitmodules
 !.github/
+!.clang-format
 
 build*/
 build/
