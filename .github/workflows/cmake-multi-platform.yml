@@ -16,6 +16,11 @@ jobs:
         build_type: [Debug, Release]
         c_compiler: [cl, clang]
         cpp_compiler: [cl, clang++]
+        include:
+        - c_compiler: cl
+          cpp_compiler: cl
+        - c_compiler: clang
+          cpp_compiler: clang++
         
     runs-on: ${{ matrix.os }}
     
