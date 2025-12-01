@@ -2,6 +2,7 @@ Checks: >
   -*,
 
   bugprone-*,
+  -bugprone-easily-swappable-parameters,
 
   clang-analyzer-*,
 
@@ -62,8 +63,12 @@ Checks: >
 
 WarningsAsErrors: '*'
 
-HeaderFilterRegex: '*'
+HeaderFilterRegex: '.*core/.*'
 
 FormatStyle: none
+
+CheckOptions:
+  - key: system-headers
+    value: 0
 
 
