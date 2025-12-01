@@ -19,11 +19,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install LLVM
+      - name: Add LLVM APT repository
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 21
+
+
+      - name: Install clang-format-21
+        run: sudo apt-get install -y clang-format-21
 
       - name: Run clang-format check
         id: format_check
