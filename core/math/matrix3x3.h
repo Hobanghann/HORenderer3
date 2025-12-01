@@ -84,7 +84,7 @@ namespace ho {
     constexpr Matrix3x3::Matrix3x3(const Vector3& p_row0, const Vector3& p_row1, const Vector3& p_row2)
         : row0(p_row0), row1(p_row1), row2(p_row2) {}
 
-    _INLINE_ constexpr Matrix3x3 Matrix3x3::IDENTITY =
+    INLINE constexpr Matrix3x3 Matrix3x3::IDENTITY =
         Matrix3x3(Vector3(1.0_r, 0.0_r, 0.0_r), Vector3(0.0_r, 1.0_r, 0.0_r), Vector3(0.0_r, 0.0_r, 1.0_r));
 
     constexpr Matrix3x3& Matrix3x3::operator=(const Matrix3x3& rhs) {
@@ -271,11 +271,11 @@ namespace ho {
         return m;
     }
 
-    _ALWAYS_INLINE_ constexpr Matrix3x3 operator*(real scalar, const Matrix3x3& matrix) {
+    ALWAYS_INLINE constexpr Matrix3x3 operator*(real scalar, const Matrix3x3& matrix) {
         return Matrix3x3(scalar * matrix.row0, scalar * matrix.row1, scalar * matrix.row2);
     }
 
-    _ALWAYS_INLINE_ constexpr Vector3 operator*(const Matrix3x3& m, const Vector3& v) {
+    ALWAYS_INLINE constexpr Vector3 operator*(const Matrix3x3& m, const Vector3& v) {
         return Vector3(m.row0.Dot(v), m.row1.Dot(v), m.row2.Dot(v));
     }
 

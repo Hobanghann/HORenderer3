@@ -100,10 +100,10 @@ namespace ho {
         return *this;
     }
 
-    _INLINE_ constexpr const Vector3 Vector3::UNIT_X = Vector3(1.0_r, 0.0_r, 0.0_r);
-    _INLINE_ constexpr const Vector3 Vector3::UNIT_Y = Vector3(0.0_r, 1.0_r, 0.0_r);
-    _INLINE_ constexpr const Vector3 Vector3::UNIT_Z = Vector3(0.0_r, 0.0_r, 1.0_r);
-    _INLINE_ constexpr const Vector3 Vector3::ZERO = Vector3(0.0_r, 0.0_r, 0.0_r);
+    INLINE constexpr const Vector3 Vector3::UNIT_X = Vector3(1.0_r, 0.0_r, 0.0_r);
+    INLINE constexpr const Vector3 Vector3::UNIT_Y = Vector3(0.0_r, 1.0_r, 0.0_r);
+    INLINE constexpr const Vector3 Vector3::UNIT_Z = Vector3(0.0_r, 0.0_r, 1.0_r);
+    INLINE constexpr const Vector3 Vector3::ZERO = Vector3(0.0_r, 0.0_r, 0.0_r);
 
     constexpr Vector3 Vector3::operator+(const Vector3& rhs) const { return Vector3(x + rhs.x, y + rhs.y, z + rhs.z); }
     constexpr Vector3& Vector3::operator+=(const Vector3& rhs) {

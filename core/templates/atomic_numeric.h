@@ -8,21 +8,21 @@ namespace ho {
     template <typename T>
     class AtomicNumeric {
        public:
-        _ALWAYS_INLINE_ explicit AtomicNumeric(T value) { Set(value); }
+        ALWAYS_INLINE explicit AtomicNumeric(T value) { Set(value); }
 
-        _ALWAYS_INLINE_ void Set(T value) { value_.store(value, std::memory_order_release); }
+        ALWAYS_INLINE void Set(T value) { value_.store(value, std::memory_order_release); }
 
-        _ALWAYS_INLINE_ T Get() const { return value_.load(std::memory_order_acquire); }
+        ALWAYS_INLINE T Get() const { return value_.load(std::memory_order_acquire); }
 
-        _ALWAYS_INLINE_ T Increment() { return value_.fetch_add(1, std::memory_order_acq_rel) + 1; }
+        ALWAYS_INLINE T Increment() { return value_.fetch_add(1, std::memory_order_acq_rel) + 1; }
 
-        _ALWAYS_INLINE_ T Decrement() { return value_.fetch_sub(1, std::memory_order_acq_rel) - 1; }
+        ALWAYS_INLINE T Decrement() { return value_.fetch_sub(1, std::memory_order_acq_rel) - 1; }
 
-        _ALWAYS_INLINE_ T Add(T value) { return value_.fetch_add(value, std::memory_order_acq_rel) + value; }
+        ALWAYS_INLINE T Add(T value) { return value_.fetch_add(value, std::memory_order_acq_rel) + value; }
 
-        _ALWAYS_INLINE_ T Sub(T value) { return value_.fetch_sub(value, std::memory_order_acq_rel) - value; }
+        ALWAYS_INLINE T Sub(T value) { return value_.fetch_sub(value, std::memory_order_acq_rel) - value; }
 
-        _ALWAYS_INLINE_ T ExchangeIfGreater(T new_val) {
+        ALWAYS_INLINE T ExchangeIfGreater(T new_val) {
             while (true) {
                 T old = value_.load(std::memory_order_acquire);
                 if (old >= new_val) {
@@ -35,32 +35,32 @@ namespace ho {
             }
         }
 
-        _ALWAYS_INLINE_ bool TestEqual(T new_val) {
+        ALWAYS_INLINE bool TestEqual(T new_val) {
             T old = value_.load(std::memory_order_relaxed);
             return old == new_val;
         }
 
-        _ALWAYS_INLINE_ bool TestNotEqual(T new_val) {
+        ALWAYS_INLINE bool TestNotEqual(T new_val) {
             T old = value_.load(std::memory_order_relaxed);
             return old != new_val;
         }
 
-        _ALWAYS_INLINE_ bool TestLess(T new_val) {
+        ALWAYS_INLINE bool TestLess(T new_val) {
             T old = value_.load(std::memory_order_relaxed);
             return old > new_val;
         }
 
-        _ALWAYS_INLINE_ bool TestGreater(T new_val) {
+        ALWAYS_INLINE bool TestGreater(T new_val) {
             T old = value_.load(std::memory_order_relaxed);
             return old < new_val;
         }
 
-        _ALWAYS_INLINE_ bool TestLessEqual(T new_val) {
+        ALWAYS_INLINE bool TestLessEqual(T new_val) {
             T old = value_.load(std::memory_order_relaxed);
             return old >= new_val;
         }
 
-        _ALWAYS_INLINE_ bool TestGreaterEqual(T new_val) {
+        ALWAYS_INLINE bool TestGreaterEqual(T new_val) {
             T old = value_.load(std::memory_order_relaxed);
             return old <= new_val;
         }

@@ -18,8 +18,8 @@ namespace ho {
         constexpr Basis2D& operator=(const Basis2D& rhs);
         ~Basis2D() = default;
 
-        _ALWAYS_INLINE_ real scale_x() const;
-        _ALWAYS_INLINE_ real scale_y() const;
+        ALWAYS_INLINE real scale_x() const;
+        ALWAYS_INLINE real scale_y() const;
         constexpr Vector2 basis_x() const;
         constexpr Vector2 basis_y() const;
 
@@ -32,13 +32,13 @@ namespace ho {
         constexpr bool IsEqualApprox(const Basis2D& rhs) const;
         constexpr bool IsNotEqualApprox(const Basis2D& rhs) const;
 
-        _ALWAYS_INLINE_ constexpr bool IsOrthogonal() const;
-        _ALWAYS_INLINE_ Basis2D& Orthogonalize();
-        _ALWAYS_INLINE_ Basis2D Orthogonalized() const;
+        ALWAYS_INLINE constexpr bool IsOrthogonal() const;
+        ALWAYS_INLINE Basis2D& Orthogonalize();
+        ALWAYS_INLINE Basis2D Orthogonalized() const;
 
-        _ALWAYS_INLINE_ constexpr bool IsOrthonormal() const;
-        _ALWAYS_INLINE_ Basis2D& Orthonormalize();
-        _ALWAYS_INLINE_ Basis2D Orthonormalized() const;
+        ALWAYS_INLINE constexpr bool IsOrthonormal() const;
+        ALWAYS_INLINE Basis2D& Orthonormalize();
+        ALWAYS_INLINE Basis2D Orthonormalized() const;
 
         constexpr Basis2D& Scale(const Vector2& scale);
         constexpr Basis2D Scaled(const Vector2& scale) const;

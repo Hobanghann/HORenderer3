@@ -21,10 +21,21 @@ add_library(${CORE_NAME} STATIC ${ALL_FILES})
 ################################################################################
 # Set target properties
 ################################################################################
-target_include_directories(${CORE_NAME}
-PUBLIC
-  ${CMAKE_SOURCE_DIR}/lib
-  ${CMAKE_SOURCE_DIR}
+if (ENABLE_CLANG_TIDY)
+  target_include_directories(
+    ${CORE_NAME}
+    PUBLIC
+    ${CMAKE_SOURCE_DIR}
 	)
-target_link_libraries(${CORE_NAME} PUBLIC warning_flags ${THIRD_PARTY_NAME})
+  target_link_libraries(${CORE_NAME} PUBLIC warning_flags)
+else()
+  target_include_directories(
+    ${CORE_NAME}
+    PUBLIC
+    ${CMAKE_SOURCE_DIR}/lib
+    ${CMAKE_SOURCE_DIR}
+	)
+  target_link_libraries(${CORE_NAME} PUBLIC warning_flags ${THIRD_PARTY_NAME})
+endif()
+
 message("\n\n\n######## Processing ${CORE_NAME} module finished. ########\n\n\n")

@@ -49,9 +49,10 @@ TEST(IDTest, Decrement) {
 TEST(IDTest, DecrementOverflow) {
 #ifdef NDEBUG
     GTEST_SKIP() << "Assert tests are skipped in release mode.";
-#endif
+#else
     TestID id;
     EXPECT_DEATH(id.Decrement(), "");
+#endif
 }
 
 TEST(IDTest, ComparisonOperators) {

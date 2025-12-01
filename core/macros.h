@@ -2,27 +2,27 @@
 
 #include <cassert>
 
-#ifndef _ALWAYS_INLINE_
+#ifndef ALWAYS_INLINE
 #if defined(__GNUC__)
-#define _ALWAYS_INLINE_ __attribute__((always_inline)) inline
+#define ALWAYS_INLINE __attribute__((always_inline)) inline
 #elif defined(_MSC_VER)
-#define _ALWAYS_INLINE_ __forceinline
+#define ALWAYS_INLINE __forceinline
 #else
-#define _ALWAYS_INLINE_ inline
+#define ALWAYS_INLINE inline
 #endif
 #endif
 
-#ifndef _INLINE_
-#define _INLINE_ inline
+#ifndef INLINE
+#define INLINE inline
 #endif
 
-#ifndef _NO_INLINE_
+#ifndef NO_INLINE
 #if defined(__GNUC__)
-#define _NO_INLINE_ __attribute__((noinline))
+#define NO_INLINE __attribute__((noinline))
 #elif defined(_MSC_VER)
-#define _NO_INLINE_ __declspec(noinline)
+#define NO_INLINE __declspec(noinline)
 #else
-#define _NO_INLINE_
+#define NO_INLINE
 #endif
 #endif
 

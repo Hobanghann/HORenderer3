@@ -11,7 +11,7 @@ namespace ho {
     namespace math {
 
         template <class T>
-        _ALWAYS_INLINE_ Vector2 Barycentric(const T& target, const T& v1, const T& v2) {
+        ALWAYS_INLINE Vector2 Barycentric(const T& target, const T& v1, const T& v2) {
             const T line_vec = v2 - v1;
             const T target_vec = target - v1;
 
@@ -26,7 +26,7 @@ namespace ho {
         }
 
         template <class T>
-        _ALWAYS_INLINE_ Vector3 Barycentric(const T& target, const T& v1, const T& v2, const T& v3) {
+        ALWAYS_INLINE Vector3 Barycentric(const T& target, const T& v1, const T& v2, const T& v3) {
             // Standard triangle barycentric formula:
             // a = v1 - v3, b = v2 - v3, c = target - v3
             // d00=a·a, d01=a·b, d11=b·b, d20=c·a, d21=c·b
@@ -57,56 +57,56 @@ namespace ho {
         }
 
         template <class T>
-        _ALWAYS_INLINE_ T Lerp(const T& v1, const T& v2, const Vector2& barycentric) {
+        ALWAYS_INLINE T Lerp(const T& v1, const T& v2, const Vector2& barycentric) {
             return barycentric.x * v1 + barycentric.y * v2;
         }
 
         template <class T>
-        _ALWAYS_INLINE_ T Lerp(const T& v1, const T& v2, const T& v3, const Vector3& barycentric) {
+        ALWAYS_INLINE T Lerp(const T& v1, const T& v2, const T& v3, const Vector3& barycentric) {
             return barycentric.x * v1 + barycentric.y * v2 + barycentric.z * v3;
         }
 
-        _ALWAYS_INLINE_ real Pcerp_W(const Vector2& inv_w, const Vector2& barycentric) {
+        ALWAYS_INLINE real Pcerp_W(const Vector2& inv_w, const Vector2& barycentric) {
             const real denom = (barycentric.x * inv_w.x + barycentric.y * inv_w.y);
 
             return 1.0_r / denom;
         }
-        _ALWAYS_INLINE_ real Pcerp_W(const Vector3& inv_w, const Vector3& barycentric) {
+        ALWAYS_INLINE real Pcerp_W(const Vector3& inv_w, const Vector3& barycentric) {
             const real denom = (barycentric.x * inv_w.x + barycentric.y * inv_w.y + barycentric.z * inv_w.z);
             return 1.0_r / denom;
         }
 
         template <class T>
-        _ALWAYS_INLINE_ T Pcerp(const T& a1, const T& a2, const Vector2& barycentric, const Vector2& inv_w,
-                                real interpolated_w) {
+        ALWAYS_INLINE T Pcerp(const T& a1, const T& a2, const Vector2& barycentric, const Vector2& inv_w,
+                              real interpolated_w) {
             return interpolated_w * (inv_w.x * barycentric.x * a1 + inv_w.y * barycentric.y * a2);
         }
 
         template <class T>
-        _ALWAYS_INLINE_ T Pcerp(const T& a1, const T& a2, const T& a3, const Vector3& barycentric, const Vector3& inv_w,
-                                real interpolated_w) {
+        ALWAYS_INLINE T Pcerp(const T& a1, const T& a2, const T& a3, const Vector3& barycentric, const Vector3& inv_w,
+                              real interpolated_w) {
             return interpolated_w *
                    (inv_w.x * barycentric.x * a1 + inv_w.y * barycentric.y * a2 + inv_w.z * barycentric.z * a3);
         }
 
         template <class T>
-        _ALWAYS_INLINE_ T Pcerp(const T& a1, const T& a2, const Vector2& barycentric, const Vector4& v1,
-                                const Vector4& v2) {
+        ALWAYS_INLINE T Pcerp(const T& a1, const T& a2, const Vector2& barycentric, const Vector4& v1,
+                              const Vector4& v2) {
             const Vector2 inv_w = Vector2(1.0_r / v1.w, 1.0_r / v2.w);
             const real interpolated_w = Pcerp_W(inv_w, barycentric);
             return interpolated_w * (inv_w.x * barycentric.x * a1 + inv_w.y * barycentric.y * a2);
         }
 
         template <class T>
-        _ALWAYS_INLINE_ T Pcerp(const T& a1, const T& a2, const T& a3, const Vector3& barycentric, const Vector4& v1,
-                                const Vector4& v2, const Vector4& v3) {
+        ALWAYS_INLINE T Pcerp(const T& a1, const T& a2, const T& a3, const Vector3& barycentric, const Vector4& v1,
+                              const Vector4& v2, const Vector4& v3) {
             const Vector3 inv_w = Vector3(1.0_r / v1.w, 1.0_r / v2.w, 1.0_r / v3.w);
             const real interpolated_w = Pcerp_W(inv_w, barycentric);
             return interpolated_w *
                    (inv_w.x * barycentric.x * a1 + inv_w.y * barycentric.y * a2 + inv_w.z * barycentric.z * a3);
         }
 
-        _ALWAYS_INLINE_ Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, const Vector2& barycentric) {
+        ALWAYS_INLINE Quaternion Slerp(const Quaternion& q1, const Quaternion& q2, const Vector2& barycentric) {
             real cos = q1.Dot(q2);
             if (math::IsEqualApprox(cos, 1.0_r) || math::IsEqualApprox(cos, -1.0_r)) {
                 return q1;
@@ -126,7 +126,7 @@ namespace ho {
             return alpha * q1 + beta * adj_q2;
         }
 
-        _ALWAYS_INLINE_ Quaternion SlerpLong(const Quaternion& q1, const Quaternion& q2, const Vector2& barycentric) {
+        ALWAYS_INLINE Quaternion SlerpLong(const Quaternion& q1, const Quaternion& q2, const Vector2& barycentric) {
             real cos = q1.Dot(q2);
             if (math::IsEqualApprox(cos, 1.0_r) || math::IsEqualApprox(cos, -1.0_r)) {
                 return q1;

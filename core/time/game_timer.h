@@ -10,15 +10,15 @@ using TimePoint = std::chrono::time_point<ChronoClock>;
 
 class GameTimer {
    public:
-    _ALWAYS_INLINE_ GameTimer();
+    ALWAYS_INLINE GameTimer();
 
-    _ALWAYS_INLINE_ void Tick();
-    _ALWAYS_INLINE_ float DeltaTime();
-    _ALWAYS_INLINE_ float TotalTime();
+    ALWAYS_INLINE void Tick();
+    ALWAYS_INLINE float DeltaTime();
+    ALWAYS_INLINE float TotalTime();
 
-    _ALWAYS_INLINE_ void Reset();
-    _ALWAYS_INLINE_ void Stop();
-    _ALWAYS_INLINE_ void Start();
+    ALWAYS_INLINE void Reset();
+    ALWAYS_INLINE void Stop();
+    ALWAYS_INLINE void Start();
 
    private:
     Duration delta_time_;

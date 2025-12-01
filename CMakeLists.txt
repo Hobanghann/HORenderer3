@@ -11,7 +11,11 @@ project(${MAIN_PROJECT_NAME} LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 enable_testing()
+
+option(ENABLE_CLANG_TIDY "Build only what is necessary for clang-tidy" OFF)
 
 ##########################################################
 # Set Compiler Options
@@ -79,6 +83,16 @@ set(CORE_NAME core)
 ##########################################################
 # Process modules
 ##########################################################
+
+if (ENABLE_CLANG_TIDY)
+    message(STATUS "[CLANG-TIDY MODE] Generating minimal targets")
+
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
+
+    return()
+endif()
+
+
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/platforms)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
