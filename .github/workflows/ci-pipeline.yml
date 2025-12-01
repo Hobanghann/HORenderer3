@@ -20,7 +20,10 @@ jobs:
           fetch-depth: 0
 
       - name: Install LLVM
-        run: sudo apt-get update && sudo apt-get install -y clang-format
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 21
 
       - name: Run clang-format check
         id: format_check
@@ -30,7 +33,7 @@ jobs:
           error_count=0  
           for file in $(find core platforms test -name "*.h" -o -name "*.cc"); do
             mkdir -p formatted/$(dirname "$file")
-            clang-format "$file" > formatted/"$file"  
+            clang-format-21 "$file" > formatted/"$file"  
             if ! diff -q "$file" formatted/"$file" >/dev/null; then
               echo ""
               echo "-------------------------------------"
