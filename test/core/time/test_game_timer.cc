@@ -6,6 +6,7 @@
 #include "core/time/game_timer.h"
 
 using namespace std::chrono_literals;
+using namespace ho;
 
 class GameTimerTest : public ::testing::Test {
    protected:
