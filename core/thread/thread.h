@@ -64,7 +64,7 @@ namespace ho {
 
         ALWAYS_INLINE static void Yield() {}
 
-        ALWAYS_INLINE static void Sleep(uint64_t ms) {}
+        ALWAYS_INLINE static void Sleep(uint64_t) {}
     };
 
 #endif  // THREAD_ENABLED

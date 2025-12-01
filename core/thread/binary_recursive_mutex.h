@@ -69,13 +69,13 @@ namespace ho {
         friend class ConditionVariable;
 
        public:
-        explicit MutexLock(const BinaryRecursiveMutex<Tag>& mutex) : mutex_(mutex) { mutex.Lock(); }
+        explicit MutexLock(const BinaryRecursiveMutex<Tag>& mutex) : mutex_(mutex) { mutex_.Lock(); }
 
-        ~MutexLock() { mutex.Unlock(); }
+        ~MutexLock() { mutex_.Unlock(); }
 
-        ALWAYS_INLINE void Relock() const { mutex.Lock(); }
+        ALWAYS_INLINE void Relock() const { mutex_.Lock(); }
 
-        ALWAYS_INLINE void Unlock() const { mutex.Unlock(); }
+        ALWAYS_INLINE void Unlock() const { mutex_.Unlock(); }
 
        private:
         const BinaryRecursiveMutex<Tag>& mutex_;
@@ -94,7 +94,7 @@ namespace ho {
     template <int Tag>
     class MutexLock<BinaryRecursiveMutex<Tag>> {
        public:
-        explicit MutexLock(const BinaryRecursiveMutex<Tag>& mutex) {}
+        explicit MutexLock(const BinaryRecursiveMutex<Tag>&) {}
 
         ~MutexLock() {}
 
