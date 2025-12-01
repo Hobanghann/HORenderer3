@@ -28,7 +28,7 @@ namespace ho {
         // Nested Worker class
         class Worker : public Thread {
            public:
-            explicit Worker(JobSystem* owner) : Thread(&Worker::WorkerLoop, owner), owner_(owner) {}
+            explicit Worker(JobSystem* owner) : Thread(&Worker::WorkerLoop, owner) {}
 
            private:
             // worker's entry function
@@ -66,7 +66,6 @@ namespace ho {
                     }
                 }
             }
-            JobSystem* owner_;
         };
 
        public:

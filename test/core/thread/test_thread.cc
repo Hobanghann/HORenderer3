@@ -50,8 +50,6 @@ TEST(ThreadTest, PassesUserdataCorrectly) {
         int y;
     } test_data{2, 3};
 
-    std::atomic<int> result{0};
-
     auto entry = [](void* userdata) {
         Data* d = reinterpret_cast<Data*>(userdata);
         d->x += d->y;  // 5

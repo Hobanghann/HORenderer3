@@ -39,7 +39,7 @@ TEST(JobSystemTest, KickMultipleJobs) {
     std::vector<JobDeclaration> jobs;
     jobs.reserve(JOB_COUNT);
 
-    for (int i = 0; i < JOB_COUNT; i++) {
+    for (size_t i = 0; i < JOB_COUNT; i++) {
         jobs.push_back({AddInt, &values[i], sizeof(int), nullptr});
     }
 
@@ -69,7 +69,7 @@ TEST(JobSystemTest, KickJobsAndWait) {
     std::vector<JobDeclaration> jobs;
     jobs.reserve(JOB_COUNT);
 
-    for (int i = 0; i < JOB_COUNT; i++) {
+    for (size_t i = 0; i < JOB_COUNT; i++) {
         jobs.push_back({AddInt, &values[i], sizeof(int), nullptr});
     }
 
@@ -85,7 +85,7 @@ TEST(JobSystemTest, CounterBasedSynchronization) {
     std::vector<int> values(JOB_COUNT, 0);
     auto counter = std::make_shared<AtomicNumeric<uint32_t>>(JOB_COUNT);
 
-    for (int i = 0; i < JOB_COUNT; i++) {
+    for (size_t i = 0; i < JOB_COUNT; i++) {
         JobDeclaration j{AddInt, &values[i], sizeof(int), counter};
         js.KickJob(j);
     }
@@ -104,7 +104,7 @@ TEST(JobSystemTest, StressTest) {
     std::vector<JobDeclaration> jobs;
     jobs.reserve(JOB_COUNT);
 
-    for (int i = 0; i < JOB_COUNT; i++) {
+    for (size_t i = 0; i < JOB_COUNT; i++) {
         jobs.push_back({AddInt, &values[i], sizeof(int), nullptr});
     }
 

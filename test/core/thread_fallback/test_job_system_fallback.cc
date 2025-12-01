@@ -32,7 +32,7 @@ TEST(JobSystemFallbackTest, KickJobs) {
     std::vector<JobDeclaration> jobs;
     jobs.reserve(JOB_COUNT);
 
-    for (int i = 0; i < JOB_COUNT; i++) {
+    for (size_t i = 0; i < JOB_COUNT; i++) {
         jobs.push_back({AddInt, &values[i], sizeof(int), nullptr});
     }
 
@@ -60,7 +60,7 @@ TEST(JobSystemFallbackTest, KickJobsAndWait) {
     std::vector<JobDeclaration> jobs;
     jobs.reserve(JOB_COUNT);
 
-    for (int i = 0; i < JOB_COUNT; i++) {
+    for (size_t i = 0; i < JOB_COUNT; i++) {
         jobs.push_back({AddInt, &values[i], sizeof(int), nullptr});
     }
 
@@ -77,7 +77,7 @@ TEST(JobSystemFallbackTest, CounterHandledCorrectly) {
 
     auto counter = std::make_shared<AtomicNumeric<uint32_t>>(JOB_COUNT);
 
-    for (int i = 0; i < JOB_COUNT; i++) {
+    for (size_t i = 0; i < JOB_COUNT; i++) {
         JobDeclaration j{AddInt, &values[i], sizeof(int), counter};
         js.KickJob(j);
     }

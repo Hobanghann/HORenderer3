@@ -156,7 +156,6 @@ TEST(ConditionVariableTest, NotifyOneWakesOneThread) {
 }
 
 TEST(ConditionVariableTest, NotifyAllWithoutWaitingThread) {
-    BinaryMutex mutex;
     ConditionVariable cv;
 
     // no threads are waiting
