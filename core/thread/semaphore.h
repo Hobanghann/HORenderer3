@@ -3,6 +3,8 @@
 #include <condition_variable>
 #include <mutex>
 
+#include "core/macros.h"
+
 namespace ho {
 
 #ifdef THREAD_ENABLED

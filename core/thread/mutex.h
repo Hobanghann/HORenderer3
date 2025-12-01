@@ -31,6 +31,10 @@ namespace ho {
     using BinaryMutex = Mutex<std::mutex>;
     using RecursiveMutex = Mutex<std::recursive_mutex>;
 
+    // Type Contracts
+    static_assert(std::is_same_v<BinaryMutex, Mutex<std::mutex>>);
+    static_assert(std::is_same_v<RecursiveMutex, Mutex<std::recursive_mutex>>);
+
     template <typename MutexT>
     class MutexLock {
         friend class ConditionVariable;
