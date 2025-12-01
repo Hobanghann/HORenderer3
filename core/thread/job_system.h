@@ -39,8 +39,11 @@ namespace ho {
                     JobDeclaration job;
                     {
                         MutexLock lock(job_sys->mutex_);
-                        while (job_sys->job_queue_.empty()) {
+                        while (job_sys->job_queue_.empty() && job_sys->is_running_) {
                             job_sys->cv_.wait(lock);  // wait until job is kicked in queue
+                        }
+                        if (!job_sys->is_running_) {
+                            return;  // thread exit
                         }
                         job = job_sys->job_queue_.front();
                         job_sys->job_queue_.pop();
@@ -48,7 +51,8 @@ namespace ho {
 
                     job.entry(job.input_data, job.input_size);
 
-                    if (job.counter != nullptr) {  // if job was waited by job system
+                    if (job.counter != nullptr) {
+                        // if job was waited by job system
                         // decrement count and if count is zero, wake up main thread
                         if (job.counter->Decrement() == 0) {
                             MutexLock lock(job_sys->mutex_);
@@ -66,11 +70,23 @@ namespace ho {
         };
 
        public:
-        explicit JobSystem(uint32_t worker_count) {
+        explicit JobSystem(uint32_t worker_count) : is_running_(true) {
             assert(worker_count != 0);
             worker_pool_.reserve(worker_count);
             for (uint32_t i = 0; i < worker_count; i++) {
                 worker_pool_.emplace_back(std::make_unique<Worker>(this));
+            }
+        }
+
+        ~JobSystem() {
+            {
+                MutexLock lock(mutex_);
+                is_running_ = false;
+                cv_.notify_all();
+            }
+
+            for (auto& w : worker_pool_) {
+                w->Join();
             }
         }
 
@@ -101,7 +117,7 @@ namespace ho {
 
         void KickJobsAndWait(const std::vector<JobDeclaration>& jobs) {
             if (jobs.empty()) return;
-            auto counter = std::make_shared<AtomicNumeric<uint32_t>>(jobs.size());
+            auto counter = std::make_shared<AtomicNumeric<uint32_t>>(static_cast<uint32_t>(jobs.size()));
             std::vector<JobDeclaration> with_counter;
             with_counter.reserve(jobs.size());
 
@@ -129,15 +145,14 @@ namespace ho {
         }
 
         void WaitForIdle() {
-            int spins = 100;
-            while (job_count_.Get() > 0 && spins--) {
+            for (int i = 0; i < 100; ++i) {
                 if (job_count_.Get() == 0) return;
                 CPU_PAUSE();
             }
-            if (job_count_.Get() == 0) return;
 
             MutexLock lock(mutex_);
-            while (job_count_.Get() != 0 || !job_queue_.empty()) {
+
+            while (job_count_.Get() > 0) {
                 cv_.wait(lock);
             }
         }
@@ -148,6 +163,7 @@ namespace ho {
         std::queue<JobDeclaration> job_queue_;
         std::vector<std::unique_ptr<Worker>> worker_pool_;
         AtomicNumeric<uint32_t> job_count_{0};
+        bool is_running_;
     };
 
 #else
@@ -158,8 +174,7 @@ namespace ho {
         explicit JobSystem(uint32_t) {}
 
         void KickJob(const JobDeclaration& job) {
-            tls_.clear();
-            job.entry(job.input_data, job.input_size, tls_);
+            job.entry(job.input_data, job.input_size);
             if (job.counter != nullptr) {
                 job.counter->Decrement();
             }
@@ -184,7 +199,7 @@ namespace ho {
 
         void KickJobsAndWait(const std::vector<JobDeclaration>& jobs) {
             if (jobs.empty()) return;
-            auto counter = std::make_shared<AtomicNumeric<uint32_t>>(jobs.size());
+            auto counter = std::make_shared<AtomicNumeric<uint32_t>>(static_cast<uint32_t>(jobs.size()));
             std::vector<JobDeclaration> with_counter;
             with_counter.reserve(jobs.size());
             for (auto job : jobs) {
@@ -193,11 +208,6 @@ namespace ho {
             }
             KickJobs(with_counter);
         }
-
-        std::vector<uint8_t> CollectOutputs() { return tls_; }
-
-       private:
-        static thread_local std::vector<uint8_t> tls_;
     };
 
 #endif  // THREAD_ENABLED
