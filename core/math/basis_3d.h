@@ -20,9 +20,9 @@ namespace ho {
         constexpr Basis3D& operator=(const Basis3D& rhs);
         ~Basis3D() = default;
 
-        _ALWAYS_INLINE_ real scale_x() const;
-        _ALWAYS_INLINE_ real scale_y() const;
-        _ALWAYS_INLINE_ real scale_z() const;
+        ALWAYS_INLINE real scale_x() const;
+        ALWAYS_INLINE real scale_y() const;
+        ALWAYS_INLINE real scale_z() const;
         constexpr Vector3 basis_x() const;
         constexpr Vector3 basis_y() const;
         constexpr Vector3 basis_z() const;
@@ -38,12 +38,12 @@ namespace ho {
         constexpr bool IsNotEqualApprox(const Basis3D& rhs) const;
 
         constexpr bool IsOrthogonal() const;
-        _ALWAYS_INLINE_ Basis3D& Orthogonalize();
-        _ALWAYS_INLINE_ Basis3D Orthogonalized() const;
+        ALWAYS_INLINE Basis3D& Orthogonalize();
+        ALWAYS_INLINE Basis3D Orthogonalized() const;
 
         constexpr bool IsOrthonormal() const;
-        _ALWAYS_INLINE_ Basis3D& Orthonormalize();
-        _ALWAYS_INLINE_ Basis3D Orthonormalized() const;
+        ALWAYS_INLINE Basis3D& Orthonormalize();
+        ALWAYS_INLINE Basis3D Orthonormalized() const;
 
         constexpr Basis3D& Scale(const Vector3& scale);
         constexpr Basis3D Scaled(const Vector3& scale) const;
@@ -83,9 +83,9 @@ namespace ho {
         constexpr Basis3D& operator*=(const Basis3D& rhs);
         constexpr Basis3D operator*(const Basis3D& rhs) const;
 
-        _ALWAYS_INLINE_ constexpr Vector3 Transform(const Vector3& v) const;
-        _ALWAYS_INLINE_ constexpr Vector3 InvTransform(const Vector3& v) const;
-        _ALWAYS_INLINE_ constexpr Vector3 InvTransformFast(const Vector3& v) const;
+        ALWAYS_INLINE constexpr Vector3 Transform(const Vector3& v) const;
+        ALWAYS_INLINE constexpr Vector3 InvTransform(const Vector3& v) const;
+        ALWAYS_INLINE constexpr Vector3 InvTransformFast(const Vector3& v) const;
 
         std::string ToString() const;
 

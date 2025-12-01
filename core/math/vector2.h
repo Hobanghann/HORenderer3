@@ -89,9 +89,9 @@ namespace ho {
     constexpr Vector2::Vector2() : x(0.0_r), y(0.0_r) {}
     constexpr Vector2::Vector2(real p_x, real p_y) : x(p_x), y(p_y) {}
 
-    _INLINE_ constexpr Vector2 Vector2::UNIT_X = Vector2(1.0_r, 0.0_r);
-    _INLINE_ constexpr Vector2 Vector2::UNIT_Y = Vector2(0.0_r, 1.0_r);
-    _INLINE_ constexpr Vector2 Vector2::ZERO = Vector2(0.0_r, 0.0_r);
+    INLINE constexpr Vector2 Vector2::UNIT_X = Vector2(1.0_r, 0.0_r);
+    INLINE constexpr Vector2 Vector2::UNIT_Y = Vector2(0.0_r, 1.0_r);
+    INLINE constexpr Vector2 Vector2::ZERO = Vector2(0.0_r, 0.0_r);
 
     constexpr Vector2& Vector2::operator=(const Vector2& rhs) {
         if (this == &rhs) return *this;

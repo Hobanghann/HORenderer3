@@ -86,7 +86,7 @@ namespace ho {
                                    const Vector4& p_row3)
         : row0(p_row0), row1(p_row1), row2(p_row2), row3(p_row3) {}
 
-    _INLINE_ constexpr Matrix4x4 Matrix4x4::IDENTITY =
+    INLINE constexpr Matrix4x4 Matrix4x4::IDENTITY =
         Matrix4x4(Vector4(1.0_r, 0.0_r, 0.0_r, 0.0_r), Vector4(0.0_r, 1.0_r, 0.0_r, 0.0_r),
                   Vector4(0.0_r, 0.0_r, 1.0_r, 0.0_r), Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r));
 
@@ -315,11 +315,11 @@ namespace ho {
                row0.w * (row1.x * subfactor02 - row1.y * subfactor04 + row1.z * subfactor05);
     }
 
-    _ALWAYS_INLINE_ constexpr Matrix4x4 operator*(real s, const Matrix4x4& m) {
+    ALWAYS_INLINE constexpr Matrix4x4 operator*(real s, const Matrix4x4& m) {
         return Matrix4x4(s * m.row0, s * m.row1, s * m.row2, s * m.row3);
     }
 
-    _ALWAYS_INLINE_ constexpr Vector4 operator*(const Matrix4x4& m, const Vector4& v) {
+    ALWAYS_INLINE constexpr Vector4 operator*(const Matrix4x4& m, const Vector4& v) {
         return Vector4(m.row0.Dot(v), m.row1.Dot(v), m.row2.Dot(v), m.row3.Dot(v));
     }
 }  // namespace ho

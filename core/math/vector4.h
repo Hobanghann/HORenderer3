@@ -92,11 +92,11 @@ namespace ho {
     constexpr Vector4::Vector4() : x(0.0_r), y(0.0_r), z(0.0_r), w(0.0_r) {}
     constexpr Vector4::Vector4(real p_x, real p_y, real p_z, real p_w) : x(p_x), y(p_y), z(p_z), w(p_w) {}
 
-    _INLINE_ constexpr Vector4 Vector4::UNIT_X = Vector4(1.0_r, 0.0_r, 0.0_r, 0.0_r);
-    _INLINE_ constexpr Vector4 Vector4::UNIT_Y = Vector4(0.0_r, 1.0_r, 0.0_r, 0.0_r);
-    _INLINE_ constexpr Vector4 Vector4::UNIT_Z = Vector4(0.0_r, 0.0_r, 1.0_r, 0.0_r);
-    _INLINE_ constexpr Vector4 Vector4::UNIT_W = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
-    _INLINE_ constexpr Vector4 Vector4::ZERO = Vector4(0.0_r, 0.0_r, 0.0_r, 0.0_r);
+    INLINE constexpr Vector4 Vector4::UNIT_X = Vector4(1.0_r, 0.0_r, 0.0_r, 0.0_r);
+    INLINE constexpr Vector4 Vector4::UNIT_Y = Vector4(0.0_r, 1.0_r, 0.0_r, 0.0_r);
+    INLINE constexpr Vector4 Vector4::UNIT_Z = Vector4(0.0_r, 0.0_r, 1.0_r, 0.0_r);
+    INLINE constexpr Vector4 Vector4::UNIT_W = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+    INLINE constexpr Vector4 Vector4::ZERO = Vector4(0.0_r, 0.0_r, 0.0_r, 0.0_r);
 
     constexpr Vector4& Vector4::operator=(const Vector4& rhs) {
         if (this == &rhs) return *this;
@@ -174,7 +174,7 @@ namespace ho {
 
     constexpr Vector4 Vector4::operator-() const { return Vector4(-x, -y, -z, -w); }
 
-    _ALWAYS_INLINE_ constexpr Vector4 operator*(real scalar, const Vector4& vector) { return vector * scalar; }
+    ALWAYS_INLINE constexpr Vector4 operator*(real scalar, const Vector4& vector) { return vector * scalar; }
 
     constexpr bool Vector4::operator==(const Vector4& rhs) const {
         return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;

@@ -11,28 +11,28 @@ namespace ho {
     struct AABB;
     struct Sphere;
     struct Plane {
-        _ALWAYS_INLINE_ Plane();
-        _ALWAYS_INLINE_ Plane(real p_a, real p_b, real p_c, real p_d);
-        _ALWAYS_INLINE_ Plane(const Vector3& p_normal, const Vector3& p_point);
-        _ALWAYS_INLINE_ Plane(const Vector3& v1, const Vector3& v2, const Vector3& v3,
-                              math::ClockDirection = math::COUNTER_CLOCK_WISE);
-        _ALWAYS_INLINE_ Plane(const Plane&) = default;
-        _ALWAYS_INLINE_ Plane& operator=(const Plane& rhs);
+        ALWAYS_INLINE Plane();
+        ALWAYS_INLINE Plane(real p_a, real p_b, real p_c, real p_d);
+        ALWAYS_INLINE Plane(const Vector3& p_normal, const Vector3& p_point);
+        ALWAYS_INLINE Plane(const Vector3& v1, const Vector3& v2, const Vector3& v3,
+                            math::ClockDirection = math::COUNTER_CLOCK_WISE);
+        ALWAYS_INLINE Plane(const Plane&) = default;
+        ALWAYS_INLINE Plane& operator=(const Plane& rhs);
         ~Plane() = default;
 
-        _ALWAYS_INLINE_ bool operator==(const Plane& rhs) const;
-        _ALWAYS_INLINE_ bool operator!=(const Plane& rhs) const;
+        ALWAYS_INLINE bool operator==(const Plane& rhs) const;
+        ALWAYS_INLINE bool operator!=(const Plane& rhs) const;
 
-        _ALWAYS_INLINE_ bool IsEqualApprox(const Plane& rhs) const;
-        _ALWAYS_INLINE_ bool IsNotEqualApprox(const Plane& rhs) const;
+        ALWAYS_INLINE bool IsEqualApprox(const Plane& rhs) const;
+        ALWAYS_INLINE bool IsNotEqualApprox(const Plane& rhs) const;
 
-        _ALWAYS_INLINE_ real DistToPoint(const Vector3& point) const;
+        ALWAYS_INLINE real DistToPoint(const Vector3& point) const;
 
-        _ALWAYS_INLINE_ Vector3 Project(const Vector3& point) const;
+        ALWAYS_INLINE Vector3 Project(const Vector3& point) const;
 
-        _ALWAYS_INLINE_ math::Side GetSide(const Vector3& p) const;
-        _ALWAYS_INLINE_ math::Side GetSide(const Vector3& p1, const Vector3& p2) const;
-        _ALWAYS_INLINE_ math::Side GetSide(const Vector3& p1, const Vector3& p2, const Vector3& p3) const;
+        ALWAYS_INLINE math::Side GetSide(const Vector3& p) const;
+        ALWAYS_INLINE math::Side GetSide(const Vector3& p1, const Vector3& p2) const;
+        ALWAYS_INLINE math::Side GetSide(const Vector3& p1, const Vector3& p2, const Vector3& p3) const;
         math::Side GetSide(const AABB& aabb) const;
         math::Side GetSide(const Sphere& sphere) const;
 
@@ -43,7 +43,7 @@ namespace ho {
 
        private:
         template <size_t N>
-        _ALWAYS_INLINE_ math::Side GetSide(const std::array<Vector3, N>& points) const;
+        ALWAYS_INLINE math::Side GetSide(const std::array<Vector3, N>& points) const;
     };
 
     Plane::Plane() : normal(Vector3::ZERO), d(0.0_r) {}

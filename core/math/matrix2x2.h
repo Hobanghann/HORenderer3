@@ -42,12 +42,12 @@ namespace ho {
         constexpr bool IsNotEqualApprox(const Matrix2x2& rhs) const;
 
         constexpr bool IsOrthogonal() const;
-        _ALWAYS_INLINE_ Matrix2x2& Orthogonalize();
-        _ALWAYS_INLINE_ Matrix2x2 Orthogonalized() const;
+        ALWAYS_INLINE Matrix2x2& Orthogonalize();
+        ALWAYS_INLINE Matrix2x2 Orthogonalized() const;
 
         constexpr bool IsOrthonormal() const;
-        _ALWAYS_INLINE_ Matrix2x2& Orthonormalize();
-        _ALWAYS_INLINE_ Matrix2x2 Orthonormalized() const;
+        ALWAYS_INLINE Matrix2x2& Orthonormalize();
+        ALWAYS_INLINE Matrix2x2 Orthonormalized() const;
 
         constexpr Matrix2x2& Transpose();
         constexpr Matrix2x2 Transposed() const;
@@ -73,7 +73,7 @@ namespace ho {
     constexpr Matrix2x2::Matrix2x2() : row0(Vector2()), row1(Vector2()) {}
     constexpr Matrix2x2::Matrix2x2(const Vector2& p_row0, const Vector2& p_row1) : row0(p_row0), row1(p_row1) {}
 
-    _INLINE_ constexpr Matrix2x2 Matrix2x2::IDENTITY = Matrix2x2(Vector2(1.0_r, 0.0_r), Vector2(0.0_r, 1.0_r));
+    INLINE constexpr Matrix2x2 Matrix2x2::IDENTITY = Matrix2x2(Vector2(1.0_r, 0.0_r), Vector2(0.0_r, 1.0_r));
 
     constexpr Matrix2x2& Matrix2x2::operator=(const Matrix2x2& rhs) {
         if (this == &rhs) {
@@ -223,11 +223,11 @@ namespace ho {
 
     constexpr real Matrix2x2::Determinant() const { return row0.x * row1.y - row0.y * row1.x; }
 
-    _ALWAYS_INLINE_ constexpr Matrix2x2 operator*(float scalar, const Matrix2x2& matrix) {
+    ALWAYS_INLINE constexpr Matrix2x2 operator*(float scalar, const Matrix2x2& matrix) {
         return Matrix2x2(scalar * matrix.row0, scalar * matrix.row1);
     }
 
-    _ALWAYS_INLINE_ constexpr Vector2 operator*(const Matrix2x2& m, const Vector2& v) {
+    ALWAYS_INLINE constexpr Vector2 operator*(const Matrix2x2& m, const Vector2& v) {
         return Vector2(m.row0.Dot(v), m.row1.Dot(v));
     }
 }  // namespace ho

@@ -13,9 +13,9 @@ namespace ho {
         constexpr Transform3D& operator=(const Transform3D& rhs);
         ~Transform3D() = default;
 
-        _ALWAYS_INLINE_ real scale_x() const;
-        _ALWAYS_INLINE_ real scale_y() const;
-        _ALWAYS_INLINE_ real scale_z() const;
+        ALWAYS_INLINE real scale_x() const;
+        ALWAYS_INLINE real scale_y() const;
+        ALWAYS_INLINE real scale_z() const;
         constexpr Vector3 basis_x() const;
         constexpr Vector3 basis_y() const;
         constexpr Vector3 basis_z() const;
@@ -30,42 +30,42 @@ namespace ho {
         constexpr bool IsNotEqualApprox(const Transform3D& rhs) const;
 
         constexpr bool IsOrthogonal() const;
-        _ALWAYS_INLINE_ Transform3D& Orthogonalize();
-        _ALWAYS_INLINE_ Transform3D Orthogonalized() const;
+        ALWAYS_INLINE Transform3D& Orthogonalize();
+        ALWAYS_INLINE Transform3D Orthogonalized() const;
 
         constexpr bool IsOrthonormal() const;
-        _ALWAYS_INLINE_ Transform3D& Orthonormalize();
-        _ALWAYS_INLINE_ Transform3D Orthonormalized() const;
+        ALWAYS_INLINE Transform3D& Orthonormalize();
+        ALWAYS_INLINE Transform3D Orthonormalized() const;
 
         constexpr Transform3D& Scale(const Vector3& scale);
         constexpr Transform3D& ScaleUniform(real scale);
-        _ALWAYS_INLINE_ Transform3D& RotateAxisAngle(const Vector3& axis, real angle);
-        _ALWAYS_INLINE_ Transform3D& RotateEuler(real x_angle, real y_angle, real z_angle,
-                                                 math::EulerOrder order = math::ZYX);
+        ALWAYS_INLINE Transform3D& RotateAxisAngle(const Vector3& axis, real angle);
+        ALWAYS_INLINE Transform3D& RotateEuler(real x_angle, real y_angle, real z_angle,
+                                               math::EulerOrder order = math::ZYX);
         constexpr Transform3D& RotateQuaternion(const Quaternion& q);
         constexpr Transform3D& Translate(const Vector3& translation_v);
 
         constexpr Transform3D Scaled(const Vector3& scale) const;
         constexpr Transform3D ScaledUniform(real scale) const;
-        _ALWAYS_INLINE_ Transform3D RotatedAxisAngle(const Vector3& axis, real angle) const;
-        _ALWAYS_INLINE_ Transform3D RotatedEuler(real x_angle, real y_angle, real z_angle,
-                                                 math::EulerOrder order = math::ZYX) const;
+        ALWAYS_INLINE Transform3D RotatedAxisAngle(const Vector3& axis, real angle) const;
+        ALWAYS_INLINE Transform3D RotatedEuler(real x_angle, real y_angle, real z_angle,
+                                               math::EulerOrder order = math::ZYX) const;
         constexpr Transform3D RotatedQuaternion(const Quaternion& q) const;
         constexpr Transform3D Translated(const Vector3& translation_v) const;
 
         constexpr Transform3D& ScaleLocal(const Vector3& scale);
         constexpr Transform3D& ScaleUniformLocal(real scale);
-        _ALWAYS_INLINE_ Transform3D& RotateAxisAngleLocal(const Vector3& axis, real angle);
-        _ALWAYS_INLINE_ Transform3D& RotateEulerLocal(real x_angle, real y_angle, real z_angle,
-                                                      math::EulerOrder order = math::ZYX);
+        ALWAYS_INLINE Transform3D& RotateAxisAngleLocal(const Vector3& axis, real angle);
+        ALWAYS_INLINE Transform3D& RotateEulerLocal(real x_angle, real y_angle, real z_angle,
+                                                    math::EulerOrder order = math::ZYX);
         constexpr Transform3D& RotateQuaternionLocal(const Quaternion& q);
         constexpr Transform3D& TranslateLocal(const Vector3& translation_v);
 
         constexpr Transform3D ScaledLocal(const Vector3& scale) const;
         constexpr Transform3D ScaledUniformLocal(real scale) const;
-        _ALWAYS_INLINE_ Transform3D RotatedAxisAngleLocal(const Vector3& axis, real angle) const;
-        _ALWAYS_INLINE_ Transform3D RotatedEulerLocal(real x_angle, real y_angle, real z_angle,
-                                                      math::EulerOrder order = math::ZYX) const;
+        ALWAYS_INLINE Transform3D RotatedAxisAngleLocal(const Vector3& axis, real angle) const;
+        ALWAYS_INLINE Transform3D RotatedEulerLocal(real x_angle, real y_angle, real z_angle,
+                                                    math::EulerOrder order = math::ZYX) const;
         constexpr Transform3D RotatedQuaternionLocal(const Quaternion& q) const;
         constexpr Transform3D TranslatedLocal(const Vector3& translation_v) const;
 
@@ -75,8 +75,8 @@ namespace ho {
         constexpr Transform3D& InvertFast();
         constexpr Transform3D InverseFast() const;
 
-        _ALWAYS_INLINE_ Transform3D& LookAt(const Vector3& at, const Vector3& up, bool is_facing_target = false);
-        _ALWAYS_INLINE_ Transform3D LookedAt(const Vector3& at, const Vector3& up, bool is_facing_target = false) const;
+        ALWAYS_INLINE Transform3D& LookAt(const Vector3& at, const Vector3& up, bool is_facing_target = false);
+        ALWAYS_INLINE Transform3D LookedAt(const Vector3& at, const Vector3& up, bool is_facing_target = false) const;
 
         constexpr Transform3D& operator*=(const Transform3D& rhs);
         constexpr Transform3D operator*(const Transform3D& rhs) const;
@@ -163,14 +163,14 @@ namespace ho {
         origin *= scale;
         return *this;
     }
-    _ALWAYS_INLINE_ Transform3D& Transform3D::RotateAxisAngle(const Vector3& axis, real angle) {
+    ALWAYS_INLINE Transform3D& Transform3D::RotateAxisAngle(const Vector3& axis, real angle) {
         Quaternion q = Quaternion::FromAxisAngle(axis, angle);
         basis.RotateQuaternion(q);
         origin = q.Transform(origin);
         return *this;
     }
-    _ALWAYS_INLINE_ Transform3D& Transform3D::RotateEuler(real x_angle, real y_angle, real z_angle,
-                                                          math::EulerOrder order) {
+    ALWAYS_INLINE Transform3D& Transform3D::RotateEuler(real x_angle, real y_angle, real z_angle,
+                                                        math::EulerOrder order) {
         Quaternion q = Quaternion::FromEuler(x_angle, y_angle, z_angle, order);
         basis.RotateQuaternion(q);
         origin = q.Transform(origin);
@@ -194,12 +194,12 @@ namespace ho {
         Transform3D copy = *this;
         return copy.ScaleUniform(scale);
     }
-    _ALWAYS_INLINE_ Transform3D Transform3D::RotatedAxisAngle(const Vector3& axis, real angle) const {
+    ALWAYS_INLINE Transform3D Transform3D::RotatedAxisAngle(const Vector3& axis, real angle) const {
         Transform3D copy = *this;
         return copy.RotateAxisAngle(axis, angle);
     }
-    _ALWAYS_INLINE_ Transform3D Transform3D::RotatedEuler(real x_angle, real y_angle, real z_angle,
-                                                          math::EulerOrder order) const {
+    ALWAYS_INLINE Transform3D Transform3D::RotatedEuler(real x_angle, real y_angle, real z_angle,
+                                                        math::EulerOrder order) const {
         Transform3D copy = *this;
         return copy.RotateEuler(x_angle, y_angle, z_angle, order);
     }
@@ -220,12 +220,12 @@ namespace ho {
         basis.ScaleUniformLocal(scale);
         return *this;
     }
-    _ALWAYS_INLINE_ Transform3D& Transform3D::RotateAxisAngleLocal(const Vector3& axis, real angle) {
+    ALWAYS_INLINE Transform3D& Transform3D::RotateAxisAngleLocal(const Vector3& axis, real angle) {
         basis.RotateAxisAngleLocal(axis, angle);
         return *this;
     }
-    _ALWAYS_INLINE_ Transform3D& Transform3D::RotateEulerLocal(real x_angle, real y_angle, real z_angle,
-                                                               math::EulerOrder order) {
+    ALWAYS_INLINE Transform3D& Transform3D::RotateEulerLocal(real x_angle, real y_angle, real z_angle,
+                                                             math::EulerOrder order) {
         basis.RotateEulerLocal(x_angle, y_angle, z_angle, order);
         return *this;
     }
@@ -246,12 +246,12 @@ namespace ho {
         Transform3D copy = *this;
         return copy.ScaleUniformLocal(scale);
     }
-    _ALWAYS_INLINE_ Transform3D Transform3D::RotatedAxisAngleLocal(const Vector3& axis, real angle) const {
+    ALWAYS_INLINE Transform3D Transform3D::RotatedAxisAngleLocal(const Vector3& axis, real angle) const {
         Transform3D copy = *this;
         return copy.RotateAxisAngleLocal(axis, angle);
     }
-    _ALWAYS_INLINE_ Transform3D Transform3D::RotatedEulerLocal(real x_angle, real y_angle, real z_angle,
-                                                               math::EulerOrder order) const {
+    ALWAYS_INLINE Transform3D Transform3D::RotatedEulerLocal(real x_angle, real y_angle, real z_angle,
+                                                             math::EulerOrder order) const {
         Transform3D copy = *this;
         return copy.RotateEulerLocal(x_angle, y_angle, z_angle, order);
     }
@@ -285,7 +285,7 @@ namespace ho {
         return copy.InvertFast();
     }
 
-    _ALWAYS_INLINE_ Transform3D& Transform3D::LookAt(const Vector3& at, const Vector3& up, bool is_facing_target) {
+    ALWAYS_INLINE Transform3D& Transform3D::LookAt(const Vector3& at, const Vector3& up, bool is_facing_target) {
         {
             Vector3 adj_at = at - origin;
             if (adj_at.IsEqualApprox(Vector3::ZERO)) return *this;
@@ -293,8 +293,7 @@ namespace ho {
             return *this;
         }
     }
-    _ALWAYS_INLINE_ Transform3D Transform3D::LookedAt(const Vector3& at, const Vector3& up,
-                                                      bool is_facing_target) const {
+    ALWAYS_INLINE Transform3D Transform3D::LookedAt(const Vector3& at, const Vector3& up, bool is_facing_target) const {
         Transform3D copy = *this;
         return copy.LookAt(at, up, is_facing_target);
     }
