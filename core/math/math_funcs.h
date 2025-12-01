@@ -10,57 +10,57 @@
 namespace ho {
     namespace math {
         template <class T>
-        _ALWAYS_INLINE_ constexpr T Max(T x, T y) {
+        ALWAYS_INLINE constexpr T Max(T x, T y) {
             return x < y ? y : x;
         }
 
         template <class T>
-        _ALWAYS_INLINE_ constexpr T Max(T x, T y, T z) {
+        ALWAYS_INLINE constexpr T Max(T x, T y, T z) {
             return Max(Max(x, y), z);
         }
 
         template <class T>
-        _ALWAYS_INLINE_ constexpr T Min(T x, T y) {
+        ALWAYS_INLINE constexpr T Min(T x, T y) {
             return x < y ? x : y;
         }
 
         template <class T>
-        _ALWAYS_INLINE_ constexpr T Min(T x, T y, T z) {
+        ALWAYS_INLINE constexpr T Min(T x, T y, T z) {
             return Min(Min(x, y), z);
         }
 
         template <class T>
-        _ALWAYS_INLINE_ constexpr T Clamp(T target, T min, T max) {
+        ALWAYS_INLINE constexpr T Clamp(T target, T min, T max) {
             assert(min <= max);
             return target < min ? min : (target > max ? max : target);
         }
 
-        _ALWAYS_INLINE_ constexpr real Fmod(real x, real y) {
+        ALWAYS_INLINE constexpr real Fmod(real x, real y) {
             if (y == 0.0_r) return static_cast<real>(0);
             const real quotient = static_cast<real>(static_cast<long long>(x / y));
             return x - quotient * y;
         }
 
-        _ALWAYS_INLINE_ real Round(real x) { return std::round(x); }
+        ALWAYS_INLINE real Round(real x) { return std::round(x); }
 
-        _ALWAYS_INLINE_ constexpr real Floor(real x) {
+        ALWAYS_INLINE constexpr real Floor(real x) {
             const long long i = static_cast<long long>(x);
             return (x < 0 && static_cast<real>(i) != x) ? static_cast<real>(i - 1) : static_cast<real>(i);
         }
-        _ALWAYS_INLINE_ constexpr real Ceil(real x) {
+        ALWAYS_INLINE constexpr real Ceil(real x) {
             const long long i = static_cast<long long>(x);
             return (x > 0 && static_cast<real>(i) != x) ? static_cast<real>(i + 1) : static_cast<real>(i);
         }
 
-        _ALWAYS_INLINE_ constexpr real Abs(real x) { return (x < 0) ? -x : x; }
+        ALWAYS_INLINE constexpr real Abs(real x) { return (x < 0) ? -x : x; }
 
-        _ALWAYS_INLINE_ constexpr bool IsEqualApprox(real lhs, real rhs, real tolerance) {
+        ALWAYS_INLINE constexpr bool IsEqualApprox(real lhs, real rhs, real tolerance) {
             if (lhs == rhs) {
                 return true;
             }
             return math::Abs(lhs - rhs) < tolerance;
         }
-        _ALWAYS_INLINE_ constexpr bool IsEqualApprox(real lhs, real rhs) {
+        ALWAYS_INLINE constexpr bool IsEqualApprox(real lhs, real rhs) {
             if (lhs == rhs) {
                 return true;
             }
@@ -71,22 +71,22 @@ namespace ho {
             return math::Abs(lhs - rhs) < tolerance;
         }
 
-        _ALWAYS_INLINE_ constexpr bool IsNotEqualApprox(real lhs, real rhs, real tolerance) {
+        ALWAYS_INLINE constexpr bool IsNotEqualApprox(real lhs, real rhs, real tolerance) {
             return !IsEqualApprox(lhs, rhs, tolerance);
         }
-        _ALWAYS_INLINE_ constexpr bool IsNotEqualApprox(real lhs, real rhs) { return !IsEqualApprox(lhs, rhs); }
+        ALWAYS_INLINE constexpr bool IsNotEqualApprox(real lhs, real rhs) { return !IsEqualApprox(lhs, rhs); }
 
-        _ALWAYS_INLINE_ constexpr bool IsZeroApprox(real p_value) { return math::Abs(p_value) < EPSILON_CMP; }
+        ALWAYS_INLINE constexpr bool IsZeroApprox(real p_value) { return math::Abs(p_value) < EPSILON_CMP; }
 
-        _ALWAYS_INLINE_ bool IsFinite(real n) { return std::isfinite(n); }
+        ALWAYS_INLINE bool IsFinite(real n) { return std::isfinite(n); }
 
-        _ALWAYS_INLINE_ bool IsInf(real n) { return std::isinf(n); }
+        ALWAYS_INLINE bool IsInf(real n) { return std::isinf(n); }
 
-        _ALWAYS_INLINE_ bool IsNaN(real n) { return std::isnan(n); }
+        ALWAYS_INLINE bool IsNaN(real n) { return std::isnan(n); }
 
-        _ALWAYS_INLINE_ real Pow(real base, real exp) { return std::pow(base, exp); }
+        ALWAYS_INLINE real Pow(real base, real exp) { return std::pow(base, exp); }
 
-        _INLINE_ constexpr real PowFast(real base, int exp) {
+        INLINE constexpr real PowFast(real base, int exp) {
             if (exp == 0) return 1.0_r;
 
             if (base == 0.0_r) {
@@ -111,7 +111,7 @@ namespace ho {
             return result;
         }
 
-        _ALWAYS_INLINE_ float InvSqrtFast(float f) noexcept {
+        ALWAYS_INLINE float InvSqrtFast(float f) noexcept {
             // Performs two passes of Newton-Raphson iteration on the hardware estimate
             //    v^-0.5 = x
             // => x^2 = v^-1
@@ -154,22 +154,22 @@ namespace ho {
 #endif
         }
 
-        _ALWAYS_INLINE_ double InvSqrtFast(double f) noexcept { return 1.0 / std::sqrt(f); }
+        ALWAYS_INLINE double InvSqrtFast(double f) noexcept { return 1.0 / std::sqrt(f); }
 
-        _ALWAYS_INLINE_ float SqrtFast(float f) noexcept { return f * InvSqrtFast(f); }
-        _ALWAYS_INLINE_ float Sqrt(float f) noexcept { return std::sqrt(f); }
-        _ALWAYS_INLINE_ double Sqrt(double f) noexcept { return std::sqrt(f); }
+        ALWAYS_INLINE float SqrtFast(float f) noexcept { return f * InvSqrtFast(f); }
+        ALWAYS_INLINE float Sqrt(float f) noexcept { return std::sqrt(f); }
+        ALWAYS_INLINE double Sqrt(double f) noexcept { return std::sqrt(f); }
 
-        _ALWAYS_INLINE_ real Sin(real radian) { return std::sin(radian); }
-        _ALWAYS_INLINE_ real Cos(real radian) { return std::cos(radian); }
-        _ALWAYS_INLINE_ real Tan(real radian) { return std::tan(radian); }
+        ALWAYS_INLINE real Sin(real radian) { return std::sin(radian); }
+        ALWAYS_INLINE real Cos(real radian) { return std::cos(radian); }
+        ALWAYS_INLINE real Tan(real radian) { return std::tan(radian); }
 
-        _ALWAYS_INLINE_ real Asin(real radian) { return std::asin(radian); }
-        _ALWAYS_INLINE_ real Acos(real radian) { return std::acos(radian); }
-        _ALWAYS_INLINE_ real Atan(real radian) { return std::atan(radian); }
-        _ALWAYS_INLINE_ real Atan2(real y, real x) { return std::atan2(y, x); }
+        ALWAYS_INLINE real Asin(real radian) { return std::asin(radian); }
+        ALWAYS_INLINE real Acos(real radian) { return std::acos(radian); }
+        ALWAYS_INLINE real Atan(real radian) { return std::atan(radian); }
+        ALWAYS_INLINE real Atan2(real y, real x) { return std::atan2(y, x); }
 
-        _ALWAYS_INLINE_ void SinCos(float& out_sin, float& out_cos, float radian) {
+        ALWAYS_INLINE void SinCos(float& out_sin, float& out_cos, float radian) {
             // Copied from UE4 Source Code
             // Map Value to y in [-pi,pi], x = 2*pi*quotient + remainder.
             float quotient = (INV_PI * 0.5f) * radian;
@@ -209,17 +209,17 @@ namespace ho {
             out_cos = sign * p;
         }
 
-        _ALWAYS_INLINE_ constexpr real DegToRad(real deg) { return deg * DEG1_IN_RAD; }
+        ALWAYS_INLINE constexpr real DegToRad(real deg) { return deg * DEG1_IN_RAD; }
 
-        _ALWAYS_INLINE_ constexpr real RadToDeg(real rad) { return rad * RAD1_IN_DEG; }
+        ALWAYS_INLINE constexpr real RadToDeg(real rad) { return rad * RAD1_IN_DEG; }
 
         template <class T>
-        _INLINE_ real Distance(const T& vec1, const T& vec2) {
+        INLINE real Distance(const T& vec1, const T& vec2) {
             const T d = (vec1 - vec2);
             return Sqrt(d.Dot(d));
         }
         template <class T>
-        _INLINE_ constexpr real SqrdDistance(const T& vec1, const T& vec2) {
+        INLINE constexpr real SqrdDistance(const T& vec1, const T& vec2) {
             const T d = (vec1 - vec2);
             return d.Dot(d);
         }

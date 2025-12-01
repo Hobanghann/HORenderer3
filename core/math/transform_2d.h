@@ -17,8 +17,8 @@ namespace ho {
         constexpr Transform2D& operator=(const Transform2D& rhs);
         ~Transform2D() = default;
 
-        _ALWAYS_INLINE_ real scale_x() const;
-        _ALWAYS_INLINE_ real scale_y() const;
+        ALWAYS_INLINE real scale_x() const;
+        ALWAYS_INLINE real scale_y() const;
         constexpr Vector2 basis_x() const;
         constexpr Vector2 basis_y() const;
         constexpr void set_basis_x(const Vector2& basis_x);
@@ -31,31 +31,31 @@ namespace ho {
         constexpr bool IsNotEqualApprox(const Transform2D& rhs) const;
 
         constexpr bool IsOrthogonal() const;
-        _ALWAYS_INLINE_ Transform2D& Orthogonalize();
-        _ALWAYS_INLINE_ Transform2D Orthogonalized() const;
+        ALWAYS_INLINE Transform2D& Orthogonalize();
+        ALWAYS_INLINE Transform2D Orthogonalized() const;
 
         constexpr bool IsOrthonormal() const;
-        _ALWAYS_INLINE_ Transform2D& Orthonormalize();
-        _ALWAYS_INLINE_ Transform2D Orthonormalized() const;
+        ALWAYS_INLINE Transform2D& Orthonormalize();
+        ALWAYS_INLINE Transform2D Orthonormalized() const;
 
         constexpr Transform2D& Scale(const Vector2& scale);
         constexpr Transform2D& ScaleUniform(real scale);
-        _ALWAYS_INLINE_ Transform2D& Rotate(real angle);
+        ALWAYS_INLINE Transform2D& Rotate(real angle);
         constexpr Transform2D& Translate(const Vector2& translation_v);
 
         constexpr Transform2D Scaled(const Vector2& scale) const;
         constexpr Transform2D ScaledUniform(real scale) const;
-        _ALWAYS_INLINE_ Transform2D Rotated(real angle) const;
+        ALWAYS_INLINE Transform2D Rotated(real angle) const;
         constexpr Transform2D Translated(const Vector2& translation_v) const;
 
         constexpr Transform2D& ScaleLocal(const Vector2& scale);
         constexpr Transform2D& ScaleUniformLocal(real scale);
-        _ALWAYS_INLINE_ Transform2D& RotateLocal(real angle);
+        ALWAYS_INLINE Transform2D& RotateLocal(real angle);
         constexpr Transform2D& TranslateLocal(const Vector2& translation_v);
 
         constexpr Transform2D ScaledLocal(const Vector2& scale) const;
         constexpr Transform2D ScaledUniformLocal(real scale) const;
-        _ALWAYS_INLINE_ Transform2D RotatedLocal(real angle) const;
+        ALWAYS_INLINE Transform2D RotatedLocal(real angle) const;
         constexpr Transform2D TranslatedLocal(const Vector2& translation_v) const;
 
         constexpr Transform2D& Invert();
@@ -64,8 +64,8 @@ namespace ho {
         constexpr Transform2D& InvertFast();
         constexpr Transform2D InverseFast() const;
 
-        _ALWAYS_INLINE_ Transform2D& LookAt(const Vector2& at);
-        _ALWAYS_INLINE_ Transform2D LookedAt(const Vector2& at) const;
+        ALWAYS_INLINE Transform2D& LookAt(const Vector2& at);
+        ALWAYS_INLINE Transform2D LookedAt(const Vector2& at) const;
 
         constexpr Transform2D& operator*=(const Transform2D& rhs);
         constexpr Transform2D operator*(const Transform2D& rhs) const;

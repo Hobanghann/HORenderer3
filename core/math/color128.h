@@ -161,7 +161,7 @@ namespace ho {
         return *this;
     }
 
-    _ALWAYS_INLINE_ constexpr Color128 operator*(float scalar, const Color128& c) { return c * scalar; }
+    ALWAYS_INLINE constexpr Color128 operator*(float scalar, const Color128& c) { return c * scalar; }
 
     // weights as listed in
     // https://en.wikipedia.org/wiki/Relative_luminance

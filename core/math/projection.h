@@ -7,24 +7,24 @@
 
 namespace ho {
     struct Projection {
-        _ALWAYS_INLINE_ Projection();
-        _ALWAYS_INLINE_ Projection(real p_fov, real p_aspect_ratio, real p_near, real p_far);
-        _ALWAYS_INLINE_ Projection(real p_fov, real p_width, real p_height, real p_near, real p_far);
-        _ALWAYS_INLINE_ Projection(const Matrix4x4& m);
-        _ALWAYS_INLINE_ Projection(const Projection&) = default;
-        _ALWAYS_INLINE_ Projection& operator=(const Projection& rhs);
+        ALWAYS_INLINE Projection();
+        ALWAYS_INLINE Projection(real p_fov, real p_aspect_ratio, real p_near, real p_far);
+        ALWAYS_INLINE Projection(real p_fov, real p_width, real p_height, real p_near, real p_far);
+        ALWAYS_INLINE Projection(const Matrix4x4& m);
+        ALWAYS_INLINE Projection(const Projection&) = default;
+        ALWAYS_INLINE Projection& operator=(const Projection& rhs);
         ~Projection() = default;
 
-        _ALWAYS_INLINE_ real get_fov() const;
-        _ALWAYS_INLINE_ real get_aspect_ratio() const;
-        _ALWAYS_INLINE_ real get_near_dist() const;
-        _ALWAYS_INLINE_ real get_far_dist() const;
+        ALWAYS_INLINE real get_fov() const;
+        ALWAYS_INLINE real get_aspect_ratio() const;
+        ALWAYS_INLINE real get_near_dist() const;
+        ALWAYS_INLINE real get_far_dist() const;
 
-        _ALWAYS_INLINE_ void set_fov(real p_fov);
-        _ALWAYS_INLINE_ void set_aspect_ratio(real p_ratio);
-        _ALWAYS_INLINE_ void set_aspect_ratio(real p_width, real p_height);
-        _ALWAYS_INLINE_ void set_near_dist(real p_near);
-        _ALWAYS_INLINE_ void set_far_dist(real p_far);
+        ALWAYS_INLINE void set_fov(real p_fov);
+        ALWAYS_INLINE void set_aspect_ratio(real p_ratio);
+        ALWAYS_INLINE void set_aspect_ratio(real p_width, real p_height);
+        ALWAYS_INLINE void set_near_dist(real p_near);
+        ALWAYS_INLINE void set_far_dist(real p_far);
 
         constexpr bool operator==(const Projection& rhs) const;
         constexpr bool operator!=(const Projection& rhs) const;
@@ -191,7 +191,7 @@ namespace ho {
                        matrix.data[2][2] * v.z + matrix.data[2][3] * v.w, -v.z);
     }
 
-    _ALWAYS_INLINE_ constexpr Matrix4x4 operator*(const Projection& p, const Transform3D& t) {
+    ALWAYS_INLINE constexpr Matrix4x4 operator*(const Projection& p, const Transform3D& t) {
         return p.matrix * t.ToMatrix();
     }
 
