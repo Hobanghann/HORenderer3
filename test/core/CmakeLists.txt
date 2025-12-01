@@ -4,6 +4,8 @@ message("\n######## Start to process Core Test. ########\n")
 # Set Test's Name
 ##########################################################
 set(MATH_TEST_NAME math_tests)
+set(THREAD_TEST_NAME thread_tests)
+set(THREAD_FALLBACK_TEST_NAME thread_fallback_tests)
 set(TEMPLATES_TEST_NAME templates_tests)
 set(TIME_TEST_NAME time_tests)
 
@@ -11,6 +13,8 @@ set(TIME_TEST_NAME time_tests)
 # Set Test Suite Prefix
 ##########################################################
 set(MATH_PREFIX Core.Math.)
+set(THREAD_PREFIX Core.Thread.Normal.)
+set(THREAD_FALLBACK_PREFIX Core.Thread.Fallback.)
 set(TEMPLATES_PREFIX Core.Templates.)
 set(TIME_PREFIX Core.Time.)
 
@@ -18,6 +22,8 @@ set(TIME_PREFIX Core.Time.)
 # Process Subdirectories
 ##########################################################
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/math)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thread)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thread_fallback)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/templates)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/time)
 
