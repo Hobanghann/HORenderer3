@@ -32,10 +32,16 @@ namespace ho {
     const std::string& Path::AssetRoot() { return asset_root_; }
 
     std::string Path::ResolveProjectPath(const std::string& relative) {
-        return (project_root_path_ / relative).string();
+        std::filesystem::path combined = project_root_path_ / relative;
+        return combined.lexically_normal().string();
     }
 
-    std::string Path::ResolveAssetPath(const std::string& relative) { return (asset_root_path_ / relative).string(); }
+    std::string Path::ResolveAssetPath(const std::string& relative) {
+        std::filesystem::path combined = asset_root_path_ / relative;
+        return combined.lexically_normal().string();
+    }
 
-    std::string ResolveFileName(const std::string& path) { return std::filesystem::path(path).filename().string(); }
+    std::string Path::ResolveFileName(const std::string& path) {
+        return std::filesystem::path(path).filename().string();
+    }
 }  // namespace ho

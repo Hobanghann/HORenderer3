@@ -7,8 +7,8 @@ namespace ho {
     std::string Path::project_root_;
     std::string Path::asset_root_;
 
-    std::filesystem::path project_root_path_;
-    std::filesystem::path asset_root_path_;
+    std::filesystem::path Path::project_root_path_;
+    std::filesystem::path Path::asset_root_path_;
 
     void Path::Initialize() {
 #ifdef HO_PROJECT_ROOT
