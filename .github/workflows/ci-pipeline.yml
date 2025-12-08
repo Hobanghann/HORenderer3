@@ -236,6 +236,11 @@ jobs:
         run: |
           ctest -R ^Core\.Math --build-config ${{ matrix.build_type }}
 
+      - name: Test Core.Thread
+        working-directory: build
+        run: |
+          ctest -R ^Core\.Thread --build-config ${{ matrix.build_type }}
+
       - name: Test Core.Templates
         working-directory: build
         run: |
@@ -245,3 +250,8 @@ jobs:
         working-directory: build
         run: |
           ctest -R ^Core\.Time --build-config ${{ matrix.build_type }}
+
+      - name: Test Core.IO
+        working-directory: build
+        run: |
+          ctest -R ^Core\.IO --build-config ${{ matrix.build_type }}
