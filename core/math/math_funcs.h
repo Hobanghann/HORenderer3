@@ -174,9 +174,9 @@ namespace ho {
             // Map Value to y in [-pi,pi], x = 2*pi*quotient + remainder.
             float quotient = (INV_PI * 0.5f) * radian;
             if (radian >= 0.0f) {
-                quotient = (float)((int)(quotient + 0.5f));
+                quotient = (float)(static_cast<int>(quotient + 0.5f));
             } else {
-                quotient = (float)((int)(quotient - 0.5f));
+                quotient = (float)(static_cast<int>(quotient - 0.5f));
             }
             float y = radian - (2.0f * PI) * quotient;
 

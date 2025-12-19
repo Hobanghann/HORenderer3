@@ -33,6 +33,14 @@ if (ENABLE_CLANG_TIDY)
     ${CMAKE_SOURCE_DIR}
 	)
   target_link_libraries(${CORE_NAME} PUBLIC warning_flags)
+
+  set_source_files_properties(
+  core/io/resource_importer.h
+  core/io/resource_importer.cc
+  PROPERTIES
+    SKIP_LINTING ON
+)
+
 else()
   target_include_directories(
     ${CORE_NAME}

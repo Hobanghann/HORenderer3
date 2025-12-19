@@ -59,10 +59,10 @@ namespace ho {
         inline constexpr real DEG1_IN_RAD = PI / 180.0_r;
         inline constexpr real RAD1_IN_DEG = 1.0_r / DEG1_IN_RAD;
 
-        enum ClockDirection { CLOCK_WISE, COUNTER_CLOCK_WISE };
+        enum ClockDirection : uint8_t { CLOCK_WISE, COUNTER_CLOCK_WISE };
 
-        enum EulerOrder { XYZ = 0, XZY, YZX, YXZ, ZXY, ZYX };
+        enum EulerOrder : uint8_t { XYZ = 0, XZY, YZX, YXZ, ZXY, ZYX };
 
-        enum Side { OUTSIDE, INSIDE, ON, INTERSECT };
+        enum Side : uint8_t { OUTSIDE, INSIDE, ON, INTERSECT };
     }  // namespace math
 }  // namespace ho
