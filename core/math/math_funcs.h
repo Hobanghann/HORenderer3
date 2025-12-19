@@ -169,14 +169,15 @@ namespace ho {
         ALWAYS_INLINE real Atan(real radian) { return std::atan(radian); }
         ALWAYS_INLINE real Atan2(real y, real x) { return std::atan2(y, x); }
 
+        // NOLINTBEGIN(bugprone-incorrect-roundings)
         ALWAYS_INLINE void SinCos(float& out_sin, float& out_cos, float radian) {
             // Copied from UE4 Source Code
             // Map Value to y in [-pi,pi], x = 2*pi*quotient + remainder.
             float quotient = (INV_PI * 0.5f) * radian;
             if (radian >= 0.0f) {
-                quotient = (float)((int)(quotient + 0.5f));
+                quotient = (float)(static_cast<int>(quotient + 0.5f));
             } else {
-                quotient = (float)((int)(quotient - 0.5f));
+                quotient = (float)(static_cast<int>(quotient - 0.5f));
             }
             float y = radian - (2.0f * PI) * quotient;
 
@@ -208,6 +209,7 @@ namespace ho {
                 1.0f;
             out_cos = sign * p;
         }
+        // NOLINTEND(bugprone-incorrect-roundings)
 
         ALWAYS_INLINE constexpr real DegToRad(real deg) { return deg * DEG1_IN_RAD; }
 

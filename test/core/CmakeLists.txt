@@ -8,6 +8,7 @@ set(THREAD_TEST_NAME thread_tests)
 set(THREAD_FALLBACK_TEST_NAME thread_fallback_tests)
 set(TEMPLATES_TEST_NAME templates_tests)
 set(TIME_TEST_NAME time_tests)
+set(IO_TEST_NAME io_tests)
 
 ##########################################################
 # Set Test Suite Prefix
@@ -17,6 +18,7 @@ set(THREAD_PREFIX Core.Thread.Normal.)
 set(THREAD_FALLBACK_PREFIX Core.Thread.Fallback.)
 set(TEMPLATES_PREFIX Core.Templates.)
 set(TIME_PREFIX Core.Time.)
+set(IO_PREFIX Core.IO.)
 
 ##########################################################
 # Process Subdirectories
@@ -26,5 +28,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thread)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/thread_fallback)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/templates)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/time)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/io)
 
 message("\n######## Processing Core Test finished. ########\n")
