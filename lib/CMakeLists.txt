@@ -96,7 +96,7 @@ add_library(${THIRD_PARTY_NAME} INTERFACE)
 target_link_libraries(${THIRD_PARTY_NAME} INTERFACE ${ASSIMP_NAME} ${IMAGE_LOADER_NAME} inicpp half)
 target_include_directories(
   ${THIRD_PARTY_NAME}
-  INTERFACE
+  SYSTEM INTERFACE
   ${${ASSIMP_NAME}_SOURCE_DIR}/include
   ${${IMAGE_LOADER_NAME}_SOURCE_DIR}
   ${${INI_PARSER_NAME}_SOURCE_DIR}/include
