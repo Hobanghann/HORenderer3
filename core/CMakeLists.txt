@@ -1,4 +1,9 @@
 message("\n\n\n######## Start to process ${CORE_NAME} module. ########\n\n\n")
+################################################################################
+# define variable for preprocessor macro
+################################################################################
+set(HO_PROJECT_ROOT "${CMAKE_SOURCE_DIR}")
+set(HO_ASSET_ROOT "${CMAKE_SOURCE_DIR}/assets")
 
 ################################################################################
 # Read source files
@@ -37,5 +42,12 @@ else()
 	)
   target_link_libraries(${CORE_NAME} PUBLIC warning_flags ${THIRD_PARTY_NAME})
 endif()
+
+target_compile_definitions(
+  ${CORE_NAME} 
+  PUBLIC
+  HO_PROJECT_ROOT="${HO_PROJECT_ROOT}"
+  HO_ASSET_ROOT="${HO_ASSET_ROOT}"
+)
 
 message("\n\n\n######## Processing ${CORE_NAME} module finished. ########\n\n\n")

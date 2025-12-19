@@ -1,0 +1,43 @@
+################################################################################
+# Read source files
+################################################################################
+file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
+file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
+
+set(ALL_FILES ${SOURCES} ${HEADERS})
+
+################################################################################
+# Add excutable target
+################################################################################
+include(GoogleTest)
+add_executable(${IO_TEST_NAME} ${ALL_FILES})
+
+################################################################################
+# Set target properteis
+################################################################################
+target_include_directories(
+  ${IO_TEST_NAME}
+  PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
+target_link_libraries(${IO_TEST_NAME} PRIVATE warning_flags ${THIRD_PARTY_NAME} ${CORE_NAME} GTest::gtest_main)
+set_target_properties(${IO_TEST_NAME} PROPERTIES FOLDER "Test/core")
+target_compile_definitions(
+  ${IO_TEST_NAME} 
+  PUBLIC
+  TEST_HO_PROJECT_ROOT="${CMAKE_SOURCE_DIR}"
+  TEST_HO_ASSET_ROOT="${CMAKE_SOURCE_DIR}/assets"
+)
+if (MSVC)
+    target_compile_definitions(${IO_TEST_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_compile_options(${IO_TEST_NAME} PRIVATE /wd4996)
+endif()
+
+################################################################################
+# Add test
+################################################################################
+gtest_discover_tests(${IO_TEST_NAME}
+  DISCOVERY_TIMEOUT 30
+  TEST_PREFIX ${IO_PREFIX}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)

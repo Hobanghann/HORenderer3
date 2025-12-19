@@ -42,6 +42,10 @@ message ("#### Downloading " ${IMAGE_LOADER_NAME} " finished. ####")
 
 add_library(${IMAGE_LOADER_NAME} STATIC ${CMAKE_CURRENT_SOURCE_DIR}/${IMAGE_LOADER_NAME}.cc)
 target_include_directories(${IMAGE_LOADER_NAME} PRIVATE ${${IMAGE_LOADER_NAME}_SOURCE_DIR})
+if (MSVC)
+    target_compile_definitions(${IMAGE_LOADER_NAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_compile_options(${IMAGE_LOADER_NAME} PRIVATE /wd4996)
+endif()
 
 message ("#### Start to Download " ${INI_PARSER_NAME} "... ####")
 FetchContent_MakeAvailable(${INI_PARSER_NAME})
