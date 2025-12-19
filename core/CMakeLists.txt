@@ -43,7 +43,7 @@ if (ENABLE_CLANG_TIDY)
     PUBLIC
     ${CMAKE_SOURCE_DIR}
 	)
-  target_link_libraries(${CORE_NAME} PUBLIC warning_flags)
+  target_link_libraries(${CORE_NAME} PRIVATE warning_flags)
 
 else()
   target_include_directories(
@@ -52,7 +52,7 @@ else()
     ${CMAKE_SOURCE_DIR}/lib
     ${CMAKE_SOURCE_DIR}
 	)
-  target_link_libraries(${CORE_NAME} PUBLIC warning_flags ${THIRD_PARTY_NAME})
+  target_link_libraries(${CORE_NAME} PRIVATE warning_flags PUBLIC ${THIRD_PARTY_NAME})
 endif()
 
 target_compile_definitions(
