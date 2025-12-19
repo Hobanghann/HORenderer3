@@ -149,10 +149,9 @@ jobs:
 
           run-clang-tidy -p build -quiet
 
-  build:
-    name: Build
+  build-test:
+    name: Build And Test
     needs:
-      - configure
       - clang-tidy
     strategy:
       fail-fast: false
@@ -185,51 +184,18 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
         
-      - name: Restore build files
-        uses: actions/cache@v4
-        with:
-          key: build-${{ matrix.os }}-${{ matrix.build_tool }}-${{ matrix.build_type }}-${{ matrix.c_compiler }}-${{ matrix.cpp_compiler }}-${{ github.run_id }}
-          path: ${{ github.workspace }}/build
+      - name: Configure CMake
+        shell: bash
+        run: |
+          cmake -S "${{ github.workspace }}" \
+          -B "${{ github.workspace }}/build" \
+          -G "${{ matrix.build_tool }}" \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} 
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
-
-  test:
-    name: Run Test
-    needs: build
-    strategy: 
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            build_tool: Visual Studio 17 2022
-            build_type: Debug
-            c_compiler: cl
-            cpp_compiler: cl
-          - os: windows-latest
-            build_tool: Visual Studio 17 2022
-            build_type: Release
-            c_compiler: cl
-            cpp_compiler: cl
-          - os: windows-latest
-            build_tool: Ninja
-            build_type: Debug
-            c_compiler: clang
-            cpp_compiler: clang++
-          - os: windows-latest
-            build_tool: Ninja
-            build_type: Release
-            c_compiler: clang
-            cpp_compiler: clang++
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Restore build files
-        uses: actions/cache@v4
-        with:
-          key: build-${{ matrix.os }}-${{ matrix.build_tool }}-${{ matrix.build_type }}-${{ matrix.c_compiler }}-${{ matrix.cpp_compiler }}-${{ github.run_id }}
-          path: ${{ github.workspace }}/build
 
       - name: Test Core.Math
         working-directory: build
