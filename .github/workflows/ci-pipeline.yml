@@ -234,24 +234,24 @@ jobs:
       - name: Test Core.Math
         working-directory: build
         run: |
-          ctest -R Core.Math --build-config ${{ matrix.build_type }}
+          ctest -R Core.Math
 
       - name: Test Core.Thread
         working-directory: build
         run: |
-          ctest -R Core.Thread --build-config ${{ matrix.build_type }}
+          ctest -R Core.Thread
 
       - name: Test Core.Templates
         working-directory: build
         run: |
-          ctest -R Core.Templates --build-config ${{ matrix.build_type }}
+          ctest -R Core.Templates
 
       - name: Test Core.Time
         working-directory: build
         run: |
-          ctest -R Core.Time --build-config ${{ matrix.build_type }}
+          ctest -R Core.Time
 
       - name: Test Core.IO
         working-directory: build
         run: |
-          ctest -R Core.IO --build-config ${{ matrix.build_type }}
+          ctest -R Core.IO
