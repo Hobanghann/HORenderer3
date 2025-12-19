@@ -1,9 +1,14 @@
 message("\n\n\n######## Start to process ${CORE_NAME} module. ########\n\n\n")
 ################################################################################
-# define variable for preprocessor macro
+# define variables
 ################################################################################
 set(HO_PROJECT_ROOT "${CMAKE_SOURCE_DIR}")
 set(HO_ASSET_ROOT "${CMAKE_SOURCE_DIR}/assets")
+
+set(TIDY_EXCLUDE_FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/io/resource_importer.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/io/resource_importer.h
+)
 
 ################################################################################
 # Read source files
@@ -12,6 +17,12 @@ file(GLOB_RECURSE SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
 file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 set(ALL_FILES ${SOURCES} ${HEADERS})
+
+if (ENABLE_CLANG_TIDY)
+  foreach(exclude_file IN LISTS TIDY_EXCLUDE_FILES)
+    list(FILTER ALL_FILES EXCLUDE REGEX "${exclude_file}$")
+  endforeach()
+endif()
 
 ################################################################################
 # Repackiging source files
@@ -33,13 +44,6 @@ if (ENABLE_CLANG_TIDY)
     ${CMAKE_SOURCE_DIR}
 	)
   target_link_libraries(${CORE_NAME} PUBLIC warning_flags)
-
-  set_source_files_properties(
-  core/io/resource_importer.h
-  core/io/resource_importer.cc
-  PROPERTIES
-    SKIP_LINTING ON
-)
 
 else()
   target_include_directories(
