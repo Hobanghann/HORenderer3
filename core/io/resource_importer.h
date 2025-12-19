@@ -14,7 +14,7 @@ namespace ho {
     struct ImportedModel {
         const aiScene* scene;
         std::deque<const aiNode*> flatted_scene;
-        std::unordered_map<const aiNode*, int> node_to_index;
+        std::unordered_map<const aiNode*, uint32_t> node_to_index;
         Assimp::Importer importer_;
     };
 
