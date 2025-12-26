@@ -1,0 +1,23 @@
+# multi_mesh.mtl
+
+# =====================
+# Metal material
+# =====================
+newmtl metal
+illum 2
+Kd 1.0 1.0 1.0
+Ks 1.0 1.0 1.0
+Ns 64.0
+
+map_Kd test_diffuse.png
+
+# =====================
+# Plastic material
+# =====================
+newmtl plastic
+illum 2
+Kd 1.0 1.0 1.0
+Ks 0.1 0.1 0.1
+Ns 8.0
+
+map_Kd test_diffuse.png
