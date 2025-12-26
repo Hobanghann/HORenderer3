@@ -79,6 +79,7 @@ endif ()
 set(PLATFORMS_NAME platforms)
 set(THIRD_PARTY_NAME lib)
 set(CORE_NAME core)
+set(RESOURCE_NAME resource)
 
 ##########################################################
 # Process modules
@@ -88,6 +89,7 @@ if (ENABLE_CLANG_TIDY)
     message(STATUS "[CLANG-TIDY MODE] Generating minimal targets")
 
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/resource)
 
     return()
 endif()
@@ -96,6 +98,7 @@ endif()
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/platforms)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/resource)
 
 ##########################################################
 # Process tests

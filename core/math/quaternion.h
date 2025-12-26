@@ -8,6 +8,8 @@ namespace ho {
     struct Matrix3x3;
     struct Quaternion {
        public:
+        static const Quaternion IDENTITY;
+
         static Quaternion FromAxisAngle(const Vector3& axis, real angle);
         static Quaternion FromEuler(real x, real y, real z, math::EulerOrder order = math::YXZ);
         static Quaternion FromMatrix(const Matrix3x3& m);
@@ -97,6 +99,8 @@ namespace ho {
         w = rhs.w;
         return *this;
     }
+
+    INLINE constexpr Quaternion Quaternion::IDENTITY = Quaternion(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
     constexpr Quaternion Quaternion::operator+(const Quaternion& rhs) const {
         return Quaternion(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w);
