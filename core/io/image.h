@@ -12,7 +12,7 @@
 namespace ho {
     class Image {
        public:
-        enum Format : std::uint32_t {
+        enum Format : std::uint8_t {
             // --- Uncompressed formats (8-bit normalized) ---
             IMAGE_FORMAT_R8,    // Single channel, 8-bit (e.g. masks, heightmaps)
             IMAGE_FORMAT_RG8,   // Two channels, 8-bit each (e.g. UV data, masks)
@@ -71,26 +71,26 @@ namespace ho {
         std::vector<uint8_t> bitmap_;
     };
 
-    ALWAYS_INLINE std::size_t GetPixelBytes(Image::Format format) {
+    ALWAYS_INLINE uint32_t GetPixelBytes(Image::Format format) {
         switch (format) {
             case Image::Format::IMAGE_FORMAT_R8:
                 return 1;
+
             case Image::Format::IMAGE_FORMAT_RG8:
                 return 2;
+
             case Image::Format::IMAGE_FORMAT_RGB8:
-                return 3;
             case Image::Format::IMAGE_FORMAT_BGR8:
                 return 3;
+
             case Image::Format::IMAGE_FORMAT_RGBA8:
-                return 4;
             case Image::Format::IMAGE_FORMAT_BGRA8:
-                return 4;
             case Image::Format::IMAGE_FORMAT_ARGB8:
-                return 4;
             case Image::Format::IMAGE_FORMAT_ABGR8:
                 return 4;
+
             default:
-                return 0;  // fallback
+                return 0;
         }
     }
 
@@ -101,7 +101,7 @@ namespace ho {
           format_(format),
           width_(width),
           height_(height),
-          bitmap_(bitmap, bitmap + width * height * GetPixelBytes(format)) {}
+          bitmap_(bitmap, bitmap + static_cast<size_t>(width * height * GetPixelBytes(format))) {}
 
     const Path& Image::path() const { return path_; }
     const std::string& Image::name() const { return name_; }

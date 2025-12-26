@@ -84,17 +84,6 @@ set(RESOURCE_NAME resource)
 ##########################################################
 # Process modules
 ##########################################################
-
-if (ENABLE_CLANG_TIDY)
-    message(STATUS "[CLANG-TIDY MODE] Generating minimal targets")
-
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/resource)
-
-    return()
-endif()
-
-
 #add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/platforms)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
