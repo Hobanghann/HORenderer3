@@ -1,0 +1,28 @@
+newmtl texture
+illum 2
+map_Kd test_diffuse.png
+map_Ks test_specular.png
+map_Ns test_specular_highlight.png
+map_bump test_bump.png
+disp test_displacement.png
+map_d test_alpha.png
+
+newmtl attribute
+illum 2
+# -----------------------
+# Color components
+# -----------------------
+Ka 0.2 0.2 0.2        # ambient
+Kd 0.1 0.1 0.1        # diffuse (black)
+Ks 1.0 1.0 1.0        # specular (white)
+Ke 0.0 0.0 0.0        # emission (MTL extension, 없으면 0)
+# -----------------------
+# Optical properties
+# -----------------------
+Ns 10.0               # shininess
+Ni 1.5                # index of refraction (glass ~1.5)
+d  0.5                # dissolve (opaque)
+# -----------------------
+# Transmission / transparency
+# -----------------------
+Tf 1.0 1.0 1.0        # transmittance (no color filtering)
