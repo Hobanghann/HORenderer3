@@ -20,7 +20,7 @@ target_include_directories(
   PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
-target_link_libraries(${IO_TEST_NAME} PRIVATE warning_flags ${THIRD_PARTY_NAME} ${CORE_NAME} GTest::gtest_main)
+target_link_libraries(${IO_TEST_NAME} PRIVATE warning_flags ${THIRD_PARTY_NAME} ${CORE_NAME} ${RESOURCE_NAME} GTest::gtest_main)
 set_target_properties(${IO_TEST_NAME} PROPERTIES FOLDER "Test/core")
 target_compile_definitions(
   ${IO_TEST_NAME} 
