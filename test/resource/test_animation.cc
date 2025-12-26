@@ -10,15 +10,17 @@ class AnimationTestFixture : public ::testing::Test {
         std::vector<Animation::SkeletalTrack> skeletal_tracks;
 
         skeletal_tracks.emplace_back(
-            0, std::vector<Animation::TranslationKey>{{0.0_r, Vector3(0, 0, 0)}}, Animation::INTERP_MODE_LINEAR,
-            std::vector<Animation::RotationKey>{{0.0_r, Quaternion::IDENTITY}}, Animation::INTERP_MODE_SPHERICAL_LINEAR,
-            std::vector<Animation::ScalingKey>{{0.0_r, Vector3(1, 1, 1)}}, Animation::INTERP_MODE_LINEAR,
+            0, std::vector<Animation::TranslationKey>{{0.0_r, Vector3(0.0_r, 0.0_r, 0.0_r)}},
+            Animation::INTERP_MODE_LINEAR, std::vector<Animation::RotationKey>{{0.0_r, Quaternion::IDENTITY}},
+            Animation::INTERP_MODE_SPHERICAL_LINEAR,
+            std::vector<Animation::ScalingKey>{{0.0_r, Vector3(1.0_r, 1.0_r, 1.0_r)}}, Animation::INTERP_MODE_LINEAR,
             Animation::EXTRAP_MODE_DEFAULT, Animation::EXTRAP_MODE_DEFAULT);
 
         skeletal_tracks.emplace_back(
-            5, std::vector<Animation::TranslationKey>{{0.0_r, Vector3(1, 2, 3)}}, Animation::INTERP_MODE_LINEAR,
-            std::vector<Animation::RotationKey>{{0.0_r, Quaternion::IDENTITY}}, Animation::INTERP_MODE_SPHERICAL_LINEAR,
-            std::vector<Animation::ScalingKey>{{0.0_r, Vector3(1, 1, 1)}}, Animation::INTERP_MODE_LINEAR,
+            5, std::vector<Animation::TranslationKey>{{0.0_r, Vector3(1.0_r, 2.0_r, 3.0_r)}},
+            Animation::INTERP_MODE_LINEAR, std::vector<Animation::RotationKey>{{0.0_r, Quaternion::IDENTITY}},
+            Animation::INTERP_MODE_SPHERICAL_LINEAR,
+            std::vector<Animation::ScalingKey>{{0.0_r, Vector3(1.0_r, 1.0_r, 1.0_r)}}, Animation::INTERP_MODE_LINEAR,
             Animation::EXTRAP_MODE_CONSTANT, Animation::EXTRAP_MODE_REPEAT);
 
         std::vector<Animation::MorphTargetTrack> morph_tracks;
@@ -78,13 +80,13 @@ TEST_F(AnimationTestFixture, MorphTargetTrackAccessors) {
 
     const Animation::MorphTargetTrack& track0 = animation->GetMorphTargetTrack(0);
 
-    EXPECT_EQ(track0.sub_mesh_index, 0u);
+    EXPECT_EQ(track0.bone_index, 0u);
     EXPECT_EQ(track0.key_sequence.size(), 1u);
     EXPECT_EQ(track0.key_sequence[0].weights.size(), 2u);
 
     const Animation::MorphTargetTrack& track3 = animation->GetMorphTargetTrack(3);
 
-    EXPECT_EQ(track3.sub_mesh_index, 3u);
+    EXPECT_EQ(track3.bone_index, 3u);
     EXPECT_EQ(track3.key_sequence.size(), 1u);
     EXPECT_EQ(track3.key_sequence[0].weights[0], 1.0_r);
 }
