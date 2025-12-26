@@ -29,5 +29,6 @@ endforeach()
 # Process subdirectories
 ################################################################################
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/resource)
 
 message("\n######## Processing test finished. ########\n")

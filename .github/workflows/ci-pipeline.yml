@@ -170,3 +170,8 @@ jobs:
         working-directory: build
         run: |
           ctest -R Core.IO
+
+      - name: Test Resource
+        working-directory: build
+        run: |
+          ctest -R Resource
