@@ -175,7 +175,7 @@ namespace ho {
             const bool is_embedded = !tex_name.empty() && tex_name[0] == '*';
 
             if (is_embedded) {
-                tex_idx = std::atoi(tex_name.c_str() + 1);
+                tex_idx = static_cast<unsigned int>(std::atoi(tex_name.c_str() + 1));
                 tex_name = emb_textures[tex_idx]->mFilename.C_Str();
             }
 
@@ -265,7 +265,7 @@ namespace ho {
 
             // parent bone
             if (node->mParent) {
-                parents.push_back(imp_model.node_to_index.at(node->mParent));
+                parents.push_back(static_cast<int>(imp_model.node_to_index.at(node->mParent)));
             } else {
                 parents.push_back(-1);  // root
             }
@@ -333,7 +333,7 @@ namespace ho {
             std::vector<std::array<Mesh::BoneWeight, Mesh::MAX_BONE_CHANNEL>> bone_weights(aimesh->mNumVertices);
 
             std::vector<uint32_t> indices;
-            indices.reserve(aimesh->mNumFaces * 3);
+            indices.reserve(static_cast<size_t>(aimesh->mNumFaces) * 3);
             std::vector<Mesh::MorphTarget> morph_targets;
             morph_targets.reserve(aimesh->mNumAnimMeshes);
 
@@ -448,7 +448,8 @@ namespace ho {
 
                 std::string mt_name;
                 if (anim_mesh->mName.Empty()) {
-                    mt_name = m_name + "_" + sm_name + "_" + "unnamed_morph_target_" + std::to_string(mti);
+                    mt_name =
+                        m_name.append("_").append(sm_name).append("_unnamed_morph_target_").append(std::to_string(mti));
                 } else {
                     mt_name = anim_mesh->mName.C_Str();
                     auto it = target_name_count.find(mt_name);
@@ -683,8 +684,7 @@ namespace ho {
                     target_indices.push_back(k.mValues[vi]);
                     weights.push_back(static_cast<real>(k.mWeights[vi]));
                 }
-                keys.emplace_back(std::move((real)k.mTime / ticks_per_sec), std::move(target_indices),
-                                  std::move(weights));
+                keys.emplace_back((real)k.mTime / ticks_per_sec, std::move(target_indices), std::move(weights));
             }
 
             morph_target_tracks.emplace_back(bone_idx, std::move(keys));
@@ -708,7 +708,7 @@ namespace ho {
             for (uint32_t bi = 0; bi < aimesh->mNumBones; ++bi) {
                 aiBone* aibone = aimesh->mBones[bi];
                 std::string bone_name = aibone->mName.C_Str();
-                int bone_index = skeleton->name_to_index.at(bone_name);
+                uint32_t bone_index = skeleton->name_to_index.at(bone_name);
                 const aiMatrix4x4& om = aibone->mOffsetMatrix;
                 Matrix4x4 m(Vector4(om.a1, om.a2, om.a3, om.a4), Vector4(om.b1, om.b2, om.b3, om.b4),
                             Vector4(om.c1, om.c2, om.c3, om.c4), Vector4(om.d1, om.d2, om.d3, om.d4));

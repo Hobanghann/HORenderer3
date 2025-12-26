@@ -121,8 +121,6 @@ namespace ho {
                 format = Image::Format::IMAGE_FORMAT_RGB8;
                 break;
             case 4:
-                format = Image::Format::IMAGE_FORMAT_RGBA8;
-                break;
             default:
                 format = Image::Format::IMAGE_FORMAT_RGBA8;
                 break;

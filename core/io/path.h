@@ -13,7 +13,7 @@ namespace ho {
         explicit Path(const std::string& path) : path_(path) {}
         Path(Path&& path) noexcept = default;
 
-        ALWAYS_INLINE Path& operator=(const Path& rhs) noexcept;
+        ALWAYS_INLINE Path& operator=(const Path& rhs);
         ALWAYS_INLINE Path& operator=(Path&& rhs) noexcept;
 
         ALWAYS_INLINE bool operator==(const Path& rhs) const;
@@ -41,7 +41,7 @@ namespace ho {
         std::filesystem::path path_;
     };
 
-    Path& Path::operator=(const Path& rhs) noexcept {
+    Path& Path::operator=(const Path& rhs) {
         if (this != &rhs) {
             path_ = rhs.path_;
         }
