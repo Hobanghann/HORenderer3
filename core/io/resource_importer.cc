@@ -93,7 +93,7 @@ namespace ho {
             height = static_cast<int>(aitex->mHeight);
             num_channels = 4;  // aiTexel = RGBA8888
 
-            size_t size = static_cast<size_t>(width) * height * num_channels;
+            size_t size = static_cast<size_t>(width) * static_cast<size_t>(height) * static_cast<size_t>(num_channels);
             decoded = new std::uint8_t[size];
 
             for (int y = 0; y < height; ++y) {
