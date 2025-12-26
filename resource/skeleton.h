@@ -22,12 +22,12 @@ struct Skeleton {
     for (std::size_t i = 0; i < parents.size(); ++i) {
       int parent = parents[i];
       if (parent >= 0) {
-        children[parent].push_back(static_cast<int>(i));
+        children[parent].push_back(static_cast<uint32_t>(i));
       }
     }
 
     for (std::size_t i = 0; i < bone_names.size(); ++i) {
-      name_to_index[bone_names[i]] = static_cast<int>(i);
+      name_to_index[bone_names[i]] = static_cast<uint32_t>(i);
     }
   }
 
