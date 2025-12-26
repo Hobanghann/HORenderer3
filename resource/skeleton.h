@@ -22,7 +22,8 @@ struct Skeleton {
     for (std::size_t i = 0; i < parents.size(); ++i) {
       int parent = parents[i];
       if (parent >= 0) {
-        children[parent].push_back(static_cast<uint32_t>(i));
+        children[static_cast<size_t>(parent)].push_back(
+            static_cast<uint32_t>(i));
       }
     }
 
