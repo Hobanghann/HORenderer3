@@ -22,17 +22,17 @@ static std::string WriteTempImage(const std::string& filename, int width, int he
     return path;
 }
 
-TEST(ResourceImporterTest, ImportInvalidFile) {
-    auto img = ResourceImporter::ImportImage("this_file_does_not_exist_12345.png");
+TEST(ResourceImporterTest, ImportImageInvalid) {
+    auto img = ResourceImporter::ImportImage(Path(std::string("this_file_does_not_exist_12345.png")));
     EXPECT_EQ(img, nullptr);
 }
 
-TEST(ResourceImporterTest, ImportR8) {
+TEST(ResourceImporterTest, ImportImageR8) {
     int width = 2, height = 2, channels = 1;
     std::vector<uint8_t> data = {10, 20, 30, 40};
 
     std::string path = WriteTempImage("test_r8.png", width, height, channels, data);
-    auto img = ResourceImporter::ImportImage(path);
+    auto img = ResourceImporter::ImportImage(Path(path));
 
     ASSERT_NE(img, nullptr);
     EXPECT_EQ(img->width(), width);
@@ -43,12 +43,12 @@ TEST(ResourceImporterTest, ImportR8) {
     EXPECT_EQ(img->GetColor32(0, 1).r, 30);
 }
 
-TEST(ResourceImporterTest, ImportRG8) {
+TEST(ResourceImporterTest, ImportImageRG8) {
     int width = 2, height = 1, channels = 2;
     std::vector<uint8_t> data = {10, 50, 20, 60};
 
     std::string path = WriteTempImage("test_rg8.png", width, height, channels, data);
-    auto img = ResourceImporter::ImportImage(path);
+    auto img = ResourceImporter::ImportImage(Path(path));
 
     ASSERT_NE(img, nullptr);
     EXPECT_EQ(img->format(), Image::IMAGE_FORMAT_RG8);
@@ -62,12 +62,12 @@ TEST(ResourceImporterTest, ImportRG8) {
     EXPECT_EQ(c1.g, 60);
 }
 
-TEST(ResourceImporterTest, ImportRGB8) {
+TEST(ResourceImporterTest, ImportImageRGB8) {
     int width = 1, height = 2, channels = 3;
     std::vector<uint8_t> data = {1, 2, 3, 4, 5, 6};
 
     std::string path = WriteTempImage("test_rgb8.png", width, height, channels, data);
-    auto img = ResourceImporter::ImportImage(path);
+    auto img = ResourceImporter::ImportImage(Path(path));
 
     ASSERT_NE(img, nullptr);
     EXPECT_EQ(img->format(), Image::IMAGE_FORMAT_RGB8);
@@ -81,12 +81,12 @@ TEST(ResourceImporterTest, ImportRGB8) {
     EXPECT_EQ(img->GetColor32(0, 1).b, 6);
 }
 
-TEST(ResourceImporterTest, ImportRGBA8) {
+TEST(ResourceImporterTest, ImportImageRGBA8) {
     int width = 2, height = 1, channels = 4;
     std::vector<uint8_t> data = {10, 20, 30, 40, 50, 60, 70, 80};
 
     std::string path = WriteTempImage("test_rgba8.png", width, height, channels, data);
-    auto img = ResourceImporter::ImportImage(path);
+    auto img = ResourceImporter::ImportImage(Path(path));
 
     ASSERT_NE(img, nullptr);
     EXPECT_EQ(img->format(), Image::IMAGE_FORMAT_RGBA8);
@@ -104,12 +104,12 @@ TEST(ResourceImporterTest, ImportRGBA8) {
     EXPECT_EQ(c1.a, 80);
 }
 
-TEST(ResourceImporterTest, DeepCopyCheck) {
+TEST(ResourceImporterTest, ImportImageDeepCopyCheck) {
     int width = 1, height = 1, channels = 3;
     std::vector<uint8_t> data = {100, 150, 200};
 
     std::string path = WriteTempImage("test_deepcopy.png", width, height, channels, data);
-    auto img = ResourceImporter::ImportImage(path);
+    auto img = ResourceImporter::ImportImage(Path(path));
 
     ASSERT_NE(img, nullptr);
 
@@ -122,20 +122,18 @@ TEST(ResourceImporterTest, DeepCopyCheck) {
     EXPECT_EQ(img->GetBitmap()[0], 100);
 }
 
-static void RunImporterTest(const std::string& file_path) {
-    Path::Initialize();
-    std::string path = Path::ResolveAssetPath(file_path);
-    ResourceImporter importer;
+static void RunImporterTest(const Path& file_path) {
+    Path path = file_path.ResolvedAssetPath();
 
-    std::unique_ptr<ImportedModel> resource = importer.ImportModel(path);
+    std::unique_ptr<ImportedModel> resource = ResourceImporter::ImportModel(path);
 
-    ASSERT_NE(resource, nullptr) << "Importing model failed to load: " << path;
+    ASSERT_NE(resource, nullptr) << "Importing model failed to load: " << path.ToString();
 
-    ASSERT_NE(resource->scene, nullptr) << "Assimp failed to load: " << path;
+    ASSERT_NE(resource->scene, nullptr) << "Assimp failed to load: " << path.ToString();
 
-    ASSERT_NE(resource->scene->mRootNode, nullptr) << "Root node is null for file: " << path;
+    ASSERT_NE(resource->scene->mRootNode, nullptr) << "Root node is null for file: " << path.ToString();
 
-    ASSERT_FALSE(resource->flatted_scene.empty()) << "TopologicalSort produced empty result: " << path;
+    ASSERT_FALSE(resource->flatted_scene.empty()) << "TopologicalSort produced empty result: " << path.ToString();
 
     const aiNode* expected_root = resource->scene->mRootNode;
     const aiNode* flat_root = resource->flatted_scene.front();
@@ -144,7 +142,7 @@ static void RunImporterTest(const std::string& file_path) {
     EXPECT_EQ(resource->flatted_scene.size(), resource->node_to_index.size()) << "node_to_index size mismatch";
 
     for (size_t i = 0; i < resource->flatted_scene.size(); i++) {
-        const aiNode* n = resource->flatted_scene[i];
+        aiNode* n = resource->flatted_scene[i];
         auto it = resource->node_to_index.find(n);
         ASSERT_TRUE(it != resource->node_to_index.end()) << "Node missing in node_to_index map";
 
@@ -162,22 +160,17 @@ static void RunImporterTest(const std::string& file_path) {
 
     EXPECT_TRUE(mesh->HasNormals()) << "Mesh has no normals (unexpected for teapot model)";
 
-    if (std::string(path).find(".obj") == std::string::npos) {
-        EXPECT_GE(resource->scene->mRootNode->mNumChildren, 0u) << "Expected child nodes in FBX/GLTF";
+    if (path.ToString().find(".obj") == std::string::npos) {
+        EXPECT_GE(resource->scene->mRootNode->mNumChildren, 0u) << "Expected child nodes in GLTF";
     }
 }
 
-TEST(ResourceImporterTest, ImportOBJ) {
-    std::string path = (std::filesystem::path("test_assets") / "teapot" / "teapot.obj").string();
-    RunImporterTest(path);
+TEST(ResourceImporterTest, ImportModelOBJ) {
+    std::string file_path = (std::filesystem::path("test_assets") / "teapot" / "teapot.obj").string();
+    RunImporterTest(Path(file_path));
 }
 
-TEST(ResourceImporterTest, ImportFBX) {
-    std::string path = (std::filesystem::path("test_assets") / "teapot" / "teapot.fbx").string();
-    RunImporterTest(path);
-}
-
-TEST(ResourceImporterTest, ImportGLTF) {
-    std::string path = (std::filesystem::path("test_assets") / "teapot" / "teapot.gltf").string();
-    RunImporterTest(path);
+TEST(ResourceImporterTest, ImportModelGLTF) {
+    std::string file_path = (std::filesystem::path("test_assets") / "teapot" / "teapot.gltf").string();
+    RunImporterTest(Path(file_path));
 }

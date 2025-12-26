@@ -7,6 +7,7 @@
 
 #include "core/math/color128.h"
 #include "core/math/color32.h"
+#include "path.h"
 
 namespace ho {
     class Image {
@@ -25,7 +26,7 @@ namespace ho {
 
         ALWAYS_INLINE Image() = default;
         Image(const Image& img) = default;
-        ALWAYS_INLINE Image(const std::string& path, const std::string& name, Format format, std::uint32_t width,
+        ALWAYS_INLINE Image(const Path& path, const std::string& name, Format format, std::uint32_t width,
                             std::uint32_t height, const std::uint8_t* bitmap);
 
         ALWAYS_INLINE Image(Image&& other) noexcept
@@ -50,7 +51,7 @@ namespace ho {
         Image& operator=(const Image& img) = delete;
         ALWAYS_INLINE ~Image() = default;
 
-        ALWAYS_INLINE const std::string& path() const;
+        ALWAYS_INLINE const Path& path() const;
         ALWAYS_INLINE const std::string& name() const;
         ALWAYS_INLINE Format format() const;
         ALWAYS_INLINE std::uint32_t width() const;
@@ -62,7 +63,7 @@ namespace ho {
         ALWAYS_INLINE const uint8_t* GetBitmap() const;
 
        private:
-        std::string path_;
+        Path path_;
         std::string name_;
         Format format_;
         std::uint32_t width_;
@@ -93,8 +94,8 @@ namespace ho {
         }
     }
 
-    Image::Image(const std::string& path, const std::string& name, Format format, std::uint32_t width,
-                 std::uint32_t height, const std::uint8_t* bitmap)
+    Image::Image(const Path& path, const std::string& name, Format format, std::uint32_t width, std::uint32_t height,
+                 const std::uint8_t* bitmap)
         : path_(path),
           name_(name),
           format_(format),
@@ -102,7 +103,7 @@ namespace ho {
           height_(height),
           bitmap_(bitmap, bitmap + width * height * GetPixelBytes(format)) {}
 
-    const std::string& Image::path() const { return path_; }
+    const Path& Image::path() const { return path_; }
     const std::string& Image::name() const { return name_; }
     Image::Format Image::format() const { return format_; }
     std::uint32_t Image::width() const { return width_; }

@@ -8,40 +8,84 @@
 namespace ho {
     class Path {
        public:
-        static void Initialize();
+        Path() = delete;
+        Path(const Path& path) = default;
+        explicit Path(const std::string& path) : path_(path) {}
+        Path(Path&& path) = default;
 
-        static ALWAYS_INLINE const std::string& ProjectRoot();
-        static ALWAYS_INLINE const std::string& AssetRoot();
+        ALWAYS_INLINE Path& operator=(const Path& rhs);
+        ALWAYS_INLINE Path& operator=(Path&& rhs);
 
-        static ALWAYS_INLINE std::string ResolveProjectPath(const std::string& relative);
-        static ALWAYS_INLINE std::string ResolveAssetPath(const std::string& relative);
-        static ALWAYS_INLINE std::string ResolveFileName(const std::string& path);
+        ALWAYS_INLINE bool operator==(const Path& rhs) const;
+        ALWAYS_INLINE bool operator!=(Path&& rhs) const;
+
+        ALWAYS_INLINE Path operator/(const Path& rhs) const;
+
+        ALWAYS_INLINE Path GetParentPath() const;
+        ALWAYS_INLINE Path GetFileName() const;
+
+        ALWAYS_INLINE Path& ResolveProjectPath();
+        ALWAYS_INLINE Path& ResolveAssetPath();
+
+        ALWAYS_INLINE Path ResolvedProjectPath() const;
+        ALWAYS_INLINE Path ResolvedAssetPath() const;
+
+        ALWAYS_INLINE std::string ToString() const;
 
        private:
-        static void FindProjectRoot();
-        static void FindAssetRoot();
+        Path(const std::filesystem::path& path) : path_(path) {}
 
-       private:
-        static std::string project_root_;  // root ~ HORenderer3
-        static std::string asset_root_;    // root ~ HORenderer3/assets/
-        static std::filesystem::path project_root_path_;
-        static std::filesystem::path asset_root_path_;
+        static std::filesystem::path project_root_path_;  // root ~ HORenderer3
+        static std::filesystem::path asset_root_path_;    // root ~ HORenderer3/assets/
+
+        std::filesystem::path path_;
     };
 
-    const std::string& Path::ProjectRoot() { return project_root_; }
-    const std::string& Path::AssetRoot() { return asset_root_; }
-
-    std::string Path::ResolveProjectPath(const std::string& relative) {
-        std::filesystem::path combined = project_root_path_ / relative;
-        return combined.lexically_normal().string();
+    Path& Path::operator=(const Path& rhs) {
+        if (this != &rhs) {
+            path_ = rhs.path_;
+        }
+        return *this;
+    }
+    Path& Path::operator=(Path&& rhs) {
+        if (this != &rhs) {
+            path_ = std::move(rhs.path_);
+        }
+        return *this;
     }
 
-    std::string Path::ResolveAssetPath(const std::string& relative) {
-        std::filesystem::path combined = asset_root_path_ / relative;
-        return combined.lexically_normal().string();
+    bool Path::operator==(const Path& rhs) const { return path_ == rhs.path_; }
+    bool Path::operator!=(Path&& rhs) const { return !(*this == rhs); }
+
+    Path Path::operator/(const Path& rhs) const { return Path(path_ / rhs.path_); }
+
+    Path Path::GetParentPath() const { return path_.parent_path(); }
+
+    Path Path::GetFileName() const { return Path(path_.filename()); }
+
+    Path Path::ResolvedProjectPath() const {
+        Path copy = *this;
+        return copy.ResolveProjectPath();
+        }
+
+    Path Path::ResolvedAssetPath() const {
+        Path copy = *this;
+        return copy.ResolveAssetPath();
     }
 
-    std::string Path::ResolveFileName(const std::string& path) {
-        return std::filesystem::path(path).filename().string();
+    Path& Path::ResolveProjectPath() {
+        if (!path_.is_absolute()) {
+            path_ = (project_root_path_ / path_).lexically_normal();
+        }
+        return *this;
     }
+    Path& Path::ResolveAssetPath() {
+        if (!path_.is_absolute()) {
+            path_ = (asset_root_path_ / path_).lexically_normal();
+        }
+        return *this;
+    }
+
+    std::string Path::ToString() const { return path_.string(); }
+
 }  // namespace ho
