@@ -11,10 +11,10 @@ namespace ho {
         Path() = delete;
         Path(const Path& path) = default;
         explicit Path(const std::string& path) : path_(path) {}
-        Path(Path&& path) = default;
+        Path(Path&& path) noexcept = default;
 
-        ALWAYS_INLINE Path& operator=(const Path& rhs);
-        ALWAYS_INLINE Path& operator=(Path&& rhs);
+        ALWAYS_INLINE Path& operator=(const Path& rhs) noexcept;
+        ALWAYS_INLINE Path& operator=(Path&& rhs) noexcept;
 
         ALWAYS_INLINE bool operator==(const Path& rhs) const;
         ALWAYS_INLINE bool operator!=(Path&& rhs) const;
@@ -41,13 +41,13 @@ namespace ho {
         std::filesystem::path path_;
     };
 
-    Path& Path::operator=(const Path& rhs) {
+    Path& Path::operator=(const Path& rhs) noexcept {
         if (this != &rhs) {
             path_ = rhs.path_;
         }
         return *this;
     }
-    Path& Path::operator=(Path&& rhs) {
+    Path& Path::operator=(Path&& rhs) noexcept {
         if (this != &rhs) {
             path_ = std::move(rhs.path_);
         }

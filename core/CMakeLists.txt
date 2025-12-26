@@ -18,11 +18,11 @@ file(GLOB_RECURSE HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
 
 set(ALL_FILES ${SOURCES} ${HEADERS})
 
-if (ENABLE_CLANG_TIDY)
-  foreach(exclude_file IN LISTS TIDY_EXCLUDE_FILES)
-    list(FILTER ALL_FILES EXCLUDE REGEX "${exclude_file}$")
-  endforeach()
-endif()
+# if (ENABLE_CLANG_TIDY)
+#   foreach(exclude_file IN LISTS TIDY_EXCLUDE_FILES)
+#     list(FILTER ALL_FILES EXCLUDE REGEX "${exclude_file}$")
+#   endforeach()
+# endif()
 
 ################################################################################
 # Repackiging source files
@@ -43,7 +43,7 @@ if (ENABLE_CLANG_TIDY)
     PUBLIC
     ${CMAKE_SOURCE_DIR}
 	)
-  target_link_libraries(${CORE_NAME} PRIVATE warning_flags)
+  target_link_libraries(${CORE_NAME} PRIVATE warning_flags PUBLIC ${THIRD_PARTY_NAME})
 
 else()
   target_include_directories(
