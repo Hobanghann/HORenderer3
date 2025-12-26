@@ -1,40 +1,88 @@
 #include <gtest/gtest.h>
 
-#include <filesystem>
 #include <string>
 
 #include "core/io/path.h"
 
 using namespace ho;
 
-class PathTest : public ::testing::Test {
-   protected:
-    void SetUp() override { Path::Initialize(); }
-};
+TEST(Path, ConstructAndToString) {
+    std::string s = "a/b/c.txt";
+    Path p(s);
 
-TEST_F(PathTest, ProjectRootCheck) { EXPECT_EQ(Path::ProjectRoot(), TEST_HO_PROJECT_ROOT); }
-
-TEST_F(PathTest, AssetRootCheck) { EXPECT_EQ(Path::AssetRoot(), TEST_HO_ASSET_ROOT); }
-
-TEST_F(PathTest, ResolveProjectPathCheck) {
-    std::string relative = "core/math/vector3.h";
-
-    std::filesystem::path expected = std::filesystem::path(TEST_HO_PROJECT_ROOT) / relative;
-
-    EXPECT_EQ(Path::ResolveProjectPath(relative), expected.lexically_normal().string());
+    EXPECT_EQ(p.ToString(), std::filesystem::path(s).string());
 }
 
-TEST_F(PathTest, ResolveAssetPathCheck) {
-    std::string relative = "textures/diffuse.png";
+TEST(Path, PathJoinOperator) {
+    std::string base_str = "a/b";
+    std::string file_str = "c.txt";
 
-    std::filesystem::path expected = std::filesystem::path(TEST_HO_ASSET_ROOT) / relative;
+    Path base(base_str);
+    Path file(file_str);
 
-    EXPECT_EQ(Path::ResolveAssetPath(relative), expected.lexically_normal().string());
+    Path result = base / file;
+
+    std::filesystem::path expected = std::filesystem::path(base_str) / file_str;
+
+    EXPECT_EQ(result.ToString(), expected.string());
 }
 
-TEST_F(PathTest, ResolveFileNameCheck) {
-    EXPECT_EQ(Path::ResolveFileName("C:/Project/HORenderer3/assets/brick/albedo.png"), "albedo.png");
-    EXPECT_EQ(Path::ResolveFileName("/home/user/file.txt"), "file.txt");
-    EXPECT_EQ(Path::ResolveFileName("justname.ext"), "justname.ext");
-    EXPECT_EQ(Path::ResolveFileName("folder/inner/test.shader"), "test.shader");
+TEST(Path, GetParentPath) {
+    std::string s = "a/b/c.txt";
+    Path p(s);
+
+    EXPECT_EQ(p.GetParentPath().ToString(), std::filesystem::path(s).parent_path().string());
+}
+
+TEST(Path, GetFileName) {
+    std::string s = "a/b/c.txt";
+    Path p(s);
+
+    EXPECT_EQ(p.GetFileName().ToString(), "c.txt");
+}
+
+TEST(Path, ResolveProjectPathRelative) {
+    std::string rel = "src/main.cpp";
+    Path p(rel);
+
+    p.ResolveProjectPath();
+
+    std::filesystem::path expected = std::filesystem::path(HO_PROJECT_ROOT) / rel;
+
+    EXPECT_TRUE(std::filesystem::path(p.ToString()).is_absolute());
+    EXPECT_EQ(p.ToString(), expected.lexically_normal().string());
+}
+
+TEST(Path, ResolveProjectPathAbsolute) {
+    std::filesystem::path abs_path = std::filesystem::path(HO_PROJECT_ROOT) / "src/main.cpp";
+
+    std::string abs = abs_path.string();
+    Path p(abs);
+
+    p.ResolveProjectPath();
+
+    EXPECT_EQ(p.ToString(), abs_path.string());
+}
+
+TEST(Path, ResolveAssetPathRelative) {
+    std::string rel = "textures/albedo.png";
+    Path p(rel);
+
+    p.ResolveAssetPath();
+
+    std::filesystem::path expected = std::filesystem::path(HO_ASSET_ROOT) / rel;
+
+    EXPECT_TRUE(std::filesystem::path(p.ToString()).is_absolute());
+    EXPECT_EQ(p.ToString(), expected.lexically_normal().string());
+}
+
+TEST(Path, ResolveAssetPathAbsolute) {
+    std::filesystem::path abs_path = std::filesystem::path(HO_ASSET_ROOT) / "textures/albedo.png";
+
+    std::string abs = abs_path.string();
+    Path p(abs);
+
+    p.ResolveAssetPath();
+
+    EXPECT_EQ(p.ToString(), abs_path.string());
 }

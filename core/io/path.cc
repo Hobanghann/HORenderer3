@@ -4,26 +4,16 @@
 
 namespace ho {
 
-    std::string Path::project_root_;
-    std::string Path::asset_root_;
-
-    std::filesystem::path Path::project_root_path_;
-    std::filesystem::path Path::asset_root_path_;
-
-    void Path::Initialize() {
 #ifdef HO_PROJECT_ROOT
-        project_root_ = HO_PROJECT_ROOT;
-        project_root_path_ = std::filesystem::path(project_root_);
+    std::filesystem::path Path::project_root_path_ = std::filesystem::path(std::string(HO_PROJECT_ROOT));
 #else
-        assert(false && "HO_PROJECT_ROOT is not defined!");
+#error "HO_PROJECT_ROOT must be defined"
 #endif
 
 #ifdef HO_ASSET_ROOT
-        asset_root_ = HO_ASSET_ROOT;
-        asset_root_path_ = std::filesystem::path(asset_root_);
+    std::filesystem::path Path::asset_root_path_ = std::filesystem::path(std::string(HO_ASSET_ROOT));
 #else
-        assert(false && "HO_ASSET_ROOT is not defined!");
+#error "HO_ASSET_ROOT must be defined"
 #endif
-    }
 
 }  // namespace ho

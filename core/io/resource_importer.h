@@ -9,24 +9,28 @@
 #include "assimp/scene.h"
 
 namespace ho {
+    class Path;
     class Image;
 
     struct ImportedModel {
         const aiScene* scene;
-        std::deque<const aiNode*> flatted_scene;
-        std::unordered_map<const aiNode*, uint32_t> node_to_index;
-        Assimp::Importer importer_;
+        std::deque<aiNode*> flatted_scene;
+        std::unordered_map<aiNode*, uint32_t> node_to_index;
+        Assimp::Importer importer;
     };
 
     class ResourceImporter {
+        friend class ResourceLoader;
+
        public:
         ResourceImporter() = default;
 
-        static std::unique_ptr<Image> ImportImage(const std::string& path);
-        static std::unique_ptr<ImportedModel> ImportModel(const std::string& path);
+        static std::unique_ptr<Image> ImportImage(const Path& path);
+        static std::unique_ptr<ImportedModel> ImportModel(const Path& path);
 
        private:
-        static void TopologicalSort(const aiNode* root, std::deque<const aiNode*>& flatted_scene);
+        static std::unique_ptr<Image> ImportEmbeddedTexture(const aiTexture* aitex);
+        static void TopologicalSort(aiNode* root, std::deque<aiNode*>& flatted_scene);
     };
 
 }  // namespace ho

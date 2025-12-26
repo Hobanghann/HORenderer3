@@ -22,9 +22,9 @@ TEST(ImageTest, PixelBytes) {
 TEST(ImageTest, ConstructorAndAccessors) {
     uint8_t data[3] = {10, 20, 30};
 
-    Image img("test/path", "myimg", Image::IMAGE_FORMAT_RGB8, 1, 1, data);
+    Image img(Path(std::string("test/path")), "myimg", Image::IMAGE_FORMAT_RGB8, 1, 1, data);
 
-    EXPECT_EQ(img.path(), "test/path");
+    EXPECT_EQ(img.path(), Path(std::string("test/path")));
     EXPECT_EQ(img.name(), "myimg");
     EXPECT_EQ(img.format(), Image::IMAGE_FORMAT_RGB8);
     EXPECT_EQ(img.width(), 1u);
@@ -38,11 +38,11 @@ TEST(ImageTest, ConstructorAndAccessors) {
 
 TEST(ImageTest, MoveConstructor) {
     uint8_t data[3] = {1, 2, 3};
-    Image src("p", "n", Image::IMAGE_FORMAT_RGB8, 1, 1, data);
+    Image src(Path(std::string("p")), "n", Image::IMAGE_FORMAT_RGB8, 1, 1, data);
 
     Image dst(std::move(src));
 
-    EXPECT_EQ(dst.path(), "p");
+    EXPECT_EQ(dst.path(), Path(std::string("p")));
     EXPECT_EQ(dst.name(), "n");
     EXPECT_EQ(dst.format(), Image::IMAGE_FORMAT_RGB8);
 
@@ -54,14 +54,14 @@ TEST(ImageTest, MoveConstructor) {
 
 TEST(ImageTest, MoveAssignment) {
     uint8_t data[3] = {4, 5, 6};
-    Image src("pathX", "nameX", Image::IMAGE_FORMAT_RGB8, 1, 1, data);
+    Image src(Path(std::string("pathX")), "nameX", Image::IMAGE_FORMAT_RGB8, 1, 1, data);
 
     uint8_t empty[3] = {0, 0, 0};
-    Image dst("old", "old2", Image::IMAGE_FORMAT_RGB8, 1, 1, empty);
+    Image dst(Path(std::string("old")), "old2", Image::IMAGE_FORMAT_RGB8, 1, 1, empty);
 
     dst = std::move(src);
 
-    EXPECT_EQ(dst.path(), "pathX");
+    EXPECT_EQ(dst.path(), Path(std::string("pathX")));
     EXPECT_EQ(dst.name(), "nameX");
 
     const uint8_t* bmp = dst.GetBitmap();
@@ -72,7 +72,7 @@ TEST(ImageTest, MoveAssignment) {
 
 TEST(ImageTest, GetColor32_R8) {
     auto bmp = MakeBitmap({128});
-    Image img("", "", Image::IMAGE_FORMAT_R8, 1, 1, bmp.data());
+    Image img(Path(std::string()), "", Image::IMAGE_FORMAT_R8, 1, 1, bmp.data());
 
     Color32 c = img.GetColor32(0, 0);
     EXPECT_EQ(c.r, 128);
@@ -83,7 +83,7 @@ TEST(ImageTest, GetColor32_R8) {
 
 TEST(ImageTest, GetColor32_RG8) {
     auto bmp = MakeBitmap({10, 20});
-    Image img("", "", Image::IMAGE_FORMAT_RG8, 1, 1, bmp.data());
+    Image img(Path(std::string()), "", Image::IMAGE_FORMAT_RG8, 1, 1, bmp.data());
 
     Color32 c = img.GetColor32(0, 0);
     EXPECT_EQ(c.r, 10);
@@ -94,7 +94,7 @@ TEST(ImageTest, GetColor32_RG8) {
 
 TEST(ImageTest, GetColor32_RGB8) {
     auto bmp = MakeBitmap({1, 2, 3});
-    Image img("", "", Image::IMAGE_FORMAT_RGB8, 1, 1, bmp.data());
+    Image img(Path(std::string()), "", Image::IMAGE_FORMAT_RGB8, 1, 1, bmp.data());
 
     Color32 c = img.GetColor32(0, 0);
     EXPECT_EQ(c.r, 1);
@@ -105,7 +105,7 @@ TEST(ImageTest, GetColor32_RGB8) {
 
 TEST(ImageTest, GetColor32_BGR8) {
     auto bmp = MakeBitmap({3, 2, 1});
-    Image img("", "", Image::IMAGE_FORMAT_BGR8, 1, 1, bmp.data());
+    Image img(Path(std::string()), "", Image::IMAGE_FORMAT_BGR8, 1, 1, bmp.data());
 
     Color32 c = img.GetColor32(0, 0);
     EXPECT_EQ(c.r, 1);
@@ -116,7 +116,7 @@ TEST(ImageTest, GetColor32_BGR8) {
 
 TEST(ImageTest, GetColor32_RGBA8) {
     auto bmp = MakeBitmap({10, 20, 30, 40});
-    Image img("", "", Image::IMAGE_FORMAT_RGBA8, 1, 1, bmp.data());
+    Image img(Path(std::string()), "", Image::IMAGE_FORMAT_RGBA8, 1, 1, bmp.data());
 
     Color32 c = img.GetColor32(0, 0);
     EXPECT_EQ(c.r, 10);
@@ -127,7 +127,7 @@ TEST(ImageTest, GetColor32_RGBA8) {
 
 TEST(ImageTest, GetColor32_BGRA8) {
     auto bmp = MakeBitmap({30, 20, 10, 40});
-    Image img("", "", Image::IMAGE_FORMAT_BGRA8, 1, 1, bmp.data());
+    Image img(Path(std::string()), "", Image::IMAGE_FORMAT_BGRA8, 1, 1, bmp.data());
 
     Color32 c = img.GetColor32(0, 0);
     EXPECT_EQ(c.r, 10);
@@ -138,7 +138,7 @@ TEST(ImageTest, GetColor32_BGRA8) {
 
 TEST(ImageTest, GetColor32_ARGB8) {
     auto bmp = MakeBitmap({40, 10, 20, 30});
-    Image img("", "", Image::IMAGE_FORMAT_ARGB8, 1, 1, bmp.data());
+    Image img(Path(std::string()), "", Image::IMAGE_FORMAT_ARGB8, 1, 1, bmp.data());
 
     Color32 c = img.GetColor32(0, 0);
     EXPECT_EQ(c.r, 10);
@@ -149,7 +149,7 @@ TEST(ImageTest, GetColor32_ARGB8) {
 
 TEST(ImageTest, GetColor32_ABGR8) {
     auto bmp = MakeBitmap({40, 30, 20, 10});
-    Image img("", "", Image::IMAGE_FORMAT_ABGR8, 1, 1, bmp.data());
+    Image img(Path(std::string()), "", Image::IMAGE_FORMAT_ABGR8, 1, 1, bmp.data());
 
     Color32 c = img.GetColor32(0, 0);
     EXPECT_EQ(c.r, 10);
@@ -160,7 +160,7 @@ TEST(ImageTest, GetColor32_ABGR8) {
 
 TEST(ImageTest, GetColor128) {
     auto bmp = MakeBitmap({100, 150, 200, 255});
-    Image img("", "", Image::IMAGE_FORMAT_RGBA8, 1, 1, bmp.data());
+    Image img(Path(std::string()), "", Image::IMAGE_FORMAT_RGBA8, 1, 1, bmp.data());
 
     Color128 c = img.GetColor128(0, 0);
     EXPECT_NEAR(c.r, 100.0f / 255.0f, math::EPSILON_CMP);
