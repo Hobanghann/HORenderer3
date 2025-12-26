@@ -66,7 +66,7 @@ namespace ho {
     Path Path::ResolvedProjectPath() const {
         Path copy = *this;
         return copy.ResolveProjectPath();
-        }
+    }
 
     Path Path::ResolvedAssetPath() const {
         Path copy = *this;
