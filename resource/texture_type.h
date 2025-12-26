@@ -1,25 +1,25 @@
 #pragma once
 
 namespace ho {
-enum TextureType {
-  // Fallback
-  TEXTURE_TYPE_NONE,
+    enum TextureType {
+        // Fallback
+        TEXTURE_TYPE_NONE,
 
-  // Phong / legacy
-  TEXTURE_TYPE_DIFFUSE,
-  TEXTURE_TYPE_SPECULAR,
-  TEXTURE_TYPE_SHININESS,
-  TEXTURE_TYPE_OPACITY,
+        // Phong / legacy
+        TEXTURE_TYPE_DIFFUSE,
+        TEXTURE_TYPE_SPECULAR,
+        TEXTURE_TYPE_SHININESS,
+        TEXTURE_TYPE_OPACITY,
 
-  TEXTURE_TYPE_NORMAL,
+        TEXTURE_TYPE_NORMAL,
 
-  // PBR
-  TEXTURE_TYPE_ALBEDO,
-  TEXTURE_TYPE_EMISSION,
-  TEXTURE_TYPE_METALLIC_ROUGHNESS,
-  TEXTURE_TYPE_AMBIENT_OCCLUSION,
+        // PBR
+        TEXTURE_TYPE_ALBEDO,
+        TEXTURE_TYPE_EMISSION,
+        TEXTURE_TYPE_METALLIC_ROUGHNESS,
+        TEXTURE_TYPE_AMBIENT_OCCLUSION,
 
-  TEXTURE_TYPE_LAST
-};
+        TEXTURE_TYPE_LAST
+    };
 
 }  // namespace ho
