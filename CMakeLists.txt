@@ -80,6 +80,7 @@ set(PLATFORMS_NAME platforms)
 set(THIRD_PARTY_NAME lib)
 set(CORE_NAME core)
 set(RESOURCE_NAME resource)
+set(VIRTUAL_GPU_NAME virtual_gpu)
 
 ##########################################################
 # Process modules
@@ -88,6 +89,7 @@ set(RESOURCE_NAME resource)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/resource)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/virtual_gpu)
 
 ##########################################################
 # Process tests
