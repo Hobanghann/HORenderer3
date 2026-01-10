@@ -30,5 +30,6 @@ endforeach()
 ################################################################################
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/resource)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/virtual_gpu)
 
 message("\n######## Processing test finished. ########\n")
