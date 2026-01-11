@@ -52,14 +52,14 @@ TEST(AABBTest, ApproximateEqualityCheck) {
     EXPECT_TRUE(a.IsNotEqualApprox(c));
 }
 
-TEST(AABBTest, ConstructFromPositions) {
+TEST(AABBTest, FromPositions) {
     std::vector<Vector3> positions = {
         Vector3(1.0_r, 2.0_r, 3.0_r),
         Vector3(-2.0_r, 5.0_r, 1.0_r),
         Vector3(0.0_r, -1.0_r, 4.0_r),
     };
 
-    AABB box = AABB::ConstructFromPositions(positions);
+    AABB box = AABB::FromPositions(positions);
 
     EXPECT_FLOAT_EQ(box.min_edges.x, -2.0_r);
     EXPECT_FLOAT_EQ(box.min_edges.y, -1.0_r);
@@ -73,7 +73,7 @@ TEST(AABBTest, ConstructFromPositions) {
     EXPECT_EQ(box.center, expected_center);
 
     positions = {Vector3(1.0_r, 2.0_r, 3.0_r)};
-    box = AABB::ConstructFromPositions(positions);
+    box = AABB::FromPositions(positions);
     EXPECT_FLOAT_EQ(box.min_edges.x, 1.0_r);
     EXPECT_FLOAT_EQ(box.min_edges.y, 2.0_r);
     EXPECT_FLOAT_EQ(box.min_edges.z, 3.0_r);
