@@ -87,12 +87,12 @@ namespace ho {
     //         vg.state_.error_state = VG_INVALID_ENUM;
     //         return;
     //     }
-    // 
+    //
     //     if (tu.bound_texture_targets[slot] == nullptr || tu.bound_texture_targets[slot]->is_deleted) {
     //         vg.state_.error_state = VG_INVALID_OPERATION;
     //         return;
     //     }
-    // 
+    //
     //     VirtualGPU::Sampler& ds = tu.bound_texture_targets[slot]->default_sampler;
     //     switch (pname) {
     //         default:
@@ -1046,6 +1046,14 @@ namespace ho {
         vg.using_program_->varying_buffer.resize(vg.bound_vertex_array_->vertex_count);
 
         // Vertex Processing
+
+        // Enroll varyings:
+        // The main thread must execute the vertex shader at least once before the job threads begin.
+        // Failing to do so causes a race condition, as job threads attempt to access the program's name hash mapping
+        // array while it is empty.
+        // VirtualGPU::Varying dummy;
+        // ((VirtualGPU::VertexShader)vg.using_program_->vertex_shader->source)(0, dummy);
+
         std::vector<JobDeclaration> vs_jobs;
         vs_jobs.reserve(vg.bound_vertex_array_->vertex_count);
 
@@ -1345,6 +1353,10 @@ namespace ho {
             tex->texture_type = target;  // first bound
         else if (tex->texture_type != target) {
             vg.state_.error_state = VG_INVALID_OPERATION;
+            return;
+        }
+
+        if (vg.texture_units_[vg.active_texture_unit_].bound_texture_targets[slot] == tex) {
             return;
         }
 
@@ -1744,7 +1756,7 @@ namespace ho {
             return;
         }
 
-        if (mode < VG_FUNC_ADD && mode > VG_MAX) {
+        if (mode < VG_FUNC_ADD || mode > VG_MAX) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -2001,7 +2013,7 @@ namespace ho {
             return;
         }
 
-        if ((modeRGB < VG_FUNC_ADD && modeRGB > VG_MAX) || modeAlpha < VG_FUNC_ADD && modeAlpha > VG_MAX) {
+        if ((modeRGB < VG_FUNC_ADD || modeRGB > VG_MAX) || modeAlpha < VG_FUNC_ADD || modeAlpha > VG_MAX) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -2009,6 +2021,7 @@ namespace ho {
         vg.state_.blend_rgb_equation = modeRGB;
         vg.state_.blend_alpha_equation = modeAlpha;
     }
+
     void vgDrawBuffers(VGsizei n, const VGenum* bufs) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         if (vg.state_.error_state != VG_NO_ERROR) {
@@ -2022,28 +2035,33 @@ namespace ho {
             return;
         }
 
-        if (n <= 0) {
+        if (n <= 0 || n > VG_DRAW_BUFFER_SLOT_COUNT) {
             vg.state_.error_state = VG_INVALID_VALUE;
             return;
         }
 
-        // default framebuffer
         if (fb->id == 0) {
             if (n != 1) {
                 vg.state_.error_state = VG_INVALID_OPERATION;
                 return;
             }
-
             vgDrawBuffer(bufs[0]);
             return;
         }
 
-        // user FBO
         for (VGsizei i = 0; i < n; i++) {
-            vgDrawBuffer(bufs[i]);
-            if (vg.state_.error_state != VG_NO_ERROR) {
+            if (bufs[i] == VG_NONE) {
+                fb->draw_slot_to_color_attachment[i] = -1;
+            } else if (bufs[i] >= VG_COLOR_ATTACHMENT0 && bufs[i] <= VG_COLOR_ATTACHMENT31) {
+                fb->draw_slot_to_color_attachment[i] = bufs[i] - VG_COLOR_ATTACHMENT0;
+            } else {
+                vg.state_.error_state = VG_INVALID_ENUM;
                 return;
             }
+        }
+
+        for (VGsizei i = n; i < VG_DRAW_BUFFER_SLOT_COUNT; i++) {
+            fb->draw_slot_to_color_attachment[i] = -1;
         }
     }
 
@@ -2447,8 +2465,19 @@ namespace ho {
             return;
         }
 
+        prog.smooth_varying_count = 0;
+        prog.smooth_varying_name_hashes.fill(0);
+        prog.smooth_varying_descs.fill({VG_FLOAT, 0, 0});
+
+        prog.flat_varying_count = 0;
+        prog.flat_varying_name_hashes.fill(0);
+        prog.flat_varying_descs.fill({VG_FLOAT, 0, 0});
+
         prog.uniforms.clear();
         prog.uniform_name_hash_to_location.clear();
+
+        prog.fragout_name_hash_to_draw_buffer_slot.clear();
+
         it->second.link_status = VG_TRUE;
     }
     void vgShaderSource(VGuint shader, void* source) {
@@ -4381,17 +4410,18 @@ namespace ho {
     }
     void vgBindFramebuffer(VGenum target, VGuint framebuffer) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
-        if (vg.state_.error_state != VG_NO_ERROR) return;
-
-        VirtualGPU::FrameBuffer* fb = nullptr;
-        if (framebuffer != 0) {
-            auto it = vg.frame_buffer_pool_.find(framebuffer);
-            if (it == vg.frame_buffer_pool_.end() || it->second.is_deleted) {
-                vg.state_.error_state = VG_INVALID_OPERATION;
-                return;
-            }
-            fb = &it->second;
+        if (vg.state_.error_state != VG_NO_ERROR) {
+            return;
         }
+
+        VirtualGPU::FrameBuffer* fb;
+
+        auto it = vg.frame_buffer_pool_.find(framebuffer);
+        if (it == vg.frame_buffer_pool_.end() || it->second.is_deleted) {
+            vg.state_.error_state = VG_INVALID_OPERATION;
+            return;
+        }
+        fb = &it->second;
 
         auto bind = [&](VirtualGPU::FrameBuffer*& slot) {
             if (slot) {
@@ -5306,15 +5336,15 @@ namespace ho {
     //     if (vg.state_.error_state != VG_NO_ERROR) {
     //         return;
     //     }
-    // 
+    //
     //     auto it = vg.sampler_pool_.find(sampler);
     //     if (it == vg.sampler_pool_.end()) {
     //         vg.state_.error_state = VG_INVALID_OPERATION;
     //         return;
     //     }
-    // 
+    //
     //     VirtualGPU::Sampler& ds = it->second;
-    // 
+    //
     //     switch (pname) {
     //         vg.state_.error_state = VG_INVALID_ENUM;
     //         break;

@@ -22,18 +22,25 @@
 #include "vg.h"
 
 namespace ho {
+    class VirtualGPUTester;
 
     constexpr VGint WORKER_COUNT = 8;
+
     constexpr VGint TILE_WIDTH = 16;
     constexpr VGint TILE_HEIGHT = 16;
     constexpr VGint VG_MAX_ATTACHMENT_WIDTH = 4096;
     constexpr VGint VG_MAX_ATTACHMENT_HEIGHT = 4096;
     constexpr VGint MAX_LOCK_TABLE_WIDTH = VG_MAX_ATTACHMENT_WIDTH / TILE_WIDTH;
     constexpr VGint MAX_LOCK_TABLE_HEIGHT = VG_MAX_ATTACHMENT_HEIGHT / TILE_HEIGHT;
+
     constexpr VGint VG_COLOR_ATTACHMENT_COUNT = VG_COLOR_ATTACHMENT31 - VG_COLOR_ATTACHMENT0 + 1;
     constexpr VGint VG_TEXTURE_UNIT_COUNT = VG_TEXTURE31 - VG_TEXTURE0 + 1;
     constexpr VGint VG_DRAW_BUFFER_SLOT_COUNT = VG_DRAW_BUFFER15 - VG_DRAW_BUFFER0 + 1;
     constexpr VGint VG_BUFFER_OBJECT_SLOT_COUNT = 9;
+
+    constexpr VGint VG_MAX_VARYING_COUNT = 10;
+    constexpr VGint VG_SMOOTH_REGISTER_SIZE = 32;
+    constexpr VGint VG_FLAT_REGISTER_SIZE = 32;
 
     class VirtualGPU {
        public:
@@ -45,63 +52,147 @@ namespace ho {
         bool Initialize(uint8_t* color_buffer, VGsizei width, VGsizei height, VGenum color_format,
                         VGsizei component_type);
 
-        struct Varying {
-            Vector4 clip_coord;
-            Vector3 ndc;
+        class Varying {
+           public:
+            friend VirtualGPU;
+            friend VirtualGPUTester;
+
+            Vector4 vg_Position;  // its same as build-in variable gl_Position
+
+            // T can be float, Vector2, Vector3, Vector4
+            template <typename T>
+            void Out(uint32_t name_hash, const T& v) {
+                Program* prog = VirtualGPU::GetInstance().using_program_;
+                uint32_t reg_index = 0xFFFFFFFF;
+
+                for (uint32_t i = 0; i < prog->smooth_varying_count; i++) {
+                    if (prog->smooth_varying_name_hashes[i] == name_hash) {
+                        assert(prog->smooth_varying_descs[i].size == sizeof(T) / sizeof(float));
+                        reg_index = prog->smooth_varying_descs[i].register_index;
+                        used_smooth_register_size += prog->smooth_varying_descs[i].size;
+                        break;
+                    }
+                }
+
+                if (reg_index == 0xFFFFFFFF) {
+                    reg_index = used_smooth_register_size;
+                    uint32_t var_index = prog->smooth_varying_count++;
+
+                    prog->smooth_varying_name_hashes[var_index] = name_hash;
+                    prog->smooth_varying_descs[var_index].size = sizeof(T) / sizeof(float);
+                    prog->smooth_varying_descs[var_index].register_index = reg_index;
+
+                    used_smooth_register_size += prog->smooth_varying_descs[var_index].size;
+                    assert(used_smooth_register_size <= VG_SMOOTH_REGISTER_SIZE);
+                }
+                *(T*)(&smooth_register[reg_index]) = v;
+            }
+
+            template <typename T>
+            void OutFlat(uint32_t name_hash, const T& v) {
+                Program* prog = VirtualGPU::GetInstance().using_program_;
+                uint32_t reg_index = 0xFFFFFFFF;
+
+                for (uint32_t i = 0; i < prog->flat_varying_count; i++) {
+                    if (prog->flat_varying_name_hashes[i] == name_hash) {
+                        assert(prog->flat_varying_descs[i].size == sizeof(T) / sizeof(float));
+                        reg_index = prog->flat_varying_descs[i].register_index;
+                        used_flat_register_size += prog->flat_varying_descs[i].size;
+                        break;
+                    }
+                }
+
+                if (reg_index == 0xFFFFFFFF) {
+                    reg_index = used_flat_register_size;
+                    uint32_t var_index = prog->flat_varying_count++;
+
+                    prog->flat_varying_name_hashes[var_index] = name_hash;
+                    prog->flat_varying_descs[var_index].size = sizeof(T) / sizeof(float);
+                    prog->flat_varying_descs[var_index].register_index = reg_index;
+
+                    used_flat_register_size += prog->flat_varying_descs[var_index].size;
+                    assert(used_flat_register_size <= VG_FLAT_REGISTER_SIZE);
+                }
+                *(T*)(&flat_register[reg_index]) = v;
+            }
+
+           private:
             Vector3 viewport_coord;
-            Vector3 world_pos;
-            Vector3 view_pos;
-            Vector3 normal;
-            Vector4 tangent;
-            Vector2 uv0;
-            Vector2 uv1;
-            Color128 color0;
-            Color128 color1;
+            std::array<float, VG_SMOOTH_REGISTER_SIZE> smooth_register;  // its interpolated in rasterization
+            std::array<float, VG_FLAT_REGISTER_SIZE> flat_register;      // its not interpolated in rasterization
+            uint32_t used_smooth_register_size =
+                0;  // Number of float elements currently used in the smooth register array.
+            uint32_t used_flat_register_size =
+                0;  // Number of float elements currently used in the flat register array.
         };
 
-        struct Fragment {
-            Vector3 world_pos;
-            Vector3 view_pos;
+        class Fragment {
+           public:
+            friend VirtualGPU;
+            friend VirtualGPUTester;
+
+            template <typename T>
+            T In(uint32_t name_hash) const {
+                Program* prog = VirtualGPU::GetInstance().using_program_;
+                uint32_t reg_index = 0xFFFFFFFF;
+
+                for (uint32_t i = 0; i < prog->smooth_varying_count; ++i) {
+                    if (prog->smooth_varying_name_hashes[i] == name_hash) {
+                        assert(prog->smooth_varying_descs[i].size == sizeof(T) / sizeof(float));
+                        reg_index = prog->smooth_varying_descs[i].register_index;
+                        break;
+                    }
+                }
+
+                assert(reg_index != 0xFFFFFFFF);
+                return *(const T*)(&smooth_register[reg_index]);
+            }
+
+            template <typename T>
+            T InFlat(uint32_t name_hash) const {
+                Program* prog = VirtualGPU::GetInstance().using_program_;
+                uint32_t reg_index = 0xFFFFFFFF;
+
+                for (uint32_t i = 0; i < prog->flat_varying_count; ++i) {
+                    if (prog->flat_varying_name_hashes[i] == name_hash) {
+                        assert(prog->flat_varying_descs[i].size == sizeof(T) / sizeof(float));
+                        reg_index = prog->flat_varying_descs[i].register_index;
+                        break;
+                    }
+                }
+
+                assert(reg_index != 0xFFFFFFFF);
+                return *(const T*)(&flat_register[reg_index]);
+            }
+
+           private:
             Vector2 screen_coord;
             real depth;
-            Vector3 normal;
-            Vector4 tangent;
-            Vector2 uv0;
-            Vector2 uv1;
-            Color128 color0;
-            Color128 color1;
+            std::array<float, VG_SMOOTH_REGISTER_SIZE> smooth_register;
+            std::array<float, VG_FLAT_REGISTER_SIZE> flat_register;
+            uint32_t used_smooth_register_size = 0;
+            uint32_t used_flat_register_size = 0;
             bool is_front;
         };
 
-        struct FSOutputs {
+        class FSOutputs {
+           public:
             friend VirtualGPU;
+            friend VirtualGPUTester;
 
-            union FSOutput {
-                friend VirtualGPU;
-
-                FSOutput() : vector() {}
-
-                void operator=(const Vector4& v) { vector = v; }
-                void operator=(const Color128& c) { color = c; }
-
-               private:
-                Vector4 vector;
-                Color128 color;
-            };
-
-            FSOutput& operator[](uint32_t slot) {
-                assert(slot < VG_DRAW_BUFFER_SLOT_COUNT);
-                written[slot] = true;
-                return values[slot];
+            void Out(uint32_t location, const Color128& out) {
+                assert(location < VG_DRAW_BUFFER_SLOT_COUNT);
+                written[location] = true;
+                values[location] = out;
             }
 
            private:
             void Reset() {
-                std::fill(values.begin(), values.end(), Vector4());
+                std::fill(values.begin(), values.end(), Color128());
                 written.reset();
             }
 
-            std::array<FSOutput, VG_DRAW_BUFFER_SLOT_COUNT> values;
+            std::array<Color128, VG_DRAW_BUFFER_SLOT_COUNT> values;
             std::bitset<VG_DRAW_BUFFER_SLOT_COUNT> written;
         };
 
@@ -113,7 +204,7 @@ namespace ho {
         // ======================================================
 
         using VertexShader = void (*)(uint32_t vertex_index, Varying& out);
-        using FragmentShader = void (*)(const Fragment& fragment, FSOutputs& out);
+        using FragmentShader = void (*)(const Fragment& in, FSOutputs& out);
 
         struct BufferObject {
             VGuint id;
@@ -214,6 +305,7 @@ namespace ho {
         struct TextureObject {
             VGuint id = 0;
             std::array<TextureLevel, 1> mipmap;
+            VGuint mipmap_count = 1;
             VGenum texture_type = VG_NONE;
             VGenum component_type = VG_NONE;
             VGenum internal_format = VG_RGBA;
@@ -295,15 +387,34 @@ namespace ho {
             std::vector<uint8_t> data;
         };
 
+        struct VaryingDesc {
+            VGenum type = VG_FLOAT;
+            uint32_t size = 0;
+            uint32_t register_index = 0;
+        };
+
         struct Program {
             VGuint id = 0;
             Shader* vertex_shader = nullptr;
             Shader* fragment_shader = nullptr;
+
             std::vector<Varying> varying_buffer;
-            VGenum link_status = VG_FALSE;
+            // Parallel arrays: varying_name_hashes[i] maps to varying_descs[i].
+            // Both arrays are synchronized to store the hash and its corresponding varying description at the same
+            // index.
+            std::array<uint32_t, VG_MAX_VARYING_COUNT> smooth_varying_name_hashes;
+            std::array<VaryingDesc, VG_MAX_VARYING_COUNT> smooth_varying_descs;
+            uint32_t smooth_varying_count = 0;
+
+            std::array<uint32_t, VG_MAX_VARYING_COUNT> flat_varying_name_hashes;
+            std::array<VaryingDesc, VG_MAX_VARYING_COUNT> flat_varying_descs;
+            uint32_t flat_varying_count = 0;
+
             std::vector<Uniform> uniforms;
             std::unordered_map<uint32_t, uint32_t> uniform_name_hash_to_location;
             std::unordered_map<uint32_t, uint32_t> fragout_name_hash_to_draw_buffer_slot;
+
+            VGenum link_status = VG_FALSE;
             int refcount = 0;
             bool is_deleted = false;
         };
@@ -535,11 +646,15 @@ namespace ho {
         friend T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, uint32_t level, VGfloat u, VGfloat v,
                              VGfloat w);
         template <typename T>
-        friend T SampleTexture1D(VGuint unit_slot, VGfloat u);
+        friend T Texture1D(VGuint unit_slot, VGfloat u);
         template <typename T>
-        friend T SampleTexture2D(VGuint unit_slot, VGfloat u, VGfloat v);
+        friend T Texture2D(VGuint unit_slot, const Vector2& tex_coord);
         template <typename T>
-        friend T SampleTexture3D(VGuint unit_slot, VGfloat u, VGfloat v, VGfloat w);
+        friend T Texture3D(VGuint unit_slot, const Vector3& tex_coord);
+
+        friend float TextureSize1D(VGuint unit_slot, uint32_t lod);
+        friend Vector2 TextureSize2D(VGuint unit_slot, uint32_t lod);
+        friend Vector3 TextureSize3D(VGuint unit_slot, uint32_t lod);
 
         friend void FreeVram(std::vector<uint8_t>* mem);
         friend void ReleaseAttachment(VGuint refid);

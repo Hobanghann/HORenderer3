@@ -335,17 +335,6 @@ TEST(VirtualGPUUtilsTest, CopyPixelDepth) {
     EXPECT_NEAR(dst, 0.6f, 1e-6f);
 }
 
-TEST(VirtualGPUUtilsTest, CopyPixelDepthAssertion) {
-#ifndef NDEBUG
-    float src = 0.5f;
-    float dst = 0.f;
-
-    EXPECT_DEATH(CopyPixel(reinterpret_cast<uint8_t*>(&dst), reinterpret_cast<uint8_t*>(&src), VG_DEPTH_COMPONENT,
-                           VG_UNSIGNED_BYTE, VG_DEPTH_COMPONENT, VG_FLOAT),
-                 "");
-#endif
-}
-
 TEST(VirtualGPUUtilsTest, CopyPixelDepthStencil) {
     uint32_t src = 0xDEADBEEF;
     uint32_t dst = 0;

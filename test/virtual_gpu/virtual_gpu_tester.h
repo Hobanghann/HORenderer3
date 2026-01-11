@@ -10,6 +10,10 @@ namespace ho {
         static bool InitializeSuccess();
         static bool InitializeFail();
 
+        static bool VaryingOut();
+        static bool FragmentIn();
+        static bool FSOutputOut();
+
         static bool GetColorLock();
         static bool GetDepthLock();
 
@@ -70,6 +74,8 @@ namespace ho {
         static bool ClipAgainstPlaneTriangleTwoIdentical();
         static bool ClipAgainstPlaneTriangleAllIdentical();
         static bool ClipAgainstPlaneTriangleCollinear();
+
+        static bool ClipAgainstPlaneInterpolation();
 
         static bool ClipAllInside();
         static bool ClipOnePlaneClipped();
@@ -167,18 +173,18 @@ namespace ho {
         static bool RasterizeTriangleEarlyStencilFailed();
 
        private:
-        static VirtualGPU::Varying MakeVarying(float base) {
-            VirtualGPU::Varying v;
-            v.clip_coord = Vector4(base + 1.0_r, base + 2.0_r, base + 3.0_r, base + 4.0_r);
-            v.world_pos = Vector3(base + 5.0_r, base + 6.0_r, base + 7.0_r);
-            v.view_pos = Vector3(base + 8.0_r, base + 9.0_r, base + 10.0_r);
-            v.normal = Vector3(base + 11.0_r, base + 12.0_r, base + 13.0_r);
-            v.tangent = Vector4(base + 14.0_r, base + 15.0_r, base + 16.0_r, 1.0_r);
-            v.uv0 = Vector2(base + 18.0_r, base + 19.0_r);
-            v.uv1 = Vector2(base + 20.0_r, base + 21.0_r);
-            v.color0 = Color128(10.f + base, 20.f, 30.f, 40.f);
-            v.color1 = Color128(50.f, 60.f + base, 70.f, 80.f);
-            return v;
-        }
+        static void PopulateVarying(VirtualGPU::Varying& v, float smooth_start, float flat_val) {
+            v.vg_Position = Vector4(smooth_start, smooth_start, smooth_start, 1.0f);
+
+            v.used_smooth_register_size = 10;
+            for (uint32_t i = 0; i < v.used_smooth_register_size; ++i) {
+                v.smooth_register[i] = smooth_start + (float)i;
+            }
+
+            v.used_flat_register_size = 5;
+            for (uint32_t i = 0; i < v.used_flat_register_size; ++i) {
+                v.flat_register[i] = flat_val + (float)i;
+            }
+        };
     };
 }  // namespace ho

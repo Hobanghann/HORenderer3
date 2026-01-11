@@ -397,6 +397,275 @@ namespace ho {
         return true;
     }
 
+    bool VirtualGPUTester::VaryingOut() {
+        VirtualGPU& gpu = VirtualGPU::GetInstance();
+        if (!InitFreshGPU()) {
+            return false;
+        }
+
+        // Set program
+        VGuint p = vgCreateProgram();
+        VGuint vs = vgCreateShader(VG_VERTEX_SHADER);
+        VGuint fs = vgCreateShader(VG_FRAGMENT_SHADER);
+        vgAttachShader(p, vs);
+        vgAttachShader(p, fs);
+        vgLinkProgram(p);
+        vgUseProgram(p);
+
+        VirtualGPU::Varying v;
+
+        // Smooth Varying Test (Out)
+
+        // float
+        float val_f = 123.456f;
+        uint32_t hash_f = 0x1001;
+        v.Out(hash_f, val_f);
+
+        // Vector2 (2 floats)
+        Vector2 val_v2(10.0f, 20.0f);
+        uint32_t hash_v2 = 0x1002;
+        v.Out(hash_v2, val_v2);
+
+        // Vector3 (3 floats)
+        Vector3 val_v3(30.0f, 40.0f, 50.0f);
+        uint32_t hash_v3 = 0x1003;
+        v.Out(hash_v3, val_v3);
+
+        // Vector4 (4 floats)
+        Vector4 val_v4(60.0f, 70.0f, 80.0f, 90.0f);
+        uint32_t hash_v4 = 0x1004;
+        v.Out(hash_v4, val_v4);
+
+        if (v.used_smooth_register_size != 10) return false;
+
+        if (!math::IsEqualApprox(v.smooth_register[0], val_f)) return false;
+
+        if (!math::IsEqualApprox(v.smooth_register[1], val_v2.x)) return false;
+        if (!math::IsEqualApprox(v.smooth_register[2], val_v2.y)) return false;
+
+        if (!math::IsEqualApprox(v.smooth_register[3], val_v3.x)) return false;
+        if (!math::IsEqualApprox(v.smooth_register[4], val_v3.y)) return false;
+        if (!math::IsEqualApprox(v.smooth_register[5], val_v3.z)) return false;
+
+        if (!math::IsEqualApprox(v.smooth_register[6], val_v4.x)) return false;
+        if (!math::IsEqualApprox(v.smooth_register[7], val_v4.y)) return false;
+        if (!math::IsEqualApprox(v.smooth_register[8], val_v4.z)) return false;
+        if (!math::IsEqualApprox(v.smooth_register[9], val_v4.w)) return false;
+
+        VirtualGPU::Program* prog = gpu.using_program_;
+        if (prog->smooth_varying_count != 4) return false;
+        if (prog->smooth_varying_descs[0].size != 1 || prog->smooth_varying_descs[0].register_index != 0) return false;
+        if (prog->smooth_varying_descs[1].size != 2 || prog->smooth_varying_descs[1].register_index != 1) return false;
+        if (prog->smooth_varying_descs[2].size != 3 || prog->smooth_varying_descs[2].register_index != 3) return false;
+        if (prog->smooth_varying_descs[3].size != 4 || prog->smooth_varying_descs[3].register_index != 6) return false;
+
+        // Flat Varying Test
+
+        //  float
+        float flat_f = 987.654f;
+        uint32_t f_hash_f = 0x2001;
+        v.OutFlat(f_hash_f, flat_f);
+
+        //  Vector2 (2 floats)
+        Vector2 flat_v2(1.1f, 2.2f);
+        uint32_t f_hash_v2 = 0x2002;
+        v.OutFlat(f_hash_v2, flat_v2);
+
+        //  Vector3 (3 floats)
+        Vector3 flat_v3(3.3f, 4.4f, 5.5f);
+        uint32_t f_hash_v3 = 0x2003;
+        v.OutFlat(f_hash_v3, flat_v3);
+
+        //  Vector4 (4 floats)
+        Vector4 flat_v4(6.6f, 7.7f, 8.8f, 9.9f);
+        uint32_t f_hash_v4 = 0x2004;
+        v.OutFlat(f_hash_v4, flat_v4);
+
+        if (v.used_flat_register_size != 10) return false;
+
+        if (!math::IsEqualApprox(v.flat_register[0], flat_f)) return false;
+
+        if (!math::IsEqualApprox(v.flat_register[1], flat_v2.x)) return false;
+        if (!math::IsEqualApprox(v.flat_register[2], flat_v2.y)) return false;
+
+        if (!math::IsEqualApprox(v.flat_register[3], flat_v3.x)) return false;
+        if (!math::IsEqualApprox(v.flat_register[4], flat_v3.y)) return false;
+        if (!math::IsEqualApprox(v.flat_register[5], flat_v3.z)) return false;
+
+        if (!math::IsEqualApprox(v.flat_register[6], flat_v4.x)) return false;
+        if (!math::IsEqualApprox(v.flat_register[7], flat_v4.y)) return false;
+        if (!math::IsEqualApprox(v.flat_register[8], flat_v4.z)) return false;
+        if (!math::IsEqualApprox(v.flat_register[9], flat_v4.w)) return false;
+
+        if (prog->flat_varying_count != 4) return false;
+
+        if (prog->flat_varying_descs[0].size != 1 || prog->flat_varying_descs[0].register_index != 0) return false;
+        if (prog->flat_varying_descs[1].size != 2 || prog->flat_varying_descs[1].register_index != 1) return false;
+        if (prog->flat_varying_descs[2].size != 3 || prog->flat_varying_descs[2].register_index != 3) return false;
+        if (prog->flat_varying_descs[3].size != 4 || prog->flat_varying_descs[3].register_index != 6) return false;
+
+        return true;
+    }
+
+    bool VirtualGPUTester::FragmentIn() {
+        VirtualGPU& gpu = VirtualGPU::GetInstance();
+        if (!InitFreshGPU()) {
+            return false;
+        }
+
+        // Set program
+        VGuint p = vgCreateProgram();
+        VGuint vs = vgCreateShader(VG_VERTEX_SHADER);
+        VGuint fs = vgCreateShader(VG_FRAGMENT_SHADER);
+        vgAttachShader(p, vs);
+        vgAttachShader(p, fs);
+        vgLinkProgram(p);
+        vgUseProgram(p);
+
+        VirtualGPU::Program* prog = gpu.using_program_;
+
+        // Fragmeht setup
+        prog->smooth_varying_name_hashes[0] = 0x1001;
+        prog->smooth_varying_descs[0].size = 1;
+        prog->smooth_varying_descs[0].register_index = 0;
+
+        prog->smooth_varying_name_hashes[1] = 0x1002;
+        prog->smooth_varying_descs[1].size = 2;
+        prog->smooth_varying_descs[1].register_index = 1;
+
+        prog->smooth_varying_name_hashes[2] = 0x1003;
+        prog->smooth_varying_descs[2].size = 3;
+        prog->smooth_varying_descs[2].register_index = 3;
+
+        prog->smooth_varying_name_hashes[3] = 0x1004;
+        prog->smooth_varying_descs[3].size = 4;
+        prog->smooth_varying_descs[3].register_index = 6;
+
+        prog->smooth_varying_count = 4;
+
+        prog->flat_varying_name_hashes[0] = 0x2001;
+        prog->flat_varying_descs[0].size = 1;
+        prog->flat_varying_descs[0].register_index = 0;
+
+        prog->flat_varying_name_hashes[1] = 0x2002;
+        prog->flat_varying_descs[1].size = 2;
+        prog->flat_varying_descs[1].register_index = 1;
+
+        prog->flat_varying_count = 2;
+
+        VirtualGPU::Fragment frag;
+
+        frag.smooth_register[0] = 10.0f;
+
+        frag.smooth_register[1] = 20.0f;
+        frag.smooth_register[2] = 21.0f;
+
+        frag.smooth_register[3] = 30.0f;
+        frag.smooth_register[4] = 31.0f;
+        frag.smooth_register[5] = 32.0f;
+
+        frag.smooth_register[6] = 40.0f;
+        frag.smooth_register[7] = 41.0f;
+        frag.smooth_register[8] = 42.0f;
+        frag.smooth_register[9] = 43.0f;
+
+        frag.flat_register[0] = 100.0f;
+
+        frag.flat_register[1] = 200.0f;
+        frag.flat_register[2] = 201.0f;
+
+        // In() Check
+        float val_f = frag.In<float>(0x1001);
+        if (!math::IsEqualApprox(val_f, 10.0f)) return false;
+
+        Vector2 val_v2 = frag.In<Vector2>(0x1002);
+        if (!math::IsEqualApprox(val_v2.x, 20.0f)) return false;
+        if (!math::IsEqualApprox(val_v2.y, 21.0f)) return false;
+
+        Vector3 val_v3 = frag.In<Vector3>(0x1003);
+        if (!math::IsEqualApprox(val_v3.x, 30.0f)) return false;
+        if (!math::IsEqualApprox(val_v3.y, 31.0f)) return false;
+        if (!math::IsEqualApprox(val_v3.z, 32.0f)) return false;
+
+        Vector4 val_v4 = frag.In<Vector4>(0x1004);
+        if (!math::IsEqualApprox(val_v4.x, 40.0f)) return false;
+        if (!math::IsEqualApprox(val_v4.y, 41.0f)) return false;
+        if (!math::IsEqualApprox(val_v4.z, 42.0f)) return false;
+        if (!math::IsEqualApprox(val_v4.w, 43.0f)) return false;
+
+        // InFlat() Check
+        float flat_f = frag.InFlat<float>(0x2001);
+        if (!math::IsEqualApprox(flat_f, 100.0f)) return false;
+
+        Vector2 flat_v2 = frag.InFlat<Vector2>(0x2002);
+        if (!math::IsEqualApprox(flat_v2.x, 200.0f)) return false;
+        if (!math::IsEqualApprox(flat_v2.y, 201.0f)) return false;
+
+        return true;
+    }
+
+    bool VirtualGPUTester::FSOutputOut() {
+        if (!InitFreshGPU()) {
+            return false;
+        }
+
+        VirtualGPU::FSOutputs outputs;
+
+        // Single Output Test (Single Slot)
+        uint32_t slot0 = 0;
+        Color128 color0(0.1f, 0.2f, 0.3f, 1.0f);
+
+        outputs.Out(slot0, color0);
+
+        if (!outputs.written[slot0]) return false;
+
+        if (!outputs.values[slot0].IsEqualApprox(color0)) return false;
+
+        //  Multiple Outputs Test (Random Slots)
+        uint32_t slot2 = 2;
+        Color128 color2(1.0f, 0.0f, 0.0f, 1.0f);
+        outputs.Out(slot2, color2);
+
+        uint32_t slot5 = 5;
+        Color128 color5(0.0f, 1.0f, 0.0f, 1.0f);
+        outputs.Out(slot5, color5);
+
+        if (!outputs.written[slot2]) return false;
+        if (!outputs.written[slot5]) return false;
+
+        if (!outputs.values[slot2].IsEqualApprox(color2)) return false;
+        if (!outputs.values[slot5].IsEqualApprox(color5)) return false;
+
+        if (outputs.written[1]) return false;
+        if (outputs.written[3]) return false;
+        if (outputs.written[4]) return false;
+
+        // Boundary Test (Last Slot)
+        uint32_t last_slot = ho::VG_DRAW_BUFFER_SLOT_COUNT - 1;
+        Color128 color_last(0.5f, 0.5f, 0.5f, 0.5f);
+
+        outputs.Out(last_slot, color_last);
+
+        if (!outputs.written[last_slot]) return false;
+        if (!outputs.values[last_slot].IsEqualApprox(color_last)) return false;
+
+        // Overwrite Test
+        Color128 color0_new(0.9f, 0.9f, 0.9f, 1.0f);
+        outputs.Out(slot0, color0_new);
+
+        if (!outputs.values[slot0].IsEqualApprox(color0_new)) return false;
+        if (outputs.values[slot0].IsEqualApprox(color0)) return false;
+
+        // Reset Test
+        outputs.Reset();
+
+        if (outputs.written.any()) return false;
+
+        if (!outputs.values[slot0].IsEqualApprox(Color128())) return false;
+
+        return true;
+    }
+
     bool VirtualGPUTester::GetColorLock() {
         VirtualGPU& vg = VirtualGPU::GetInstance();
 
@@ -1206,21 +1475,24 @@ namespace ho {
             return false;
         }
 
-        VirtualGPU::Varying v1 = MakeVarying(0.f);
-        VirtualGPU::Varying v2 = MakeVarying(100.f);
+        VirtualGPU::Varying v1, v2;
+        PopulateVarying(v1, 0.0f, 100.0f);
+        PopulateVarying(v2, 100.0f, 200.0f);
 
         Vector2 bc(1.f, 0.f);
         VirtualGPU::Varying out = gpu.LerpVarying(v1, v2, bc);
 
-        if (out.clip_coord != v1.clip_coord) return false;
-        if (out.world_pos != v1.world_pos) return false;
-        if (out.view_pos != v1.view_pos) return false;
-        if (out.normal != v1.normal) return false;
-        if (out.tangent != v1.tangent) return false;
-        if (out.uv0 != v1.uv0) return false;
-        if (out.uv1 != v1.uv1) return false;
-        if (out.color0 != v1.color0) return false;
-        if (out.color1 != v1.color1) return false;
+        if (out.vg_Position != v1.vg_Position) return false;
+
+        if (out.used_smooth_register_size != v1.used_smooth_register_size) return false;
+        for (uint32_t i = 0; i < out.used_smooth_register_size; ++i) {
+            if (!math::IsEqualApprox(out.smooth_register[i], v1.smooth_register[i])) return false;
+        }
+
+        if (out.used_flat_register_size != v1.used_flat_register_size) return false;
+        for (uint32_t i = 0; i < out.used_flat_register_size; ++i) {
+            if (!math::IsEqualApprox(out.flat_register[i], v2.flat_register[i])) return false;
+        }
 
         return true;
     }
@@ -1231,21 +1503,22 @@ namespace ho {
             return false;
         }
 
-        VirtualGPU::Varying v1 = MakeVarying(0.f);
-        VirtualGPU::Varying v2 = MakeVarying(100.f);
+        VirtualGPU::Varying v1, v2;
+        PopulateVarying(v1, 0.0f, 100.0f);
+        PopulateVarying(v2, 100.0f, 200.0f);
 
         Vector2 bc(0.f, 1.f);
         VirtualGPU::Varying out = gpu.LerpVarying(v1, v2, bc);
 
-        if (out.clip_coord != v2.clip_coord) return false;
-        if (out.world_pos != v2.world_pos) return false;
-        if (out.view_pos != v2.view_pos) return false;
-        if (out.normal != v2.normal) return false;
-        if (out.tangent != v2.tangent) return false;
-        if (out.uv0 != v2.uv0) return false;
-        if (out.uv1 != v2.uv1) return false;
-        if (out.color0 != v2.color0) return false;
-        if (out.color1 != v2.color1) return false;
+        if (out.vg_Position != v2.vg_Position) return false;
+
+        for (uint32_t i = 0; i < out.used_smooth_register_size; ++i) {
+            if (!math::IsEqualApprox(out.smooth_register[i], v2.smooth_register[i])) return false;
+        }
+
+        for (uint32_t i = 0; i < out.used_flat_register_size; ++i) {
+            if (!math::IsEqualApprox(out.flat_register[i], v2.flat_register[i])) return false;
+        }
 
         return true;
     }
@@ -1256,35 +1529,27 @@ namespace ho {
             return false;
         }
 
-        VirtualGPU::Varying v1 = MakeVarying(0.f);
-        VirtualGPU::Varying v2 = MakeVarying(100.f);
+        VirtualGPU::Varying v1, v2;
+        PopulateVarying(v1, 0.0f, 100.0f);
+        PopulateVarying(v2, 10.0f, 200.0f);
 
         Vector2 bc(0.5f, 0.5f);
         VirtualGPU::Varying out = gpu.LerpVarying(v1, v2, bc);
 
-        auto near_eq = [](float a, float b) { return math::IsEqualApprox(a, b, 1e-6f); };
+        if (!math::IsEqualApprox(out.vg_Position.x, 5.0f, 1e-5f)) return false;
+        if (!math::IsEqualApprox(out.vg_Position.y, 5.0f, 1e-5f)) return false;
+        if (!math::IsEqualApprox(out.vg_Position.z, 5.0f, 1e-5f)) return false;
+        if (!math::IsEqualApprox(out.vg_Position.w, 1.0f, 1e-5f)) return false;
 
-        auto check_vec4_half = [&](const Vector4& a, const Vector4& b, const Vector4& o) {
-            if (!near_eq(o.x, (a.x + b.x) * 0.5f)) return false;
-            if (!near_eq(o.y, (a.y + b.y) * 0.5f)) return false;
-            if (!near_eq(o.z, (a.z + b.z) * 0.5f)) return false;
-            if (!near_eq(o.w, (a.w + b.w) * 0.5f)) return false;
-            return true;
-        };
+        for (uint32_t i = 0; i < out.used_smooth_register_size; ++i) {
+            float expected = (v1.smooth_register[i] + v2.smooth_register[i]) * 0.5f;
+            if (!math::IsEqualApprox(out.smooth_register[i], expected, 1e-5f)) return false;
+        }
 
-        if (!check_vec4_half(v1.clip_coord, v2.clip_coord, out.clip_coord)) return false;
-
-        if (!near_eq(out.world_pos.x, (v1.world_pos.x + v2.world_pos.x) * 0.5f)) return false;
-        if (!near_eq(out.view_pos.y, (v1.view_pos.y + v2.view_pos.y) * 0.5f)) return false;
-        if (!near_eq(out.normal.z, (v1.normal.z + v2.normal.z) * 0.5f)) return false;
-        if (!near_eq(out.uv0.x, (v1.uv0.x + v2.uv0.x) * 0.5f)) return false;
-        if (!near_eq(out.uv1.y, (v1.uv1.y + v2.uv1.y) * 0.5f)) return false;
-
-        Color128 c0 = bc.x * v1.color0 + bc.y * v2.color0;
-        Color128 c1 = bc.x * v1.color1 + bc.y * v2.color1;
-
-        if (!out.color0.IsEqualApprox(c0)) return false;
-        if (!out.color1.IsEqualApprox(c1)) return false;
+        for (uint32_t i = 0; i < out.used_flat_register_size; ++i) {
+            if (math::IsEqualApprox(out.flat_register[i], v1.flat_register[i], 1e-5f)) return false;
+            if (!math::IsEqualApprox(out.flat_register[i], v2.flat_register[i], 1e-5f)) return false;
+        }
 
         return true;
     }
@@ -1297,14 +1562,14 @@ namespace ho {
 
         std::vector<VirtualGPU::Varying> vs;
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
         vs.push_back(v0);
 
         auto out = gpu.ClipAgainstPlane(vs, VirtualGPU::VG_PLANE_POS_RIGHT);
 
         if (out.size() != 1u) return false;
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1318,14 +1583,14 @@ namespace ho {
 
         std::vector<VirtualGPU::Varying> vs;
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
         vs.push_back(v0);
 
         auto out = gpu.ClipAgainstPlane(vs, VirtualGPU::VG_PLANE_POS_RIGHT);
 
         if (out.size() != 1u) return false;
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1339,7 +1604,7 @@ namespace ho {
 
         std::vector<VirtualGPU::Varying> vs;
         VirtualGPU::Varying v;
-        v.clip_coord = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v.vg_Position = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
         vs.push_back(v);
 
         auto out = gpu.ClipAgainstPlane(vs, VirtualGPU::VG_PLANE_POS_RIGHT);
@@ -1358,10 +1623,10 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.2_r, 0._r, 0._r, 1.0_r);
+        v0.vg_Position = Vector4(0.2_r, 0._r, 0._r, 1.0_r);
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(0.8_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.8_r, 0.0_r, 0.0_r, 1.0_r);
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1370,7 +1635,7 @@ namespace ho {
 
         if (out.size() != 2u) return false;
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1385,10 +1650,10 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1398,7 +1663,7 @@ namespace ho {
         // ClipAgainstPlane is polygon clipping function, so result is [intersection, v0, intersection]
         if (out.size() != 3u) return false;
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1413,10 +1678,10 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1425,7 +1690,7 @@ namespace ho {
 
         if (out.size() != 3u) return false;
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1440,10 +1705,10 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.2_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(1.2_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.8_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(1.8_r, 0.0_r, 0.0_r, 1.0_r);
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1464,10 +1729,10 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1476,7 +1741,7 @@ namespace ho {
 
         if (out.size() != 2u) return false;
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1491,10 +1756,10 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1503,7 +1768,7 @@ namespace ho {
 
         if (out.size() != 3u) return false;
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1518,10 +1783,10 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.0_r, 0.3_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(1.0_r, 0.3_r, 0.0_r, 1.0_r);
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1530,7 +1795,7 @@ namespace ho {
 
         if (out.size() != 2u) return false;
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1545,7 +1810,7 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         poly.push_back(v0);
         poly.push_back(v0);
@@ -1554,7 +1819,7 @@ namespace ho {
 
         if (out.size() != 2u) return false;
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1569,13 +1834,13 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.2_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.2_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(0.4_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.4_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(0.6_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.6_r, 0.0_r, 0.0_r, 1.0_r);
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1585,7 +1850,7 @@ namespace ho {
         if (out.size() != 3u) return false;
 
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1593,31 +1858,34 @@ namespace ho {
 
     bool VirtualGPUTester::ClipAgainstPlaneTriangleOneOutside() {
         VirtualGPU& gpu = VirtualGPU::GetInstance();
+
         if (!InitFreshGPU()) {
             return false;
         }
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);  // inside
+        v0.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);  // outside
+        v1.vg_Position = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);  // outside
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(0.2_r, 0.0_r, 0.0_r, 1.0_r);  // inside
+        v2.vg_Position = Vector4(0.2_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         std::vector<VirtualGPU::Varying> poly;
+
         poly.push_back(v0);
         poly.push_back(v1);
         poly.push_back(v2);
 
         auto out = gpu.ClipAgainstPlane(poly, VirtualGPU::VG_PLANE_POS_RIGHT);
-        if (out.size() != 4u) return false;
 
+        if (out.size() != 4u) return false;
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
+
         return true;
     }
 
@@ -1628,13 +1896,13 @@ namespace ho {
         }
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);  // outside
+        v0.vg_Position = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);  // outside
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(0.3_r, 0.0_r, 0.0_r, 1.0_r);  // inside
+        v1.vg_Position = Vector4(0.3_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(1.2_r, 0.0_r, 0.0_r, 1.0_r);  // outside
+        v2.vg_Position = Vector4(1.2_r, 0.0_r, 0.0_r, 1.0_r);  // outside
 
         std::vector<VirtualGPU::Varying> poly;
         poly.push_back(v0);
@@ -1645,7 +1913,7 @@ namespace ho {
         if (out.size() != 3u) return false;
 
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1658,13 +1926,13 @@ namespace ho {
         }
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.2_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(1.2_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.4_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(1.4_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(1.6_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(1.6_r, 0.0_r, 0.0_r, 1.0_r);
 
         std::vector<VirtualGPU::Varying> poly;
         poly.push_back(v0);
@@ -1684,13 +1952,13 @@ namespace ho {
         }
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);  // on-plane
+        v0.vg_Position = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);  // on-plane
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);  // inside
+        v1.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);  // outside
+        v2.vg_Position = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);  // outside
 
         std::vector<VirtualGPU::Varying> poly;
         poly.push_back(v0);
@@ -1701,7 +1969,7 @@ namespace ho {
         if (out.size() != 4u) return false;
 
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1714,13 +1982,13 @@ namespace ho {
         }
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);  // on-plane
+        v0.vg_Position = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);  // on-plane
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.0_r, 0.5_r, 0.0_r, 1.0_r);  // on-plane
+        v1.vg_Position = Vector4(1.0_r, 0.5_r, 0.0_r, 1.0_r);  // on-plane
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);  // inside
+        v2.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         std::vector<VirtualGPU::Varying> poly;
         poly.push_back(v0);
@@ -1731,7 +1999,7 @@ namespace ho {
         if (out.size() != 3u) return false;
 
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1746,13 +2014,13 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);  // on-plane
+        v0.vg_Position = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);  // on-plane
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.0_r, 0.4_r, 0.0_r, 1.0_r);  // on-plane
+        v1.vg_Position = Vector4(1.0_r, 0.4_r, 0.0_r, 1.0_r);  // on-plane
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(1.0_r, 0.8_r, 0.0_r, 1.0_r);  // on-plane
+        v2.vg_Position = Vector4(1.0_r, 0.8_r, 0.0_r, 1.0_r);  // on-plane
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1763,7 +2031,7 @@ namespace ho {
         if (out.size() != 3u) return false;
 
         for (const auto& v : out) {
-            real e = gpu.EvalFrustumPlane(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (!math::IsEqualApprox(e, 0.0_r, math::EPSILON_POINT_ON_PLANE)) {
                 return false;
             }
@@ -1779,10 +2047,10 @@ namespace ho {
         }
 
         VirtualGPU::Varying v;
-        v.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         std::vector<VirtualGPU::Varying> poly;
         poly.push_back(v);
@@ -1793,7 +2061,7 @@ namespace ho {
         if (out.size() != 4u) return false;
 
         for (const auto& varying : out) {
-            real e = gpu.EvalFrustumPlane(varying.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(varying.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1806,7 +2074,7 @@ namespace ho {
         }
 
         VirtualGPU::Varying v;
-        v.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         std::vector<VirtualGPU::Varying> poly;
         poly.push_back(v);
@@ -1817,7 +2085,7 @@ namespace ho {
         if (out.size() != 3u) return false;
 
         for (const auto& varying : out) {
-            real e = gpu.EvalFrustumPlane(varying.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(varying.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
         return true;
@@ -1830,13 +2098,13 @@ namespace ho {
         }
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.2_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.2_r, 0.0_r, 0.0_r, 1.0_r);  // outside
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.2_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(1.2_r, 0.0_r, 0.0_r, 1.0_r);  // outside
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(2.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(2.0_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         std::vector<VirtualGPU::Varying> poly;
         poly.push_back(v0);
@@ -1847,9 +2115,67 @@ namespace ho {
         if (out.size() != 3u) return false;
 
         for (const auto& varying : out) {
-            real e = gpu.EvalFrustumPlane(varying.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT);
+            real e = gpu.EvalFrustumPlane(varying.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
             if (e < -math::EPSILON_POINT_ON_PLANE) return false;
         }
+        return true;
+    }
+
+    bool VirtualGPUTester::ClipAgainstPlaneInterpolation() {
+        VirtualGPU& gpu = VirtualGPU::GetInstance();
+        if (!InitFreshGPU()) return false;
+
+        VirtualGPU::Varying v0;  // inside
+        v0.vg_Position = Vector4(0.5f, 0.0f, 0.0f, 1.0f);
+        v0.used_smooth_register_size = 1;
+        v0.smooth_register[0] = 0.0f;
+        v0.used_flat_register_size = 1;
+        v0.flat_register[0] = 10.0f;
+
+        VirtualGPU::Varying v1;  // outside
+        v1.vg_Position = Vector4(1.5f, 0.0f, 0.0f, 1.0f);
+        v1.used_smooth_register_size = 1;
+        v1.smooth_register[0] = 1.0f;
+        v1.used_flat_register_size = 1;
+        v1.flat_register[0] = 10.0f;
+
+        VirtualGPU::Varying v2;  // inside
+        v2.vg_Position = Vector4(0.2f, 0.0f, 0.0f, 1.0f);
+        v2.used_smooth_register_size = 1;
+        v2.smooth_register[0] = 0.0f;
+        v2.used_flat_register_size = 1;
+        v2.flat_register[0] = 10.0f;
+
+        std::vector<VirtualGPU::Varying> poly;
+        poly.push_back(v0);
+        poly.push_back(v1);
+        poly.push_back(v2);
+
+        auto out = gpu.ClipAgainstPlane(poly, VirtualGPU::VG_PLANE_POS_RIGHT);
+
+        if (out.size() != 4u) return false;
+
+        for (const auto& v : out) {
+            real e = gpu.EvalFrustumPlane(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT);
+            if (e < -math::EPSILON_POINT_ON_PLANE) return false;
+        }
+
+        bool target_intersection_found = false;
+
+        for (const auto& v : out) {
+            if (math::IsEqualApprox(v.vg_Position.x, 1.0f, 1e-4f)) {
+                if (math::IsEqualApprox(v.smooth_register[0], 0.5f, 1e-4f)) {
+                    if (!math::IsEqualApprox(v.flat_register[0], 10.0f)) return false;
+
+                    target_intersection_found = true;
+                }
+            }
+        }
+
+        if (!target_intersection_found) return false;
+
+        return true;
+
         return true;
     }
 
@@ -1862,13 +2188,13 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(0.0_r, 0.5_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.5_r, 0.0_r, 1.0_r);  // intside
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1882,7 +2208,7 @@ namespace ho {
             for (VirtualGPU::PlanePos p :
                  {VirtualGPU::VG_PLANE_POS_LEFT, VirtualGPU::VG_PLANE_POS_RIGHT, VirtualGPU::VG_PLANE_POS_BOTTOM,
                   VirtualGPU::VG_PLANE_POS_TOP, VirtualGPU::VG_PLANE_POS_NEAR, VirtualGPU::VG_PLANE_POS_FAR}) {
-                if (!gpu.IsInside(v.clip_coord, p)) return false;
+                if (!gpu.IsInside(v.vg_Position, p)) return false;
             }
         }
 
@@ -1898,13 +2224,13 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(1.5_r, 0.0_r, 0.0_r, 1.0_r);  // outside
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(0.0_r, 0.5_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.5_r, 0.0_r, 1.0_r);  // inside
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1918,7 +2244,7 @@ namespace ho {
             for (VirtualGPU::PlanePos p :
                  {VirtualGPU::VG_PLANE_POS_LEFT, VirtualGPU::VG_PLANE_POS_RIGHT, VirtualGPU::VG_PLANE_POS_BOTTOM,
                   VirtualGPU::VG_PLANE_POS_TOP, VirtualGPU::VG_PLANE_POS_NEAR, VirtualGPU::VG_PLANE_POS_FAR}) {
-                if (!gpu.IsInside(v.clip_coord, p)) return false;
+                if (!gpu.IsInside(v.vg_Position, p)) return false;
             }
         }
 
@@ -1934,13 +2260,13 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(1.5_r, 1.5_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(1.5_r, 1.5_r, 0.0_r, 1.0_r);  // outside
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(0.0_r, 0.5_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.5_r, 0.0_r, 1.0_r);  // inside
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1951,8 +2277,8 @@ namespace ho {
         if (out.empty()) return false;
 
         for (const auto& v : out) {
-            if (!gpu.IsInside(v.clip_coord, VirtualGPU::VG_PLANE_POS_RIGHT)) return false;
-            if (!gpu.IsInside(v.clip_coord, VirtualGPU::VG_PLANE_POS_TOP)) return false;
+            if (!gpu.IsInside(v.vg_Position, VirtualGPU::VG_PLANE_POS_RIGHT)) return false;
+            if (!gpu.IsInside(v.vg_Position, VirtualGPU::VG_PLANE_POS_TOP)) return false;
         }
 
         return true;
@@ -1967,13 +2293,13 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(2.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(2.0_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(2.5_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(2.5_r, 0.0_r, 0.0_r, 1.0_r);
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(3.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(3.0_r, 0.0_r, 0.0_r, 1.0_r);
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -1993,13 +2319,13 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);  // inside
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);  // inside
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(0.5_r, 0.0_r, 0.0_r, -1.0_r);  // w < 0 (behind camera)
+        v1.vg_Position = Vector4(0.5_r, 0.0_r, 0.0_r, -1.0_r);  // w < 0 (behind camera)
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(0.0_r, 0.5_r, 0.0_r, 1.0_r);  // inside
+        v2.vg_Position = Vector4(0.0_r, 0.5_r, 0.0_r, 1.0_r);  // inside
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -2012,7 +2338,7 @@ namespace ho {
                  {VirtualGPU::VG_PLANE_POS_LEFT, VirtualGPU::VG_PLANE_POS_RIGHT, VirtualGPU::VG_PLANE_POS_BOTTOM,
                   VirtualGPU::VG_PLANE_POS_TOP, VirtualGPU::VG_PLANE_POS_NEAR, VirtualGPU::VG_PLANE_POS_FAR,
                   VirtualGPU::VG_PLANE_POS_PROJECTION}) {
-                if (!gpu.IsInside(v.clip_coord, p)) {
+                if (!gpu.IsInside(v.vg_Position, p)) {
                     return false;
                 }
             }
@@ -2030,13 +2356,13 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.0_r, 0.0_r, -0.5_r, 1.0_r);  // inside
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, -0.5_r, 1.0_r);  // inside
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(0.2_r, 0.0_r, -2.0_r, 1.0_r);  // outside near
+        v1.vg_Position = Vector4(0.2_r, 0.0_r, -2.0_r, 1.0_r);  // outside near
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(0.0_r, 0.2_r, -0.5_r, 1.0_r);  // inside
+        v2.vg_Position = Vector4(0.0_r, 0.2_r, -0.5_r, 1.0_r);  // inside
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -2047,7 +2373,7 @@ namespace ho {
         if (out.empty()) return false;
 
         for (const auto& v : out) {
-            if (!gpu.IsInside(v.clip_coord, VirtualGPU::VG_PLANE_POS_NEAR)) {
+            if (!gpu.IsInside(v.vg_Position, VirtualGPU::VG_PLANE_POS_NEAR)) {
                 return false;
             }
         }
@@ -2064,13 +2390,13 @@ namespace ho {
         std::vector<VirtualGPU::Varying> poly;
 
         VirtualGPU::Varying v0;
-        v0.clip_coord = Vector4(0.0_r, 0.0_r, 0.5_r, 1.0_r);  // inside
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.5_r, 1.0_r);  // inside
 
         VirtualGPU::Varying v1;
-        v1.clip_coord = Vector4(0.2_r, 0.0_r, 2.0_r, 1.0_r);  // outside far
+        v1.vg_Position = Vector4(0.2_r, 0.0_r, 2.0_r, 1.0_r);  // outside far
 
         VirtualGPU::Varying v2;
-        v2.clip_coord = Vector4(0.0_r, 0.2_r, 0.5_r, 1.0_r);  // inside
+        v2.vg_Position = Vector4(0.0_r, 0.2_r, 0.5_r, 1.0_r);  // inside
 
         poly.push_back(v0);
         poly.push_back(v1);
@@ -2081,7 +2407,7 @@ namespace ho {
         if (out.empty()) return false;
 
         for (const auto& v : out) {
-            if (!gpu.IsInside(v.clip_coord, VirtualGPU::VG_PLANE_POS_FAR)) {
+            if (!gpu.IsInside(v.vg_Position, VirtualGPU::VG_PLANE_POS_FAR)) {
                 return false;
             }
         }
@@ -2096,13 +2422,13 @@ namespace ho {
         }
 
         VirtualGPU::Varying v;
-        v.clip_coord = Vector4(0.5_r, -0.5_r, 0.25_r, 1.0_r);
+        v.vg_Position = Vector4(0.5_r, -0.5_r, 0.25_r, 1.0_r);
 
         gpu.PerspectiveDivide(v);
 
-        if (v.ndc.x != 0.5_r) return false;
-        if (v.ndc.y != -0.5_r) return false;
-        if (v.ndc.z != 0.25_r) return false;
+        if (v.viewport_coord.x != 0.5_r) return false;
+        if (v.viewport_coord.y != -0.5_r) return false;
+        if (v.viewport_coord.z != 0.25_r) return false;
 
         return true;
     }
@@ -2114,13 +2440,13 @@ namespace ho {
         }
 
         VirtualGPU::Varying v;
-        v.clip_coord = Vector4(2.0_r, -4.0_r, 1.0_r, 2.0_r);
+        v.vg_Position = Vector4(2.0_r, -4.0_r, 1.0_r, 2.0_r);
 
         gpu.PerspectiveDivide(v);
 
-        if (v.ndc.x != 1.0_r) return false;
-        if (v.ndc.y != -2.0_r) return false;
-        if (v.ndc.z != 0.5_r) return false;
+        if (v.viewport_coord.x != 1.0_r) return false;
+        if (v.viewport_coord.y != -2.0_r) return false;
+        if (v.viewport_coord.z != 0.5_r) return false;
 
         return true;
     }
@@ -2132,13 +2458,13 @@ namespace ho {
         }
 
         VirtualGPU::Varying v;
-        v.clip_coord = Vector4(1.0_r, -2.0_r, 3.0_r, 0.0_r);
+        v.vg_Position = Vector4(1.0_r, -2.0_r, 3.0_r, 0.0_r);
 
         gpu.PerspectiveDivide(v);
 
-        if (!std::isinf(v.ndc.x)) return false;
-        if (!std::isinf(v.ndc.y)) return false;
-        if (!std::isinf(v.ndc.z)) return false;
+        if (!std::isinf(v.viewport_coord.x)) return false;
+        if (!std::isinf(v.viewport_coord.y)) return false;
+        if (!std::isinf(v.viewport_coord.z)) return false;
 
         return true;
     }
@@ -2149,14 +2475,12 @@ namespace ho {
             return false;
         }
 
-        if (!InitFreshGPU()) return false;
-
         gpu.state_.viewport = {0, 0, 800, 600};
         gpu.state_.min_depth = 0.0_r;
         gpu.state_.max_depth = 1.0_r;
 
         VirtualGPU::Varying v;
-        v.ndc = Vector3(0.0_r, 0.0_r, 0.0_r);
+        v.viewport_coord = Vector3(0.0_r, 0.0_r, 0.0_r);
 
         gpu.ViewportTransform(v);
 
@@ -2173,14 +2497,12 @@ namespace ho {
             return false;
         }
 
-        if (!InitFreshGPU()) return false;
-
         gpu.state_.viewport = {0, 0, 800, 600};
         gpu.state_.min_depth = 0.0_r;
         gpu.state_.max_depth = 1.0_r;
 
         VirtualGPU::Varying v;
-        v.ndc = Vector3(-1.0_r, 1.0_r, -1.0_r);
+        v.viewport_coord = Vector3(-1.0_r, 1.0_r, -1.0_r);
 
         gpu.ViewportTransform(v);
 
@@ -2197,14 +2519,12 @@ namespace ho {
             return false;
         }
 
-        if (!InitFreshGPU()) return false;
-
         gpu.state_.viewport = {100, 50, 400, 200};
         gpu.state_.min_depth = -1.0_r;
         gpu.state_.max_depth = 1.0_r;
 
         VirtualGPU::Varying v;
-        v.ndc = Vector3(0.0_r, 0.0_r, 0.0_r);
+        v.viewport_coord = Vector3(0.0_r, 0.0_r, 0.0_r);
 
         gpu.ViewportTransform(v);
 
@@ -2225,8 +2545,6 @@ namespace ho {
             return false;
         }
 
-        if (!InitFreshGPU()) return false;
-
         gpu.state_.scissor_test_enabled = false;
         gpu.state_.viewport = {0, 0, 8, 8};
 
@@ -2242,8 +2560,6 @@ namespace ho {
         if (!InitFreshGPU()) {
             return false;
         }
-
-        if (!InitFreshGPU()) return false;
 
         gpu.state_.scissor_test_enabled = true;
         gpu.state_.viewport = {0, 0, 8, 8};
@@ -2263,8 +2579,6 @@ namespace ho {
             return false;
         }
 
-        if (!InitFreshGPU()) return false;
-
         gpu.state_.scissor_test_enabled = true;
         gpu.state_.viewport = {0, 0, 8, 8};
         gpu.state_.scissor = {2, 2, 4, 4};
@@ -2281,8 +2595,6 @@ namespace ho {
         if (!InitFreshGPU()) {
             return false;
         }
-
-        if (!InitFreshGPU()) return false;
 
         gpu.state_.scissor_test_enabled = true;
         gpu.state_.viewport = {0, 0, 8, 8};
@@ -2301,8 +2613,6 @@ namespace ho {
         if (!InitFreshGPU()) {
             return false;
         }
-
-        if (!InitFreshGPU()) return false;
 
         gpu.state_.scissor_test_enabled = true;
         gpu.state_.viewport = {0, 0, 8, 8};
@@ -3705,31 +4015,37 @@ namespace ho {
 
         VirtualGPU::Varying v;
         v.viewport_coord = Vector3(0.0_r, 0.0_r, 0.5_r);
-        v.world_pos = Vector3(1.0_r, 2.0_r, 3.0_r);
-        v.view_pos = Vector3(4.0_r, 5.0_r, 6.0_r);
-        v.normal = Vector3(0.0_r, 1.0_r, 0.0_r);
-        v.tangent = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
-        v.uv0 = Vector2(0.1_r, 0.2_r);
-        v.uv1 = Vector2(0.3_r, 0.4_r);
-        v.color0 = Color128(10.f, 20.f, 30.f, 40.f);
-        v.color1 = Color128(50.f, 60.f, 70.f, 80.f);
+
+        v.used_smooth_register_size = 6;
+        v.smooth_register[0] = 123.4f;
+        v.smooth_register[1] = 10.0f;
+        v.smooth_register[2] = 20.0f;
+        v.smooth_register[3] = 0.0f;
+        v.smooth_register[4] = 1.0f;
+        v.smooth_register[5] = 0.0f;
+
+        v.used_flat_register_size = 1;
+        v.flat_register[0] = 999.0f;
 
         auto out = gpu.Rasterize(v);
+
         if (out.size() != 1) return false;
 
         const auto& frag = out[0];
+
         if (!math::IsEqualApprox(frag.screen_coord.x, 0.5_r)) return false;
         if (!math::IsEqualApprox(frag.screen_coord.y, 0.5_r)) return false;
         if (!math::IsEqualApprox(frag.depth, 0.5_r)) return false;
 
-        if (frag.world_pos != v.world_pos) return false;
-        if (frag.view_pos != v.view_pos) return false;
-        if (frag.normal != v.normal) return false;
-        if (frag.tangent != v.tangent) return false;
-        if (frag.uv0 != v.uv0) return false;
-        if (frag.uv1 != v.uv1) return false;
-        if (!frag.color0.IsEqualApprox(v.color0)) return false;
-        if (!frag.color1.IsEqualApprox(v.color1)) return false;
+        if (frag.used_smooth_register_size != v.used_smooth_register_size) return false;
+        for (uint32_t i = 0; i < v.used_smooth_register_size; ++i) {
+            if (!math::IsEqualApprox(frag.smooth_register[i], v.smooth_register[i])) return false;
+        }
+
+        if (frag.used_flat_register_size != v.used_flat_register_size) return false;
+        for (uint32_t i = 0; i < v.used_flat_register_size; ++i) {
+            if (!math::IsEqualApprox(frag.flat_register[i], v.flat_register[i])) return false;
+        }
 
         return true;
     }
@@ -3840,38 +4156,34 @@ namespace ho {
 
     bool VirtualGPUTester::RasterizeLineNonSteep() {
         VirtualGPU& gpu = VirtualGPU::GetInstance();
-        if (!InitFreshGPU()) {
-            return false;
-        }
+        if (!InitFreshGPU()) return false;
 
         VirtualGPU::Varying v0, v1;
 
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.2_r);
         v1.viewport_coord = Vector3(40.0_r, 18.0_r, 0.8_r);
 
-        v0.world_pos = Vector3(1.0_r, 2.0_r, 3.0_r);
-        v1.world_pos = Vector3(11.0_r, 7.0_r, 5.0_r);
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        v0.view_pos = Vector3(-2.0_r, 4.0_r, 1.0_r);
-        v1.view_pos = Vector3(6.0_r, 9.0_r, -3.0_r);
+        const std::vector<float> v0_data = {1.0f, 2.0f, 3.0f, -2.0f, 4.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+                                            0.0f, 0.0f, 1.0f, 1.0f,  0.1f,  0.2f, 0.3f, 0.4f, 10.f,
+                                            20.f, 30.f, 40.f, 5.f,   250.f, 60.f, 255.f};
+        const std::vector<float> v1_data = {11.0f, 7.0f,  5.0f, 6.0f,  9.0f, -3.0f, 1.0f, 0.0f, 1.0f,
+                                            1.0f,  0.0f,  0.0f, 1.0f,  0.9f, 0.7f,  0.8f, 0.1f, 200.f,
+                                            150.f, 100.f, 80.f, 220.f, 10.f, 180.f, 128.f};
 
-        v0.normal = Vector3(0.0_r, 0.0_r, 1.0_r);
-        v1.normal = Vector3(1.0_r, 0.0_r, 1.0_r);
+        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v0.tangent = Vector4(0.0_r, 0.0_r, 1.0_r, 1.0_r);
-        v1.tangent = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
-        v0.uv0 = Vector2(0.1_r, 0.2_r);
-        v1.uv0 = Vector2(0.9_r, 0.7_r);
+        v0.used_flat_register_size = 1;
+        v0.flat_register[0] = 100.0f;
 
-        v0.uv1 = Vector2(0.3_r, 0.4_r);
-        v1.uv1 = Vector2(0.8_r, 0.1_r);
-
-        v0.color0 = Color128(10.f, 20.f, 30.f, 40.f);
-        v1.color0 = Color128(200.f, 150.f, 100.f, 80.f);
-
-        v0.color1 = Color128(5.f, 250.f, 60.f, 255.f);
-        v1.color1 = Color128(220.f, 10.f, 180.f, 128.f);
+        v1.used_flat_register_size = 1;
+        v1.flat_register[0] = 200.0f;
 
         gpu.state_.scissor_test_enabled = false;
         gpu.state_.depth_test_enabled = false;
@@ -3892,90 +4204,31 @@ namespace ho {
         const real min_depth = math::Min(v0.viewport_coord.z, v1.viewport_coord.z);
         const real max_depth = math::Max(v0.viewport_coord.z, v1.viewport_coord.z);
 
-        const Vector3 world_min(math::Min(v0.world_pos.x, v1.world_pos.x), math::Min(v0.world_pos.y, v1.world_pos.y),
-                                math::Min(v0.world_pos.z, v1.world_pos.z));
-        const Vector3 world_max(math::Max(v0.world_pos.x, v1.world_pos.x), math::Max(v0.world_pos.y, v1.world_pos.y),
-                                math::Max(v0.world_pos.z, v1.world_pos.z));
+        std::vector<float> smooth_min(v0.used_smooth_register_size);
+        std::vector<float> smooth_max(v0.used_smooth_register_size);
+        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+            smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
+            smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
+        }
 
-        const Vector3 view_min(math::Min(v0.view_pos.x, v1.view_pos.x), math::Min(v0.view_pos.y, v1.view_pos.y),
-                               math::Min(v0.view_pos.z, v1.view_pos.z));
-        const Vector3 view_max(math::Max(v0.view_pos.x, v1.view_pos.x), math::Max(v0.view_pos.y, v1.view_pos.y),
-                               math::Max(v0.view_pos.z, v1.view_pos.z));
-
-        const Vector2 uv0_min(math::Min(v0.uv0.x, v1.uv0.x), math::Min(v0.uv0.y, v1.uv0.y));
-        const Vector2 uv0_max(math::Max(v0.uv0.x, v1.uv0.x), math::Max(v0.uv0.y, v1.uv0.y));
-
-        const Vector2 uv1_min(math::Min(v0.uv1.x, v1.uv1.x), math::Min(v0.uv1.y, v1.uv1.y));
-        const Vector2 uv1_max(math::Max(v0.uv1.x, v1.uv1.x), math::Max(v0.uv1.y, v1.uv1.y));
-
-        const Vector3 n0 = v0.normal.Normalized();
-        const Vector3 n1 = v1.normal.Normalized();
-
-        const Vector3 nmin(math::Min(n0.x, n1.x), math::Min(n0.y, n1.y), math::Min(n0.z, n1.z));
-        const Vector3 nmax(math::Max(n0.x, n1.x), math::Max(n0.y, n1.y), math::Max(n0.z, n1.z));
-
-        const Vector3 tmin(math::Min(v0.tangent.x, v1.tangent.x), math::Min(v0.tangent.y, v1.tangent.y),
-                           math::Min(v0.tangent.z, v1.tangent.z));
-        const Vector3 tmax(math::Max(v0.tangent.x, v1.tangent.x), math::Max(v0.tangent.y, v1.tangent.y),
-                           math::Max(v0.tangent.z, v1.tangent.z));
-
-        const float c0r_min = math::Min(v0.color0.r, v1.color0.r);
-        const float c0r_max = math::Max(v0.color0.r, v1.color0.r);
-        const float c0g_min = math::Min(v0.color0.g, v1.color0.g);
-        const float c0g_max = math::Max(v0.color0.g, v1.color0.g);
-        const float c0b_min = math::Min(v0.color0.b, v1.color0.b);
-        const float c0b_max = math::Max(v0.color0.b, v1.color0.b);
-        const float c0a_min = math::Min(v0.color0.a, v1.color0.a);
-        const float c0a_max = math::Max(v0.color0.a, v1.color0.a);
-
-        const float c1r_min = math::Min(v0.color1.r, v1.color1.r);
-        const float c1r_max = math::Max(v0.color1.r, v1.color1.r);
-        const float c1g_min = math::Min(v0.color1.g, v1.color1.g);
-        const float c1g_max = math::Max(v0.color1.g, v1.color1.g);
-        const float c1b_min = math::Min(v0.color1.b, v1.color1.b);
-        const float c1b_max = math::Max(v0.color1.b, v1.color1.b);
-        const float c1a_min = math::Min(v0.color1.a, v1.color1.a);
-        const float c1a_max = math::Max(v0.color1.a, v1.color1.a);
+        const real eps = math::EPSILON_RASTERIZATION;
 
         for (const auto& f : out) {
-            if (f.screen_coord.x < min_sx - 1e-4_r || f.screen_coord.x > max_sx + 1e-4_r) return false;
-            if (f.screen_coord.y < min_sy - 1e-4_r || f.screen_coord.y > max_sy + 1e-4_r) return false;
+            if (f.screen_coord.x < min_sx - eps || f.screen_coord.x > max_sx + eps) return false;
+            if (f.screen_coord.y < min_sy - eps || f.screen_coord.y > max_sy + eps) return false;
+            if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
-            if (f.depth < min_depth - 1e-4_r || f.depth > max_depth + 1e-4_r) return false;
+            if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
+            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+                float val = f.smooth_register[i];
+                if (val < smooth_min[i] - eps || val > smooth_max[i] + eps) return false;
+            }
 
-            if (f.world_pos.x < world_min.x - 1e-4_r || f.world_pos.x > world_max.x + 1e-4_r) return false;
-            if (f.world_pos.y < world_min.y - 1e-4_r || f.world_pos.y > world_max.y + 1e-4_r) return false;
-            if (f.world_pos.z < world_min.z - 1e-4_r || f.world_pos.z > world_max.z + 1e-4_r) return false;
+            if (f.used_flat_register_size != v1.used_flat_register_size) return false;
 
-            if (f.view_pos.x < view_min.x - 1e-4_r || f.view_pos.x > view_max.x + 1e-4_r) return false;
-            if (f.view_pos.y < view_min.y - 1e-4_r || f.view_pos.y > view_max.y + 1e-4_r) return false;
-            if (f.view_pos.z < view_min.z - 1e-4_r || f.view_pos.z > view_max.z + 1e-4_r) return false;
+            if (!math::IsEqualApprox(f.flat_register[0], v1.flat_register[0], eps)) return false;
 
-            if (math::Abs(f.normal.Magnitude() - 1.0_r) > 1e-4_r) return false;
-            if (f.normal.x < nmin.x - 1e-4_r || f.normal.x > nmax.x + 1e-4_r) return false;
-            if (f.normal.y < nmin.y - 1e-4_r || f.normal.y > nmax.y + 1e-4_r) return false;
-            if (f.normal.z < nmin.z - 1e-4_r || f.normal.z > nmax.z + 1e-4_r) return false;
-
-            if (f.tangent.x < tmin.x - 1e-4_r || f.tangent.x > tmax.x + 1e-4_r) return false;
-            if (f.tangent.y < tmin.y - 1e-4_r || f.tangent.y > tmax.y + 1e-4_r) return false;
-            if (f.tangent.z < tmin.z - 1e-4_r || f.tangent.z > tmax.z + 1e-4_r) return false;
-            if (f.tangent.w != v1.tangent.w) return false;
-
-            if (f.uv0.x < uv0_min.x - 1e-4_r || f.uv0.x > uv0_max.x + 1e-4_r) return false;
-            if (f.uv0.y < uv0_min.y - 1e-4_r || f.uv0.y > uv0_max.y + 1e-4_r) return false;
-
-            if (f.uv1.x < uv1_min.x - 1e-4_r || f.uv1.x > uv1_max.x + 1e-4_r) return false;
-            if (f.uv1.y < uv1_min.y - 1e-4_r || f.uv1.y > uv1_max.y + 1e-4_r) return false;
-
-            if (f.color0.r < c0r_min - 1e-4f || f.color0.r > c0r_max + 1e-4f) return false;
-            if (f.color0.g < c0g_min - 1e-4f || f.color0.g > c0g_max + 1e-4f) return false;
-            if (f.color0.b < c0b_min - 1e-4f || f.color0.b > c0b_max + 1e-4f) return false;
-            if (f.color0.a < c0a_min - 1e-4f || f.color0.a > c0a_max + 1e-4f) return false;
-
-            if (f.color1.r < c1r_min - 1e-4f || f.color1.r > c1r_max + 1e-4f) return false;
-            if (f.color1.g < c1g_min - 1e-4f || f.color1.g > c1g_max + 1e-4f) return false;
-            if (f.color1.b < c1b_min - 1e-4f || f.color1.b > c1b_max + 1e-4f) return false;
-            if (f.color1.a < c1a_min - 1e-4f || f.color1.a > c1a_max + 1e-4f) return false;
+            if (math::IsEqualApprox(f.flat_register[0], v0.flat_register[0], eps)) return false;
         }
 
         return true;
@@ -3983,41 +4236,35 @@ namespace ho {
 
     bool VirtualGPUTester::RasterizeLineSteep() {
         VirtualGPU& gpu = VirtualGPU::GetInstance();
-        if (!InitFreshGPU()) {
-            return false;
-        }
+        if (!InitFreshGPU()) return false;
 
         VirtualGPU::Varying v0, v1;
 
         v0.viewport_coord = Vector3(12.0_r, 10.0_r, 0.15_r);
         v1.viewport_coord = Vector3(18.0_r, 45.0_r, 0.85_r);
 
-        v0.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
-        v1.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        v0.world_pos = Vector3(2.0_r, 0.0_r, 1.0_r);
-        v1.world_pos = Vector3(5.0_r, 9.0_r, 7.0_r);
+        const std::vector<float> v0_data = {2.0f, 0.0f,  1.0f,  -1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 1.0f,
+                                            0.0f, 1.0f,  0.0f,  1.0f,  0.2f, 0.1f, 0.9f, 0.2f, 0.f,
+                                            10.f, 200.f, 255.f, 60.f,  70.f, 80.f, 90.f};
 
-        v0.view_pos = Vector3(-1.0_r, 2.0_r, 3.0_r);
-        v1.view_pos = Vector3(4.0_r, 8.0_r, -2.0_r);
+        const std::vector<float> v1_data = {5.0f, 9.0f, 7.0f, 4.0f, 8.0f,  -2.0f, 0.0f, 0.0f, 1.0f,
+                                            0.0f, 0.0f, 1.0f, 1.0f, 0.4f,  0.9f,  0.1f, 0.8f, 255.f,
+                                            40.f, 20.f, 10.f, 10.f, 200.f, 30.f,  250.f};
 
-        v0.normal = Vector3(0.0_r, 1.0_r, 1.0_r);
-        v1.normal = Vector3(0.0_r, 0.0_r, 1.0_r);
+        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v0.tangent = Vector4(0.0_r, 1.0_r, 0.0_r, 1.0_r);
-        v1.tangent = Vector4(0.0_r, 0.0_r, 1.0_r, 1.0_r);
+        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
-        v0.uv0 = Vector2(0.2_r, 0.1_r);
-        v1.uv0 = Vector2(0.4_r, 0.9_r);
+        v0.used_flat_register_size = 1;
+        v0.flat_register[0] = 100.0f;
 
-        v0.uv1 = Vector2(0.9_r, 0.2_r);
-        v1.uv1 = Vector2(0.1_r, 0.8_r);
-
-        v0.color0 = Color128(0.f, 10.f, 200.f, 255.f);
-        v1.color0 = Color128(255.f, 40.f, 20.f, 10.f);
-
-        v0.color1 = Color128(60.f, 70.f, 80.f, 90.f);
-        v1.color1 = Color128(10.f, 200.f, 30.f, 250.f);
+        v1.used_flat_register_size = 1;
+        v1.flat_register[0] = 200.0f;
 
         gpu.state_.scissor_test_enabled = false;
         gpu.state_.depth_test_enabled = false;
@@ -4038,90 +4285,35 @@ namespace ho {
         const real min_depth = math::Min(v0.viewport_coord.z, v1.viewport_coord.z);
         const real max_depth = math::Max(v0.viewport_coord.z, v1.viewport_coord.z);
 
-        const Vector3 world_min(math::Min(v0.world_pos.x, v1.world_pos.x), math::Min(v0.world_pos.y, v1.world_pos.y),
-                                math::Min(v0.world_pos.z, v1.world_pos.z));
-        const Vector3 world_max(math::Max(v0.world_pos.x, v1.world_pos.x), math::Max(v0.world_pos.y, v1.world_pos.y),
-                                math::Max(v0.world_pos.z, v1.world_pos.z));
+        std::vector<float> smooth_min(v0.used_smooth_register_size);
+        std::vector<float> smooth_max(v0.used_smooth_register_size);
 
-        const Vector3 view_min(math::Min(v0.view_pos.x, v1.view_pos.x), math::Min(v0.view_pos.y, v1.view_pos.y),
-                               math::Min(v0.view_pos.z, v1.view_pos.z));
-        const Vector3 view_max(math::Max(v0.view_pos.x, v1.view_pos.x), math::Max(v0.view_pos.y, v1.view_pos.y),
-                               math::Max(v0.view_pos.z, v1.view_pos.z));
+        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+            smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
+            smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
+        }
 
-        const Vector2 uv0_min(math::Min(v0.uv0.x, v1.uv0.x), math::Min(v0.uv0.y, v1.uv0.y));
-        const Vector2 uv0_max(math::Max(v0.uv0.x, v1.uv0.x), math::Max(v0.uv0.y, v1.uv0.y));
-
-        const Vector2 uv1_min(math::Min(v0.uv1.x, v1.uv1.x), math::Min(v0.uv1.y, v1.uv1.y));
-        const Vector2 uv1_max(math::Max(v0.uv1.x, v1.uv1.x), math::Max(v0.uv1.y, v1.uv1.y));
-
-        const Vector3 n0 = v0.normal.Normalized();
-        const Vector3 n1 = v1.normal.Normalized();
-
-        const Vector3 nmin(math::Min(n0.x, n1.x), math::Min(n0.y, n1.y), math::Min(n0.z, n1.z));
-        const Vector3 nmax(math::Max(n0.x, n1.x), math::Max(n0.y, n1.y), math::Max(n0.z, n1.z));
-
-        const Vector3 tmin(math::Min(v0.tangent.x, v1.tangent.x), math::Min(v0.tangent.y, v1.tangent.y),
-                           math::Min(v0.tangent.z, v1.tangent.z));
-        const Vector3 tmax(math::Max(v0.tangent.x, v1.tangent.x), math::Max(v0.tangent.y, v1.tangent.y),
-                           math::Max(v0.tangent.z, v1.tangent.z));
-
-        const float c0r_min = math::Min(v0.color0.r, v1.color0.r);
-        const float c0r_max = math::Max(v0.color0.r, v1.color0.r);
-        const float c0g_min = math::Min(v0.color0.g, v1.color0.g);
-        const float c0g_max = math::Max(v0.color0.g, v1.color0.g);
-        const float c0b_min = math::Min(v0.color0.b, v1.color0.b);
-        const float c0b_max = math::Max(v0.color0.b, v1.color0.b);
-        const float c0a_min = math::Min(v0.color0.a, v1.color0.a);
-        const float c0a_max = math::Max(v0.color0.a, v1.color0.a);
-
-        const float c1r_min = math::Min(v0.color1.r, v1.color1.r);
-        const float c1r_max = math::Max(v0.color1.r, v1.color1.r);
-        const float c1g_min = math::Min(v0.color1.g, v1.color1.g);
-        const float c1g_max = math::Max(v0.color1.g, v1.color1.g);
-        const float c1b_min = math::Min(v0.color1.b, v1.color1.b);
-        const float c1b_max = math::Max(v0.color1.b, v1.color1.b);
-        const float c1a_min = math::Min(v0.color1.a, v1.color1.a);
-        const float c1a_max = math::Max(v0.color1.a, v1.color1.a);
+        const real eps = math::EPSILON_RASTERIZATION;
 
         for (const auto& f : out) {
-            if (f.screen_coord.x < min_sx - 1e-4_r || f.screen_coord.x > max_sx + 1e-4_r) return false;
-            if (f.screen_coord.y < min_sy - 1e-4_r || f.screen_coord.y > max_sy + 1e-4_r) return false;
+            if (f.screen_coord.x < min_sx - eps || f.screen_coord.x > max_sx + eps) return false;
+            if (f.screen_coord.y < min_sy - eps || f.screen_coord.y > max_sy + eps) return false;
+            if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
-            if (f.depth < min_depth - 1e-4_r || f.depth > max_depth + 1e-4_r) return false;
+            if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
+            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+                float val = f.smooth_register[i];
+                float mn = smooth_min[i];
+                float mx = smooth_max[i];
 
-            if (f.world_pos.x < world_min.x - 1e-4_r || f.world_pos.x > world_max.x + 1e-4_r) return false;
-            if (f.world_pos.y < world_min.y - 1e-4_r || f.world_pos.y > world_max.y + 1e-4_r) return false;
-            if (f.world_pos.z < world_min.z - 1e-4_r || f.world_pos.z > world_max.z + 1e-4_r) return false;
+                if (val < mn - eps || val > mx + eps) return false;
+            }
 
-            if (f.view_pos.x < view_min.x - 1e-4_r || f.view_pos.x > view_max.x + 1e-4_r) return false;
-            if (f.view_pos.y < view_min.y - 1e-4_r || f.view_pos.y > view_max.y + 1e-4_r) return false;
-            if (f.view_pos.z < view_min.z - 1e-4_r || f.view_pos.z > view_max.z + 1e-4_r) return false;
+            if (f.used_flat_register_size != v1.used_flat_register_size) return false;
 
-            if (math::Abs(f.normal.Magnitude() - 1.0_r) > 1e-5_r) return false;
-            if (f.normal.x < nmin.x - 1e-4_r || f.normal.x > nmax.x + 1e-4_r) return false;
-            if (f.normal.y < nmin.y - 1e-4_r || f.normal.y > nmax.y + 1e-4_r) return false;
-            if (f.normal.z < nmin.z - 1e-4_r || f.normal.z > nmax.z + 1e-4_r) return false;
+            if (!math::IsEqualApprox(f.flat_register[0], v1.flat_register[0], eps)) return false;
 
-            if (f.tangent.x < tmin.x - 1e-4_r || f.tangent.x > tmax.x + 1e-4_r) return false;
-            if (f.tangent.y < tmin.y - 1e-4_r || f.tangent.y > tmax.y + 1e-4_r) return false;
-            if (f.tangent.z < tmin.z - 1e-4_r || f.tangent.z > tmax.z + 1e-4_r) return false;
-            if (f.tangent.w != v1.tangent.w) return false;
-
-            if (f.uv0.x < uv0_min.x - 1e-4_r || f.uv0.x > uv0_max.x + 1e-4_r) return false;
-            if (f.uv0.y < uv0_min.y - 1e-4_r || f.uv0.y > uv0_max.y + 1e-4_r) return false;
-
-            if (f.uv1.x < uv1_min.x - 1e-4_r || f.uv1.x > uv1_max.x + 1e-4_r) return false;
-            if (f.uv1.y < uv1_min.y - 1e-4_r || f.uv1.y > uv1_max.y + 1e-4_r) return false;
-
-            if (f.color0.r < c0r_min - 1e-4f || f.color0.r > c0r_max + 1e-4f) return false;
-            if (f.color0.g < c0g_min - 1e-4f || f.color0.g > c0g_max + 1e-4f) return false;
-            if (f.color0.b < c0b_min - 1e-4f || f.color0.b > c0b_max + 1e-4f) return false;
-            if (f.color0.a < c0a_min - 1e-4f || f.color0.a > c0a_max + 1e-4f) return false;
-
-            if (f.color1.r < c1r_min - 1e-4f || f.color1.r > c1r_max + 1e-4f) return false;
-            if (f.color1.g < c1g_min - 1e-4f || f.color1.g > c1g_max + 1e-4f) return false;
-            if (f.color1.b < c1b_min - 1e-4f || f.color1.b > c1b_max + 1e-4f) return false;
-            if (f.color1.a < c1a_min - 1e-4f || f.color1.a > c1a_max + 1e-4f) return false;
+            if (math::IsEqualApprox(f.flat_register[0], v0.flat_register[0], eps)) return false;
         }
 
         return true;
@@ -4129,41 +4321,35 @@ namespace ho {
 
     bool VirtualGPUTester::RasterizeLineVertical() {
         VirtualGPU& gpu = VirtualGPU::GetInstance();
-        if (!InitFreshGPU()) {
-            return false;
-        }
+        if (!InitFreshGPU()) return false;
 
         VirtualGPU::Varying v0, v1;
 
         v0.viewport_coord = Vector3(25.0_r, 10.0_r, 0.4_r);
         v1.viewport_coord = Vector3(25.0_r, 30.0_r, 0.6_r);
 
-        v0.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
-        v1.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        v0.world_pos = Vector3(2.0_r, 0.0_r, 0.0_r);
-        v1.world_pos = Vector3(2.0_r, 10.0_r, 4.0_r);
+        const std::vector<float> v0_data = {2.0f, 0.0f, 0.0f,  1.0f,  -2.0f, 3.0f, 0.0f, 0.0f, 1.0f,
+                                            1.0f, 0.0f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, 0.f,
+                                            0.f,  0.f,  255.f, 255.f, 0.f,   0.f,  255.f};
 
-        v0.view_pos = Vector3(1.0_r, -2.0_r, 3.0_r);
-        v1.view_pos = Vector3(1.0_r, 5.0_r, -1.0_r);
+        const std::vector<float> v1_data = {2.0f,  10.0f, 4.0f,  1.0f, 5.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+                                            0.0f,  1.0f,  0.0f,  1.0f, 0.0f, 1.0f,  1.0f, 1.0f, 255.f,
+                                            255.f, 255.f, 255.f, 0.f,  0.f,  255.f, 255.f};
 
-        v0.normal = Vector3(0.0_r, 0.0_r, 1.0_r);
-        v1.normal = Vector3(0.0_r, 1.0_r, 1.0_r);
+        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v0.tangent = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
-        v1.tangent = Vector4(0.0_r, 1.0_r, 0.0_r, 1.0_r);
+        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
-        v0.uv0 = Vector2(0.0_r, 0.0_r);
-        v1.uv0 = Vector2(0.0_r, 1.0_r);
+        v0.used_flat_register_size = 1;
+        v0.flat_register[0] = 100.0f;
 
-        v0.uv1 = Vector2(1.0_r, 0.0_r);
-        v1.uv1 = Vector2(1.0_r, 1.0_r);
-
-        v0.color0 = Color128(0.f, 0.f, 0.f, 255.f);
-        v1.color0 = Color128(255.f, 255.f, 255.f, 255.f);
-
-        v0.color1 = Color128(255.f, 0.f, 0.f, 255.f);
-        v1.color1 = Color128(0.f, 0.f, 255.f, 255.f);
+        v1.used_flat_register_size = 1;
+        v1.flat_register[0] = 200.0f;
 
         gpu.state_.scissor_test_enabled = false;
         gpu.state_.depth_test_enabled = false;
@@ -4184,132 +4370,70 @@ namespace ho {
         const real min_depth = math::Min(v0.viewport_coord.z, v1.viewport_coord.z);
         const real max_depth = math::Max(v0.viewport_coord.z, v1.viewport_coord.z);
 
-        const Vector3 world_min(math::Min(v0.world_pos.x, v1.world_pos.x), math::Min(v0.world_pos.y, v1.world_pos.y),
-                                math::Min(v0.world_pos.z, v1.world_pos.z));
-        const Vector3 world_max(math::Max(v0.world_pos.x, v1.world_pos.x), math::Max(v0.world_pos.y, v1.world_pos.y),
-                                math::Max(v0.world_pos.z, v1.world_pos.z));
+        std::vector<float> smooth_min(v0.used_smooth_register_size);
+        std::vector<float> smooth_max(v0.used_smooth_register_size);
 
-        const Vector3 view_min(math::Min(v0.view_pos.x, v1.view_pos.x), math::Min(v0.view_pos.y, v1.view_pos.y),
-                               math::Min(v0.view_pos.z, v1.view_pos.z));
-        const Vector3 view_max(math::Max(v0.view_pos.x, v1.view_pos.x), math::Max(v0.view_pos.y, v1.view_pos.y),
-                               math::Max(v0.view_pos.z, v1.view_pos.z));
+        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+            smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
+            smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
+        }
 
-        const Vector2 uv0_min(math::Min(v0.uv0.x, v1.uv0.x), math::Min(v0.uv0.y, v1.uv0.y));
-        const Vector2 uv0_max(math::Max(v0.uv0.x, v1.uv0.x), math::Max(v0.uv0.y, v1.uv0.y));
-
-        const Vector2 uv1_min(math::Min(v0.uv1.x, v1.uv1.x), math::Min(v0.uv1.y, v1.uv1.y));
-        const Vector2 uv1_max(math::Max(v0.uv1.x, v1.uv1.x), math::Max(v0.uv1.y, v1.uv1.y));
-
-        const Vector3 n0 = v0.normal.Normalized();
-        const Vector3 n1 = v1.normal.Normalized();
-
-        const Vector3 nmin(math::Min(n0.x, n1.x), math::Min(n0.y, n1.y), math::Min(n0.z, n1.z));
-        const Vector3 nmax(math::Max(n0.x, n1.x), math::Max(n0.y, n1.y), math::Max(n0.z, n1.z));
-
-        const Vector3 tmin(math::Min(v0.tangent.x, v1.tangent.x), math::Min(v0.tangent.y, v1.tangent.y),
-                           math::Min(v0.tangent.z, v1.tangent.z));
-        const Vector3 tmax(math::Max(v0.tangent.x, v1.tangent.x), math::Max(v0.tangent.y, v1.tangent.y),
-                           math::Max(v0.tangent.z, v1.tangent.z));
-
-        const float c0r_min = math::Min(v0.color0.r, v1.color0.r);
-        const float c0r_max = math::Max(v0.color0.r, v1.color0.r);
-        const float c0g_min = math::Min(v0.color0.g, v1.color0.g);
-        const float c0g_max = math::Max(v0.color0.g, v1.color0.g);
-        const float c0b_min = math::Min(v0.color0.b, v1.color0.b);
-        const float c0b_max = math::Max(v0.color0.b, v1.color0.b);
-        const float c0a_min = math::Min(v0.color0.a, v1.color0.a);
-        const float c0a_max = math::Max(v0.color0.a, v1.color0.a);
-
-        const float c1r_min = math::Min(v0.color1.r, v1.color1.r);
-        const float c1r_max = math::Max(v0.color1.r, v1.color1.r);
-        const float c1g_min = math::Min(v0.color1.g, v1.color1.g);
-        const float c1g_max = math::Max(v0.color1.g, v1.color1.g);
-        const float c1b_min = math::Min(v0.color1.b, v1.color1.b);
-        const float c1b_max = math::Max(v0.color1.b, v1.color1.b);
-        const float c1a_min = math::Min(v0.color1.a, v1.color1.a);
-        const float c1a_max = math::Max(v0.color1.a, v1.color1.a);
+        const real eps = math::EPSILON_RASTERIZATION;
 
         for (const auto& f : out) {
-            if (f.screen_coord.x < min_sx - 1e-4_r || f.screen_coord.x > max_sx + 1e-4_r) return false;
-            if (f.screen_coord.y < min_sy - 1e-4_r || f.screen_coord.y > max_sy + 1e-4_r) return false;
+            if (f.screen_coord.x < min_sx - eps || f.screen_coord.x > max_sx + eps) return false;
+            if (f.screen_coord.y < min_sy - eps || f.screen_coord.y > max_sy + eps) return false;
+            if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
-            if (f.depth < min_depth - 1e-4_r || f.depth > max_depth + 1e-4_r) return false;
+            if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
+            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+                float val = f.smooth_register[i];
+                float mn = smooth_min[i];
+                float mx = smooth_max[i];
 
-            if (f.world_pos.x < world_min.x - 1e-4_r || f.world_pos.x > world_max.x + 1e-4_r) return false;
-            if (f.world_pos.y < world_min.y - 1e-4_r || f.world_pos.y > world_max.y + 1e-4_r) return false;
-            if (f.world_pos.z < world_min.z - 1e-4_r || f.world_pos.z > world_max.z + 1e-4_r) return false;
+                if (val < mn - eps || val > mx + eps) return false;
+            }
 
-            if (f.view_pos.x < view_min.x - 1e-4_r || f.view_pos.x > view_max.x + 1e-4_r) return false;
-            if (f.view_pos.y < view_min.y - 1e-4_r || f.view_pos.y > view_max.y + 1e-4_r) return false;
-            if (f.view_pos.z < view_min.z - 1e-4_r || f.view_pos.z > view_max.z + 1e-4_r) return false;
+            if (f.used_flat_register_size != v1.used_flat_register_size) return false;
 
-            if (math::Abs(f.normal.Magnitude() - 1.0_r) > 1e-5_r) return false;
-            if (f.normal.x < nmin.x - 1e-4_r || f.normal.x > nmax.x + 1e-4_r) return false;
-            if (f.normal.y < nmin.y - 1e-4_r || f.normal.y > nmax.y + 1e-4_r) return false;
-            if (f.normal.z < nmin.z - 1e-4_r || f.normal.z > nmax.z + 1e-4_r) return false;
+            if (!math::IsEqualApprox(f.flat_register[0], v1.flat_register[0], eps)) return false;
 
-            if (f.tangent.x < tmin.x - 1e-4_r || f.tangent.x > tmax.x + 1e-4_r) return false;
-            if (f.tangent.y < tmin.y - 1e-4_r || f.tangent.y > tmax.y + 1e-4_r) return false;
-            if (f.tangent.z < tmin.z - 1e-4_r || f.tangent.z > tmax.z + 1e-4_r) return false;
-            if (f.tangent.w != v1.tangent.w) return false;
-
-            if (f.uv0.x < uv0_min.x - 1e-4_r || f.uv0.x > uv0_max.x + 1e-4_r) return false;
-            if (f.uv0.y < uv0_min.y - 1e-4_r || f.uv0.y > uv0_max.y + 1e-4_r) return false;
-
-            if (f.uv1.x < uv1_min.x - 1e-4_r || f.uv1.x > uv1_max.x + 1e-4_r) return false;
-            if (f.uv1.y < uv1_min.y - 1e-4_r || f.uv1.y > uv1_max.y + 1e-4_r) return false;
-
-            if (f.color0.r < c0r_min - 1e-4f || f.color0.r > c0r_max + 1e-4f) return false;
-            if (f.color0.g < c0g_min - 1e-4f || f.color0.g > c0g_max + 1e-4f) return false;
-            if (f.color0.b < c0b_min - 1e-4f || f.color0.b > c0b_max + 1e-4f) return false;
-            if (f.color0.a < c0a_min - 1e-4f || f.color0.a > c0a_max + 1e-4f) return false;
-
-            if (f.color1.r < c1r_min - 1e-4f || f.color1.r > c1r_max + 1e-4f) return false;
-            if (f.color1.g < c1g_min - 1e-4f || f.color1.g > c1g_max + 1e-4f) return false;
-            if (f.color1.b < c1b_min - 1e-4f || f.color1.b > c1b_max + 1e-4f) return false;
-            if (f.color1.a < c1a_min - 1e-4f || f.color1.a > c1a_max + 1e-4f) return false;
+            if (math::IsEqualApprox(f.flat_register[0], v0.flat_register[0], eps)) return false;
         }
 
         return true;
     }
-
     bool VirtualGPUTester::RasterizeLineHorizontal() {
         VirtualGPU& gpu = VirtualGPU::GetInstance();
-        if (!InitFreshGPU()) {
-            return false;
-        }
+        if (!InitFreshGPU()) return false;
 
         VirtualGPU::Varying v0, v1;
 
         v0.viewport_coord = Vector3(8.0_r, 22.0_r, 0.1_r);
         v1.viewport_coord = Vector3(35.0_r, 22.0_r, 0.9_r);
 
-        v0.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
-        v1.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        v0.world_pos = Vector3(-3.0_r, 5.0_r, 2.0_r);
-        v1.world_pos = Vector3(9.0_r, 5.0_r, -4.0_r);
+        const std::vector<float> v0_data = {-3.0f, 5.0f, 2.0f, 0.0f, 3.0f,  1.0f, 1.0f, 0.0f, 1.0f,
+                                            0.0f,  0.0f, 1.0f, 1.0f, 0.0f,  0.3f, 0.7f, 0.2f, 5.f,
+                                            10.f,  15.f, 20.f, 0.f,  255.f, 0.f,  100.f};
 
-        v0.view_pos = Vector3(0.0_r, 3.0_r, 1.0_r);
-        v1.view_pos = Vector3(6.0_r, -1.0_r, 8.0_r);
+        const std::vector<float> v1_data = {9.0f, 5.0f,  -4.0f, 6.0f,  -1.0f, 8.0f,  0.0f, 0.0f, 1.0f,
+                                            1.0f, 0.0f,  0.0f,  1.0f,  1.0f,  0.3f,  0.2f, 0.9f, 200.f,
+                                            10.f, 250.f, 220.f, 255.f, 0.f,   255.f, 200.f};
 
-        v0.normal = Vector3(1.0_r, 0.0_r, 1.0_r);
-        v1.normal = Vector3(0.0_r, 0.0_r, 1.0_r);
+        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v0.tangent = Vector4(0.0_r, 0.0_r, 1.0_r, 1.0_r);
-        v1.tangent = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
-        v0.uv0 = Vector2(0.0_r, 0.3_r);
-        v1.uv0 = Vector2(1.0_r, 0.3_r);
+        v0.used_flat_register_size = 1;
+        v0.flat_register[0] = 100.0f;
 
-        v0.uv1 = Vector2(0.7_r, 0.2_r);
-        v1.uv1 = Vector2(0.2_r, 0.9_r);
-
-        v0.color0 = Color128(5.f, 10.f, 15.f, 20.f);
-        v1.color0 = Color128(200.f, 10.f, 250.f, 220.f);
-
-        v0.color1 = Color128(0.f, 255.f, 0.f, 100.f);
-        v1.color1 = Color128(255.f, 0.f, 255.f, 200.f);
+        v1.used_flat_register_size = 1;
+        v1.flat_register[0] = 200.0f;
 
         gpu.state_.scissor_test_enabled = false;
         gpu.state_.depth_test_enabled = false;
@@ -4324,96 +4448,42 @@ namespace ho {
 
         const real min_sx = (real)math::Min(x0, x1) + 0.5_r;
         const real max_sx = (real)math::Max(x0, x1) + 0.5_r;
+
         const real min_sy = (real)math::Min(y0, y1) + 0.5_r;
         const real max_sy = (real)math::Max(y0, y1) + 0.5_r;
 
         const real min_depth = math::Min(v0.viewport_coord.z, v1.viewport_coord.z);
         const real max_depth = math::Max(v0.viewport_coord.z, v1.viewport_coord.z);
 
-        const Vector3 world_min(math::Min(v0.world_pos.x, v1.world_pos.x), math::Min(v0.world_pos.y, v1.world_pos.y),
-                                math::Min(v0.world_pos.z, v1.world_pos.z));
-        const Vector3 world_max(math::Max(v0.world_pos.x, v1.world_pos.x), math::Max(v0.world_pos.y, v1.world_pos.y),
-                                math::Max(v0.world_pos.z, v1.world_pos.z));
+        std::vector<float> smooth_min(v0.used_smooth_register_size);
+        std::vector<float> smooth_max(v0.used_smooth_register_size);
 
-        const Vector3 view_min(math::Min(v0.view_pos.x, v1.view_pos.x), math::Min(v0.view_pos.y, v1.view_pos.y),
-                               math::Min(v0.view_pos.z, v1.view_pos.z));
-        const Vector3 view_max(math::Max(v0.view_pos.x, v1.view_pos.x), math::Max(v0.view_pos.y, v1.view_pos.y),
-                               math::Max(v0.view_pos.z, v1.view_pos.z));
+        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+            smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
+            smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
+        }
 
-        const Vector2 uv0_min(math::Min(v0.uv0.x, v1.uv0.x), math::Min(v0.uv0.y, v1.uv0.y));
-        const Vector2 uv0_max(math::Max(v0.uv0.x, v1.uv0.x), math::Max(v0.uv0.y, v1.uv0.y));
-
-        const Vector2 uv1_min(math::Min(v0.uv1.x, v1.uv1.x), math::Min(v0.uv1.y, v1.uv1.y));
-        const Vector2 uv1_max(math::Max(v0.uv1.x, v1.uv1.x), math::Max(v0.uv1.y, v1.uv1.y));
-
-        const Vector3 n0 = v0.normal.Normalized();
-        const Vector3 n1 = v1.normal.Normalized();
-
-        const Vector3 nmin(math::Min(n0.x, n1.x), math::Min(n0.y, n1.y), math::Min(n0.z, n1.z));
-        const Vector3 nmax(math::Max(n0.x, n1.x), math::Max(n0.y, n1.y), math::Max(n0.z, n1.z));
-
-        const Vector3 tmin(math::Min(v0.tangent.x, v1.tangent.x), math::Min(v0.tangent.y, v1.tangent.y),
-                           math::Min(v0.tangent.z, v1.tangent.z));
-        const Vector3 tmax(math::Max(v0.tangent.x, v1.tangent.x), math::Max(v0.tangent.y, v1.tangent.y),
-                           math::Max(v0.tangent.z, v1.tangent.z));
-
-        const float c0r_min = math::Min(v0.color0.r, v1.color0.r);
-        const float c0r_max = math::Max(v0.color0.r, v1.color0.r);
-        const float c0g_min = math::Min(v0.color0.g, v1.color0.g);
-        const float c0g_max = math::Max(v0.color0.g, v1.color0.g);
-        const float c0b_min = math::Min(v0.color0.b, v1.color0.b);
-        const float c0b_max = math::Max(v0.color0.b, v1.color0.b);
-        const float c0a_min = math::Min(v0.color0.a, v1.color0.a);
-        const float c0a_max = math::Max(v0.color0.a, v1.color0.a);
-
-        const float c1r_min = math::Min(v0.color1.r, v1.color1.r);
-        const float c1r_max = math::Max(v0.color1.r, v1.color1.r);
-        const float c1g_min = math::Min(v0.color1.g, v1.color1.g);
-        const float c1g_max = math::Max(v0.color1.g, v1.color1.g);
-        const float c1b_min = math::Min(v0.color1.b, v1.color1.b);
-        const float c1b_max = math::Max(v0.color1.b, v1.color1.b);
-        const float c1a_min = math::Min(v0.color1.a, v1.color1.a);
-        const float c1a_max = math::Max(v0.color1.a, v1.color1.a);
+        const real eps = math::EPSILON_RASTERIZATION;
 
         for (const auto& f : out) {
-            if (f.screen_coord.x < min_sx - 1e-4_r || f.screen_coord.x > max_sx + 1e-4_r) return false;
-            if (f.screen_coord.y < min_sy - 1e-4_r || f.screen_coord.y > max_sy + 1e-4_r) return false;
+            if (f.screen_coord.x < min_sx - eps || f.screen_coord.x > max_sx + eps) return false;
+            if (f.screen_coord.y < min_sy - eps || f.screen_coord.y > max_sy + eps) return false;
+            if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
-            if (f.depth < min_depth - 1e-4_r || f.depth > max_depth + 1e-4_r) return false;
+            if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
+            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+                float val = f.smooth_register[i];
+                float mn = smooth_min[i];
+                float mx = smooth_max[i];
 
-            if (f.world_pos.x < world_min.x - 1e-4_r || f.world_pos.x > world_max.x + 1e-4_r) return false;
-            if (f.world_pos.y < world_min.y - 1e-4_r || f.world_pos.y > world_max.y + 1e-4_r) return false;
-            if (f.world_pos.z < world_min.z - 1e-4_r || f.world_pos.z > world_max.z + 1e-4_r) return false;
+                if (val < mn - eps || val > mx + eps) return false;
+            }
 
-            if (f.view_pos.x < view_min.x - 1e-4_r || f.view_pos.x > view_max.x + 1e-4_r) return false;
-            if (f.view_pos.y < view_min.y - 1e-4_r || f.view_pos.y > view_max.y + 1e-4_r) return false;
-            if (f.view_pos.z < view_min.z - 1e-4_r || f.view_pos.z > view_max.z + 1e-4_r) return false;
+            if (f.used_flat_register_size != v1.used_flat_register_size) return false;
 
-            if (math::Abs(f.normal.Magnitude() - 1.0_r) > 1e-4_r) return false;
-            if (f.normal.x < nmin.x - 1e-4_r || f.normal.x > nmax.x + 1e-4_r) return false;
-            if (f.normal.y < nmin.y - 1e-4_r || f.normal.y > nmax.y + 1e-4_r) return false;
-            if (f.normal.z < nmin.z - 1e-4_r || f.normal.z > nmax.z + 1e-4_r) return false;
+            if (!math::IsEqualApprox(f.flat_register[0], v1.flat_register[0], eps)) return false;
 
-            if (f.tangent.x < tmin.x - 1e-4_r || f.tangent.x > tmax.x + 1e-4_r) return false;
-            if (f.tangent.y < tmin.y - 1e-4_r || f.tangent.y > tmax.y + 1e-4_r) return false;
-            if (f.tangent.z < tmin.z - 1e-4_r || f.tangent.z > tmax.z + 1e-4_r) return false;
-            if (f.tangent.w != v1.tangent.w) return false;
-
-            if (f.uv0.x < uv0_min.x - 1e-4_r || f.uv0.x > uv0_max.x + 1e-4_r) return false;
-            if (f.uv0.y < uv0_min.y - 1e-4_r || f.uv0.y > uv0_max.y + 1e-4_r) return false;
-
-            if (f.uv1.x < uv1_min.x - 1e-4_r || f.uv1.x > uv1_max.x + 1e-4_r) return false;
-            if (f.uv1.y < uv1_min.y - 1e-4_r || f.uv1.y > uv1_max.y + 1e-4_r) return false;
-
-            if (f.color0.r < c0r_min - 1e-4f || f.color0.r > c0r_max + 1e-4f) return false;
-            if (f.color0.g < c0g_min - 1e-4f || f.color0.g > c0g_max + 1e-4f) return false;
-            if (f.color0.b < c0b_min - 1e-4f || f.color0.b > c0b_max + 1e-4f) return false;
-            if (f.color0.a < c0a_min - 1e-4f || f.color0.a > c0a_max + 1e-4f) return false;
-
-            if (f.color1.r < c1r_min - 1e-4f || f.color1.r > c1r_max + 1e-4f) return false;
-            if (f.color1.g < c1g_min - 1e-4f || f.color1.g > c1g_max + 1e-4f) return false;
-            if (f.color1.b < c1b_min - 1e-4f || f.color1.b > c1b_max + 1e-4f) return false;
-            if (f.color1.a < c1a_min - 1e-4f || f.color1.a > c1a_max + 1e-4f) return false;
+            if (math::IsEqualApprox(f.flat_register[0], v0.flat_register[0], eps)) return false;
         }
 
         return true;
@@ -4439,14 +4509,14 @@ namespace ho {
 
     bool VirtualGPUTester::RasterizeLineEarlyDepthFailed() {
         VirtualGPU& gpu = VirtualGPU::GetInstance();
-        if (!InitFreshGPU()) {
-            return false;
-        }
+        if (!InitFreshGPU()) return false;
 
         VirtualGPU::Varying v0, v1;
-
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.9_r);
         v1.viewport_coord = Vector3(18.0_r, 10.0_r, 0.9_r);
+
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
         gpu.state_.depth_test_enabled = true;
         gpu.state_.depth_func = VG_LESS;
@@ -4454,9 +4524,14 @@ namespace ho {
 
         VirtualGPU::FrameBuffer fb;
 
-        std::vector<uint8_t> mem(64 * 64 * 4, 0);
+        std::vector<uint8_t> mem(64 * 64 * 4);
         float old_depth = 0.1f;
-        std::memcpy(mem.data(), &old_depth, 4);
+
+        uint32_t old_depth_bits;
+        std::memcpy(&old_depth_bits, &old_depth, 4);
+
+        uint32_t* ptr = reinterpret_cast<uint32_t*>(mem.data());
+        std::fill(ptr, ptr + (64 * 64), old_depth_bits);
 
         VirtualGPU::Attachment att;
         att.memory = &mem;
@@ -4475,7 +4550,6 @@ namespace ho {
 
         return true;
     }
-
     bool VirtualGPUTester::RasterizeLineEarlyStencilFailed() {
         VirtualGPU& gpu = VirtualGPU::GetInstance();
         if (!InitFreshGPU()) {
@@ -4487,8 +4561,8 @@ namespace ho {
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.4_r);
         v1.viewport_coord = Vector3(18.0_r, 10.0_r, 0.4_r);
 
-        v0.clip_coord = Vector4(0, 0, 0, 1);
-        v1.clip_coord = Vector4(0, 0, 0, 1);
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
         gpu.state_.depth_test_enabled = false;
 
@@ -4529,41 +4603,35 @@ namespace ho {
         v1.viewport_coord = Vector3(22.0_r, 45.0_r, 0.5_r);
         v2.viewport_coord = Vector3(50.0_r, 14.0_r, 0.8_r);
 
-        v0.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
-        v1.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
-        v2.clip_coord = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        v0.world_pos = Vector3(-5.0_r, 2.0_r, 1.0_r);
-        v1.world_pos = Vector3(8.0_r, -3.0_r, -4.0_r);
-        v2.world_pos = Vector3(1.0_r, 6.0_r, 3.0_r);
+        const std::vector<float> v0_data = {-5.0f, 2.0f, 1.0f, 0.0f, 1.0f,  2.0f, 0.7071f, 0.0f, 0.7071f,
+                                            1.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.8f,    0.1f, 10.f,
+                                            20.f,  30.f, 40.f, 0.f,  255.f, 0.f,  100.f};
+        const std::vector<float> v1_data = {8.0f, -3.0f, -4.0f, 3.0f,  -2.0f, 6.0f,  0.0f, 0.7071f, 0.7071f,
+                                            0.0f, 1.0f,  0.0f,  1.0f,  1.0f,  0.2f,  0.2f, 0.9f,    200.f,
+                                            10.f, 250.f, 220.f, 255.f, 0.f,   255.f, 200.f};
+        const std::vector<float> v2_data = {1.0f,  6.0f, 3.0f,  -1.0f, 4.0f, 1.0f,  0.1961f, 0.098f, 0.9805f,
+                                            0.0f,  0.0f, 1.0f,  1.0f,  0.3f, 1.0f,  0.5f,    0.4f,   100.f,
+                                            150.f, 50.f, 180.f, 50.f,  50.f, 200.f, 150.f};
 
-        v0.view_pos = Vector3(0.0_r, 1.0_r, 2.0_r);
-        v1.view_pos = Vector3(3.0_r, -2.0_r, 6.0_r);
-        v2.view_pos = Vector3(-1.0_r, 4.0_r, 1.0_r);
+        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v0.normal = Vector3(1.0_r, 0.0_r, 1.0_r).Normalized();
-        v1.normal = Vector3(0.0_r, 1.0_r, 1.0_r).Normalized();
-        v2.normal = Vector3(0.2_r, 0.1_r, 1.0_r).Normalized();
+        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
-        v0.tangent = Vector4(1.0_r, 0.0_r, 0.0_r, 1.0_r);
-        v1.tangent = Vector4(0.0_r, 1.0_r, 0.0_r, 1.0_r);
-        v2.tangent = Vector4(0.0_r, 0.0_r, 1.0_r, 1.0_r);
+        v2.used_smooth_register_size = (uint32_t)v2_data.size();
+        std::copy(v2_data.begin(), v2_data.end(), v2.smooth_register.begin());
 
-        v0.uv0 = Vector2(0.0_r, 0.0_r);
-        v1.uv0 = Vector2(1.0_r, 0.2_r);
-        v2.uv0 = Vector2(0.3_r, 1.0_r);
-
-        v0.uv1 = Vector2(0.8_r, 0.1_r);
-        v1.uv1 = Vector2(0.2_r, 0.9_r);
-        v2.uv1 = Vector2(0.5_r, 0.4_r);
-
-        v0.color0 = Color128(10.f, 20.f, 30.f, 40.f);
-        v1.color0 = Color128(200.f, 10.f, 250.f, 220.f);
-        v2.color0 = Color128(100.f, 150.f, 50.f, 180.f);
-
-        v0.color1 = Color128(0.f, 255.f, 0.f, 100.f);
-        v1.color1 = Color128(255.f, 0.f, 255.f, 200.f);
-        v2.color1 = Color128(50.f, 50.f, 200.f, 150.f);
+        v0.used_flat_register_size = 1;
+        v0.flat_register[0] = 100.0f;
+        v1.used_flat_register_size = 1;
+        v1.flat_register[0] = 200.0f;
+        v2.used_flat_register_size = 1;
+        v2.flat_register[0] = 300.0f;
 
         gpu.state_.front_face = VG_CCW;
         gpu.state_.cull_enabled = true;
@@ -4573,8 +4641,6 @@ namespace ho {
 
         auto out = gpu.Rasterize(v0, v1, v2);
         if (out.size() < 20u) return false;
-
-        const real eps = 1e-4_r;
 
         const int x0 = (int)math::Floor(v0.viewport_coord.x);
         const int y0 = (int)math::Floor(v0.viewport_coord.y);
@@ -4588,109 +4654,36 @@ namespace ho {
         const real min_sy = (real)(math::Min(y0, math::Min(y1, y2))) + 0.5_r;
         const real max_sy = (real)(math::Max(y0, math::Max(y1, y2))) + 0.5_r;
 
-        auto min3 = [](real a, real b, real c) { return math::Min(a, math::Min(b, c)); };
-        auto max3 = [](real a, real b, real c) { return math::Max(a, math::Max(b, c)); };
+        const real min_depth = math::Min(v0.viewport_coord.z, math::Min(v1.viewport_coord.z, v2.viewport_coord.z));
+        const real max_depth = math::Max(v0.viewport_coord.z, math::Max(v1.viewport_coord.z, v2.viewport_coord.z));
 
-        const real min_depth = min3(v0.viewport_coord.z, v1.viewport_coord.z, v2.viewport_coord.z);
-        const real max_depth = max3(v0.viewport_coord.z, v1.viewport_coord.z, v2.viewport_coord.z);
+        std::vector<float> smooth_min(v0.used_smooth_register_size);
+        std::vector<float> smooth_max(v0.used_smooth_register_size);
 
-        auto min3v = [](const Vector3& a, const Vector3& b, const Vector3& c) {
-            return Vector3(math::Min(a.x, math::Min(b.x, c.x)), math::Min(a.y, math::Min(b.y, c.y)),
-                           math::Min(a.z, math::Min(b.z, c.z)));
-        };
-        auto max3v = [](const Vector3& a, const Vector3& b, const Vector3& c) {
-            return Vector3(math::Max(a.x, math::Max(b.x, c.x)), math::Max(a.y, math::Max(b.y, c.y)),
-                           math::Max(a.z, math::Max(b.z, c.z)));
-        };
+        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+            smooth_min[i] = math::Min(v0.smooth_register[i], math::Min(v1.smooth_register[i], v2.smooth_register[i]));
+            smooth_max[i] = math::Max(v0.smooth_register[i], math::Max(v1.smooth_register[i], v2.smooth_register[i]));
+        }
 
-        const Vector3 world_min = min3v(v0.world_pos, v1.world_pos, v2.world_pos);
-        const Vector3 world_max = max3v(v0.world_pos, v1.world_pos, v2.world_pos);
-
-        const Vector3 view_min = min3v(v0.view_pos, v1.view_pos, v2.view_pos);
-        const Vector3 view_max = max3v(v0.view_pos, v1.view_pos, v2.view_pos);
-
-        const Vector2 uv0_min(math::Min(v0.uv0.x, math::Min(v1.uv0.x, v2.uv0.x)),
-                              math::Min(v0.uv0.y, math::Min(v1.uv0.y, v2.uv0.y)));
-        const Vector2 uv0_max(math::Max(v0.uv0.x, math::Max(v1.uv0.x, v2.uv0.x)),
-                              math::Max(v0.uv0.y, math::Max(v1.uv0.y, v2.uv0.y)));
-
-        const Vector2 uv1_min(math::Min(v0.uv1.x, math::Min(v1.uv1.x, v2.uv1.x)),
-                              math::Min(v0.uv1.y, math::Min(v1.uv1.y, v2.uv1.y)));
-        const Vector2 uv1_max(math::Max(v0.uv1.x, math::Max(v1.uv1.x, v2.uv1.x)),
-                              math::Max(v0.uv1.y, math::Max(v1.uv1.y, v2.uv1.y)));
-
-        const Vector3 n0 = v0.normal.Normalized();
-        const Vector3 n1 = v1.normal.Normalized();
-        const Vector3 n2 = v2.normal.Normalized();
-        const Vector3 nmin = min3v(n0, n1, n2);
-        const Vector3 nmax = max3v(n0, n1, n2);
-
-        const Vector3 t0(v0.tangent.x, v0.tangent.y, v0.tangent.z);
-        const Vector3 t1(v1.tangent.x, v1.tangent.y, v1.tangent.z);
-        const Vector3 t2(v2.tangent.x, v2.tangent.y, v2.tangent.z);
-        const Vector3 tmin = min3v(t0, t1, t2);
-        const Vector3 tmax = max3v(t0, t1, t2);
-
-        auto cmin3 = [](float a, float b, float c) { return math::Min(a, math::Min(b, c)); };
-        auto cmax3 = [](float a, float b, float c) { return math::Max(a, math::Max(b, c)); };
-
-        const float c0r_min = cmin3(v0.color0.r, v1.color0.r, v2.color0.r);
-        const float c0r_max = cmax3(v0.color0.r, v1.color0.r, v2.color0.r);
-        const float c0g_min = cmin3(v0.color0.g, v1.color0.g, v2.color0.g);
-        const float c0g_max = cmax3(v0.color0.g, v1.color0.g, v2.color0.g);
-        const float c0b_min = cmin3(v0.color0.b, v1.color0.b, v2.color0.b);
-        const float c0b_max = cmax3(v0.color0.b, v1.color0.b, v2.color0.b);
-        const float c0a_min = cmin3(v0.color0.a, v1.color0.a, v2.color0.a);
-        const float c0a_max = cmax3(v0.color0.a, v1.color0.a, v2.color0.a);
-
-        const float c1r_min = cmin3(v0.color1.r, v1.color1.r, v2.color1.r);
-        const float c1r_max = cmax3(v0.color1.r, v1.color1.r, v2.color1.r);
-        const float c1g_min = cmin3(v0.color1.g, v1.color1.g, v2.color1.g);
-        const float c1g_max = cmax3(v0.color1.g, v1.color1.g, v2.color1.g);
-        const float c1b_min = cmin3(v0.color1.b, v1.color1.b, v2.color1.b);
-        const float c1b_max = cmax3(v0.color1.b, v1.color1.b, v2.color1.b);
-        const float c1a_min = cmin3(v0.color1.a, v1.color1.a, v2.color1.a);
-        const float c1a_max = cmax3(v0.color1.a, v1.color1.a, v2.color1.a);
+        const real eps = math::EPSILON_RASTERIZATION;
 
         for (const auto& f : out) {
-            if (!(f.screen_coord.x >= min_sx - eps && f.screen_coord.x <= max_sx + eps)) return false;
-            if (!(f.screen_coord.y >= min_sy - eps && f.screen_coord.y <= max_sy + eps)) return false;
+            if (f.screen_coord.x < min_sx - eps || f.screen_coord.x > max_sx + eps) return false;
+            if (f.screen_coord.y < min_sy - eps || f.screen_coord.y > max_sy + eps) return false;
+            if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
-            if (!(f.depth >= min_depth - eps && f.depth <= max_depth + eps)) return false;
+            if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
+            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+                float val = f.smooth_register[i];
+                if (val < smooth_min[i] - eps || val > smooth_max[i] + eps) return false;
+            }
 
-            if (!(f.world_pos.x >= world_min.x - eps && f.world_pos.x <= world_max.x + eps)) return false;
-            if (!(f.world_pos.y >= world_min.y - eps && f.world_pos.y <= world_max.y + eps)) return false;
-            if (!(f.world_pos.z >= world_min.z - eps && f.world_pos.z <= world_max.z + eps)) return false;
+            if (f.used_flat_register_size != v2.used_flat_register_size) return false;
 
-            if (!(f.view_pos.x >= view_min.x - eps && f.view_pos.x <= view_max.x + eps)) return false;
-            if (!(f.view_pos.y >= view_min.y - eps && f.view_pos.y <= view_max.y + eps)) return false;
-            if (!(f.view_pos.z >= view_min.z - eps && f.view_pos.z <= view_max.z + eps)) return false;
+            if (!math::IsEqualApprox(f.flat_register[0], v2.flat_register[0], eps)) return false;
 
-            if (math::Abs(f.normal.Magnitude() - 1.0_r) > 1e-5_r) return false;
-            if (!(f.normal.x >= nmin.x - 1e-4_r && f.normal.x <= nmax.x + 1e-4_r)) return false;
-            if (!(f.normal.y >= nmin.y - 1e-4_r && f.normal.y <= nmax.y + 1e-4_r)) return false;
-            if (!(f.normal.z >= nmin.z - 1e-4_r && f.normal.z <= nmax.z + 1e-4_r)) return false;
-
-            if (!(f.tangent.x >= tmin.x - 1e-4_r && f.tangent.x <= tmax.x + 1e-4_r)) return false;
-            if (!(f.tangent.y >= tmin.y - 1e-4_r && f.tangent.y <= tmax.y + 1e-4_r)) return false;
-            if (!(f.tangent.z >= tmin.z - 1e-4_r && f.tangent.z <= tmax.z + 1e-4_r)) return false;
-            if (f.tangent.w != v0.tangent.w) return false;
-
-            if (!(f.uv0.x >= uv0_min.x - 1e-4_r && f.uv0.x <= uv0_max.x + 1e-4_r)) return false;
-            if (!(f.uv0.y >= uv0_min.y - 1e-4_r && f.uv0.y <= uv0_max.y + 1e-4_r)) return false;
-
-            if (!(f.uv1.x >= uv1_min.x - 1e-4_r && f.uv1.x <= uv1_max.x + 1e-4_r)) return false;
-            if (!(f.uv1.y >= uv1_min.y - 1e-4_r && f.uv1.y <= uv1_max.y + 1e-4_r)) return false;
-
-            if (!(f.color0.r >= c0r_min && f.color0.r <= c0r_max)) return false;
-            if (!(f.color0.g >= c0g_min && f.color0.g <= c0g_max)) return false;
-            if (!(f.color0.b >= c0b_min && f.color0.b <= c0b_max)) return false;
-            if (!(f.color0.a >= c0a_min && f.color0.a <= c0a_max)) return false;
-
-            if (!(f.color1.r >= c1r_min && f.color1.r <= c1r_max)) return false;
-            if (!(f.color1.g >= c1g_min && f.color1.g <= c1g_max)) return false;
-            if (!(f.color1.b >= c1b_min && f.color1.b <= c1b_max)) return false;
-            if (!(f.color1.a >= c1a_min && f.color1.a <= c1a_max)) return false;
+            if (math::IsEqualApprox(f.flat_register[0], v0.flat_register[0], eps)) return false;
+            if (math::IsEqualApprox(f.flat_register[0], v1.flat_register[0], eps)) return false;
 
             if (!f.is_front) return false;
         }
@@ -4708,6 +4701,10 @@ namespace ho {
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.2_r);
         v1.viewport_coord = Vector3(50.0_r, 14.0_r, 0.8_r);
         v2.viewport_coord = Vector3(22.0_r, 45.0_r, 0.5_r);
+
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
         gpu.state_.front_face = VG_CCW;
         gpu.state_.cull_enabled = true;
@@ -4734,8 +4731,10 @@ namespace ho {
         gpu.state_.scissor_test_enabled = false;
 
         VirtualGPU::Varying v0, v1, v2;
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        // CCW front case
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.2_r);
         v1.viewport_coord = Vector3(20.0_r, 35.0_r, 0.5_r);
         v2.viewport_coord = Vector3(40.0_r, 12.0_r, 0.8_r);
@@ -4743,7 +4742,6 @@ namespace ho {
         auto out_front = gpu.Rasterize(v0, v1, v2);
         if (!out_front.empty()) return false;
 
-        // CCW back case
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.2_r);
         v1.viewport_coord = Vector3(50.0_r, 14.0_r, 0.8_r);
         v2.viewport_coord = Vector3(22.0_r, 45.0_r, 0.5_r);
@@ -4759,48 +4757,41 @@ namespace ho {
         if (!InitFreshGPU()) {
             return false;
         }
-
         VirtualGPU::Varying v0, v1, v2;
 
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.2_r);
         v1.viewport_coord = Vector3(50.0_r, 14.0_r, 0.8_r);
         v2.viewport_coord = Vector3(22.0_r, 45.0_r, 0.5_r);
 
-        v0.clip_coord = Vector4(0, 0, 0, 1);
-        v1.clip_coord = Vector4(0, 0, 0, 1);
-        v2.clip_coord = Vector4(0, 0, 0, 1);
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        v0.world_pos = Vector3(-5, 2, 1);
-        v1.world_pos = Vector3(1, 6, 3);
-        v2.world_pos = Vector3(8, -3, -4);
+        const std::vector<float> v0_data = {-5.0f, 2.0f, 1.0f, 0.0f, 1.0f,  2.0f, 0.7071f, 0.0f, 0.7071f,
+                                            1.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.8f,    0.1f, 10.f,
+                                            20.f,  30.f, 40.f, 0.f,  255.f, 0.f,  100.f};
+        const std::vector<float> v1_data = {1.0f,  6.0f, 3.0f,  -1.0f, 4.0f, 1.0f,  0.0f, 0.7071f, 0.7071f,
+                                            0.0f,  1.0f, 0.0f,  1.0f,  0.3f, 1.0f,  0.5f, 0.4f,    100.f,
+                                            150.f, 50.f, 180.f, 50.f,  50.f, 200.f, 150.f};
+        const std::vector<float> v2_data = {8.0f, -3.0f, -4.0f, 3.0f,  -2.0f, 6.0f,  0.0f, 0.0f, 1.0f,
+                                            0.0f, 0.0f,  1.0f,  1.0f,  1.0f,  0.2f,  0.2f, 0.9f, 200.f,
+                                            10.f, 250.f, 220.f, 255.f, 0.f,   255.f, 200.f};
 
-        v0.view_pos = Vector3(0, 1, 2);
-        v1.view_pos = Vector3(-1, 4, 1);
-        v2.view_pos = Vector3(3, -2, 6);
+        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v0.normal = Vector3(1, 0, 1);
-        v1.normal = Vector3(0, 1, 1);
-        v2.normal = Vector3(0, 0, 1);
+        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
-        v0.tangent = Vector4(1, 0, 0, 1);
-        v1.tangent = Vector4(0, 1, 0, 1);
-        v2.tangent = Vector4(0, 0, 1, 1);
+        v2.used_smooth_register_size = (uint32_t)v2_data.size();
+        std::copy(v2_data.begin(), v2_data.end(), v2.smooth_register.begin());
 
-        v0.uv0 = Vector2(0.0_r, 0.0_r);
-        v1.uv0 = Vector2(0.3_r, 1.0_r);
-        v2.uv0 = Vector2(1.0_r, 0.2_r);
-
-        v0.uv1 = Vector2(0.8_r, 0.1_r);
-        v1.uv1 = Vector2(0.5_r, 0.4_r);
-        v2.uv1 = Vector2(0.2_r, 0.9_r);
-
-        v0.color0 = Color128(10.f, 20.f, 30.f, 40.f);
-        v1.color0 = Color128(100.f, 150.f, 50.f, 180.f);
-        v2.color0 = Color128(200.f, 10.f, 250.f, 220.f);
-
-        v0.color1 = Color128(0.f, 255.f, 0.f, 100.f);
-        v1.color1 = Color128(50.f, 50.f, 200.f, 150.f);
-        v2.color1 = Color128(255.f, 0.f, 255.f, 200.f);
+        v0.used_flat_register_size = 1;
+        v0.flat_register[0] = 100.0f;
+        v1.used_flat_register_size = 1;
+        v1.flat_register[0] = 200.0f;
+        v2.used_flat_register_size = 1;
+        v2.flat_register[0] = 300.0f;
 
         gpu.state_.front_face = VG_CW;
         gpu.state_.cull_enabled = true;
@@ -4810,8 +4801,6 @@ namespace ho {
 
         auto out = gpu.Rasterize(v0, v1, v2);
         if (out.size() < 20u) return false;
-
-        const real eps = 1e-4_r;
 
         const int x0 = (int)math::Floor(v0.viewport_coord.x);
         const int y0 = (int)math::Floor(v0.viewport_coord.y);
@@ -4825,109 +4814,36 @@ namespace ho {
         const real min_sy = (real)(math::Min(y0, math::Min(y1, y2))) + 0.5_r;
         const real max_sy = (real)(math::Max(y0, math::Max(y1, y2))) + 0.5_r;
 
-        auto min3 = [](real a, real b, real c) { return math::Min(a, math::Min(b, c)); };
-        auto max3 = [](real a, real b, real c) { return math::Max(a, math::Max(b, c)); };
+        const real min_depth = math::Min(v0.viewport_coord.z, math::Min(v1.viewport_coord.z, v2.viewport_coord.z));
+        const real max_depth = math::Max(v0.viewport_coord.z, math::Max(v1.viewport_coord.z, v2.viewport_coord.z));
 
-        const real min_depth = min3(v0.viewport_coord.z, v1.viewport_coord.z, v2.viewport_coord.z);
-        const real max_depth = max3(v0.viewport_coord.z, v1.viewport_coord.z, v2.viewport_coord.z);
+        std::vector<float> smooth_min(v0.used_smooth_register_size);
+        std::vector<float> smooth_max(v0.used_smooth_register_size);
 
-        auto min3v = [](const Vector3& a, const Vector3& b, const Vector3& c) {
-            return Vector3(math::Min(a.x, math::Min(b.x, c.x)), math::Min(a.y, math::Min(b.y, c.y)),
-                           math::Min(a.z, math::Min(b.z, c.z)));
-        };
-        auto max3v = [](const Vector3& a, const Vector3& b, const Vector3& c) {
-            return Vector3(math::Max(a.x, math::Max(b.x, c.x)), math::Max(a.y, math::Max(b.y, c.y)),
-                           math::Max(a.z, math::Max(b.z, c.z)));
-        };
+        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+            smooth_min[i] = math::Min(v0.smooth_register[i], math::Min(v1.smooth_register[i], v2.smooth_register[i]));
+            smooth_max[i] = math::Max(v0.smooth_register[i], math::Max(v1.smooth_register[i], v2.smooth_register[i]));
+        }
 
-        const Vector3 world_min = min3v(v0.world_pos, v1.world_pos, v2.world_pos);
-        const Vector3 world_max = max3v(v0.world_pos, v1.world_pos, v2.world_pos);
-
-        const Vector3 view_min = min3v(v0.view_pos, v1.view_pos, v2.view_pos);
-        const Vector3 view_max = max3v(v0.view_pos, v1.view_pos, v2.view_pos);
-
-        const Vector2 uv0_min(math::Min(v0.uv0.x, math::Min(v1.uv0.x, v2.uv0.x)),
-                              math::Min(v0.uv0.y, math::Min(v1.uv0.y, v2.uv0.y)));
-        const Vector2 uv0_max(math::Max(v0.uv0.x, math::Max(v1.uv0.x, v2.uv0.x)),
-                              math::Max(v0.uv0.y, math::Max(v1.uv0.y, v2.uv0.y)));
-
-        const Vector2 uv1_min(math::Min(v0.uv1.x, math::Min(v1.uv1.x, v2.uv1.x)),
-                              math::Min(v0.uv1.y, math::Min(v1.uv1.y, v2.uv1.y)));
-        const Vector2 uv1_max(math::Max(v0.uv1.x, math::Max(v1.uv1.x, v2.uv1.x)),
-                              math::Max(v0.uv1.y, math::Max(v1.uv1.y, v2.uv1.y)));
-
-        const Vector3 n0 = v0.normal.Normalized();
-        const Vector3 n1 = v1.normal.Normalized();
-        const Vector3 n2 = v2.normal.Normalized();
-        const Vector3 nmin = min3v(n0, n1, n2);
-        const Vector3 nmax = max3v(n0, n1, n2);
-
-        const Vector3 t0(v0.tangent.x, v0.tangent.y, v0.tangent.z);
-        const Vector3 t1(v1.tangent.x, v1.tangent.y, v1.tangent.z);
-        const Vector3 t2(v2.tangent.x, v2.tangent.y, v2.tangent.z);
-        const Vector3 tmin = min3v(t0, t1, t2);
-        const Vector3 tmax = max3v(t0, t1, t2);
-
-        auto cmin3 = [](float a, float b, float c) { return math::Min(a, math::Min(b, c)); };
-        auto cmax3 = [](float a, float b, float c) { return math::Max(a, math::Max(b, c)); };
-
-        const float c0r_min = cmin3(v0.color0.r, v1.color0.r, v2.color0.r);
-        const float c0r_max = cmax3(v0.color0.r, v1.color0.r, v2.color0.r);
-        const float c0g_min = cmin3(v0.color0.g, v1.color0.g, v2.color0.g);
-        const float c0g_max = cmax3(v0.color0.g, v1.color0.g, v2.color0.g);
-        const float c0b_min = cmin3(v0.color0.b, v1.color0.b, v2.color0.b);
-        const float c0b_max = cmax3(v0.color0.b, v1.color0.b, v2.color0.b);
-        const float c0a_min = cmin3(v0.color0.a, v1.color0.a, v2.color0.a);
-        const float c0a_max = cmax3(v0.color0.a, v1.color0.a, v2.color0.a);
-
-        const float c1r_min = cmin3(v0.color1.r, v1.color1.r, v2.color1.r);
-        const float c1r_max = cmax3(v0.color1.r, v1.color1.r, v2.color1.r);
-        const float c1g_min = cmin3(v0.color1.g, v1.color1.g, v2.color1.g);
-        const float c1g_max = cmax3(v0.color1.g, v1.color1.g, v2.color1.g);
-        const float c1b_min = cmin3(v0.color1.b, v1.color1.b, v2.color1.b);
-        const float c1b_max = cmax3(v0.color1.b, v1.color1.b, v2.color1.b);
-        const float c1a_min = cmin3(v0.color1.a, v1.color1.a, v2.color1.a);
-        const float c1a_max = cmax3(v0.color1.a, v1.color1.a, v2.color1.a);
+        const real eps = math::EPSILON_RASTERIZATION;
 
         for (const auto& f : out) {
-            if (!(f.screen_coord.x >= min_sx - eps && f.screen_coord.x <= max_sx + eps)) return false;
-            if (!(f.screen_coord.y >= min_sy - eps && f.screen_coord.y <= max_sy + eps)) return false;
+            if (f.screen_coord.x < min_sx - eps || f.screen_coord.x > max_sx + eps) return false;
+            if (f.screen_coord.y < min_sy - eps || f.screen_coord.y > max_sy + eps) return false;
+            if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
-            if (!(f.depth >= min_depth - eps && f.depth <= max_depth + eps)) return false;
+            if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
+            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+                float val = f.smooth_register[i];
+                if (val < smooth_min[i] - eps || val > smooth_max[i] + eps) return false;
+            }
 
-            if (!(f.world_pos.x >= world_min.x - eps && f.world_pos.x <= world_max.x + eps)) return false;
-            if (!(f.world_pos.y >= world_min.y - eps && f.world_pos.y <= world_max.y + eps)) return false;
-            if (!(f.world_pos.z >= world_min.z - eps && f.world_pos.z <= world_max.z + eps)) return false;
+            if (f.used_flat_register_size != v2.used_flat_register_size) return false;
 
-            if (!(f.view_pos.x >= view_min.x - eps && f.view_pos.x <= view_max.x + eps)) return false;
-            if (!(f.view_pos.y >= view_min.y - eps && f.view_pos.y <= view_max.y + eps)) return false;
-            if (!(f.view_pos.z >= view_min.z - eps && f.view_pos.z <= view_max.z + eps)) return false;
+            if (!math::IsEqualApprox(f.flat_register[0], v2.flat_register[0], eps)) return false;
 
-            if (math::Abs(f.normal.Magnitude() - 1.0_r) > 1e-5_r) return false;
-            if (!(f.normal.x >= nmin.x - 1e-4_r && f.normal.x <= nmax.x + 1e-4_r)) return false;
-            if (!(f.normal.y >= nmin.y - 1e-4_r && f.normal.y <= nmax.y + 1e-4_r)) return false;
-            if (!(f.normal.z >= nmin.z - 1e-4_r && f.normal.z <= nmax.z + 1e-4_r)) return false;
-
-            if (!(f.tangent.x >= tmin.x - 1e-4_r && f.tangent.x <= tmax.x + 1e-4_r)) return false;
-            if (!(f.tangent.y >= tmin.y - 1e-4_r && f.tangent.y <= tmax.y + 1e-4_r)) return false;
-            if (!(f.tangent.z >= tmin.z - 1e-4_r && f.tangent.z <= tmax.z + 1e-4_r)) return false;
-            if (f.tangent.w != v0.tangent.w) return false;
-
-            if (!(f.uv0.x >= uv0_min.x - 1e-4_r && f.uv0.x <= uv0_max.x + 1e-4_r)) return false;
-            if (!(f.uv0.y >= uv0_min.y - 1e-4_r && f.uv0.y <= uv0_max.y + 1e-4_r)) return false;
-
-            if (!(f.uv1.x >= uv1_min.x - 1e-4_r && f.uv1.x <= uv1_max.x + 1e-4_r)) return false;
-            if (!(f.uv1.y >= uv1_min.y - 1e-4_r && f.uv1.y <= uv1_max.y + 1e-4_r)) return false;
-
-            if (!(f.color0.r >= c0r_min && f.color0.r <= c0r_max)) return false;
-            if (!(f.color0.g >= c0g_min && f.color0.g <= c0g_max)) return false;
-            if (!(f.color0.b >= c0b_min && f.color0.b <= c0b_max)) return false;
-            if (!(f.color0.a >= c0a_min && f.color0.a <= c0a_max)) return false;
-
-            if (!(f.color1.r >= c1r_min && f.color1.r <= c1r_max)) return false;
-            if (!(f.color1.g >= c1g_min && f.color1.g <= c1g_max)) return false;
-            if (!(f.color1.b >= c1b_min && f.color1.b <= c1b_max)) return false;
-            if (!(f.color1.a >= c1a_min && f.color1.a <= c1a_max)) return false;
+            if (math::IsEqualApprox(f.flat_register[0], v0.flat_register[0], eps)) return false;
+            if (math::IsEqualApprox(f.flat_register[0], v1.flat_register[0], eps)) return false;
 
             if (!f.is_front) return false;
         }
@@ -4944,10 +4860,14 @@ namespace ho {
         VirtualGPU::Varying v0, v1, v2;
 
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.2_r);
-        v1.viewport_coord = Vector3(20.0_r, 35.0_r, 0.5_r);
-        v2.viewport_coord = Vector3(40.0_r, 12.0_r, 0.8_r);
+        v1.viewport_coord = Vector3(40.0_r, 12.0_r, 0.8_r);
+        v2.viewport_coord = Vector3(20.0_r, 35.0_r, 0.5_r);
 
-        gpu.state_.front_face = VG_CW;
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+
+        gpu.state_.front_face = VG_CCW;
         gpu.state_.cull_enabled = true;
         gpu.state_.cull_face = VG_BACK;
         gpu.state_.depth_test_enabled = false;
@@ -4972,8 +4892,10 @@ namespace ho {
         gpu.state_.scissor_test_enabled = false;
 
         VirtualGPU::Varying v0, v1, v2;
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        // CW front case
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.2_r);
         v1.viewport_coord = Vector3(50.0_r, 14.0_r, 0.8_r);
         v2.viewport_coord = Vector3(22.0_r, 45.0_r, 0.5_r);
@@ -4981,7 +4903,6 @@ namespace ho {
         auto out_front = gpu.Rasterize(v0, v1, v2);
         if (!out_front.empty()) return false;
 
-        // CW back case
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.2_r);
         v1.viewport_coord = Vector3(20.0_r, 35.0_r, 0.5_r);
         v2.viewport_coord = Vector3(40.0_r, 12.0_r, 0.8_r);
@@ -5003,6 +4924,10 @@ namespace ho {
         v1.viewport_coord = Vector3(20.0_r, 20.0_r, 0.5_r);
         v2.viewport_coord = Vector3(20.0_r, 20.0_r, 0.5_r);
 
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+
         gpu.state_.cull_enabled = false;
         gpu.state_.depth_test_enabled = false;
         gpu.state_.scissor_test_enabled = false;
@@ -5020,14 +4945,13 @@ namespace ho {
         }
 
         VirtualGPU::Varying v0, v1, v2;
-
         v0.viewport_coord = Vector3(10.0_r, 10.0_r, 0.8_r);
         v1.viewport_coord = Vector3(40.0_r, 12.0_r, 0.8_r);
         v2.viewport_coord = Vector3(20.0_r, 35.0_r, 0.8_r);
 
-        v0.clip_coord = Vector4(0, 0, 0, 1);
-        v1.clip_coord = Vector4(0, 0, 0, 1);
-        v2.clip_coord = Vector4(0, 0, 0, 1);
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
         gpu.state_.front_face = VG_CCW;
         gpu.state_.cull_enabled = false;
@@ -5052,14 +4976,13 @@ namespace ho {
         }
 
         VirtualGPU::Varying v0, v1, v2;
-
         v0.viewport_coord = Vector3(15.0_r, 15.0_r, 0.3_r);
         v1.viewport_coord = Vector3(45.0_r, 18.0_r, 0.3_r);
         v2.viewport_coord = Vector3(25.0_r, 40.0_r, 0.3_r);
 
-        v0.clip_coord = Vector4(0, 0, 0, 1);
-        v1.clip_coord = Vector4(0, 0, 0, 1);
-        v2.clip_coord = Vector4(0, 0, 0, 1);
+        v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
+        v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
         gpu.state_.front_face = VG_CCW;
         gpu.state_.cull_enabled = false;

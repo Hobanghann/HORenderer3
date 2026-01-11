@@ -362,15 +362,15 @@ namespace ho {
             const Varying& prev_v = polygon[(i - 1 + v_count) % v_count];
             const Varying& curr_v = polygon[i];
 
-            bool is_prev_in = IsInside(prev_v.clip_coord, plane_pos);
-            bool is_curr_in = IsInside(curr_v.clip_coord, plane_pos);
+            bool is_prev_in = IsInside(prev_v.vg_Position, plane_pos);
+            bool is_curr_in = IsInside(curr_v.vg_Position, plane_pos);
 
             if (is_prev_in && is_curr_in) {
                 // Case 1: in to in
                 out_polygon.push_back(curr_v);
             } else if (is_prev_in && !is_curr_in) {
                 // Case 2: in to out
-                Vector2 bary = GetClipBarycentric(prev_v.clip_coord, curr_v.clip_coord, plane_pos);
+                Vector2 bary = GetClipBarycentric(prev_v.vg_Position, curr_v.vg_Position, plane_pos);
                 // if clip isn't parallel on plane or degenerated push interpolated
                 // varying.
                 if (!math::IsNaN(bary.x) && !math::IsNaN(bary.y)) {
@@ -378,7 +378,7 @@ namespace ho {
                 }
             } else if (!is_prev_in && is_curr_in) {
                 // Case 3: out to in
-                Vector2 bary = GetClipBarycentric(prev_v.clip_coord, curr_v.clip_coord, plane_pos);
+                Vector2 bary = GetClipBarycentric(prev_v.vg_Position, curr_v.vg_Position, plane_pos);
                 // if clip isn't parallel on plane or degenerated push interpolated
                 // varying.
                 if (!math::IsNaN(bary.x) && !math::IsNaN(bary.y)) {
@@ -435,31 +435,31 @@ namespace ho {
 
     VirtualGPU::Varying VirtualGPU::LerpVarying(const Varying& v1, const Varying& v2,
                                                 const Vector2& barycentric) const {
+        assert(v1.used_smooth_register_size == v2.used_smooth_register_size);
+        assert(v1.used_flat_register_size == v2.used_flat_register_size);
         Varying v;
-        v.clip_coord = math::Lerp(v1.clip_coord, v2.clip_coord, barycentric);
-        v.world_pos = math::Lerp(v1.world_pos, v2.world_pos, barycentric);
-        v.view_pos = math::Lerp(v1.view_pos, v2.view_pos, barycentric);
-        v.normal = math::Lerp(v1.normal, v2.normal, barycentric);
-        v.tangent = math::Lerp(v1.tangent, v2.tangent, barycentric);
-        v.uv0 = math::Lerp(v1.uv0, v2.uv0, barycentric);
-        v.uv1 = math::Lerp(v1.uv1, v2.uv1, barycentric);
-        v.color0 = math::Lerp(v1.color0, v2.color0, barycentric);
-        v.color1 = math::Lerp(v1.color1, v2.color1, barycentric);
-
+        v.vg_Position = math::Lerp(v1.vg_Position, v2.vg_Position, barycentric);
+        v.used_smooth_register_size = v2.used_smooth_register_size;
+        for (uint32_t i = 0; i < v.used_smooth_register_size; i++) {
+            v.smooth_register[i] = math::Lerp(v1.smooth_register[i], v2.smooth_register[i], barycentric);
+        }
+        v.used_flat_register_size = v2.used_flat_register_size;
+        std::copy_n(v2.flat_register.begin(), v2.used_flat_register_size, v.flat_register.begin());
         return v;
     }
 
-    void VirtualGPU::PerspectiveDivide(Varying& v) const { v.ndc = v.clip_coord.ToCartesian(); }
+    void VirtualGPU::PerspectiveDivide(Varying& v) const { v.viewport_coord = v.vg_Position.ToCartesian(); }
     void VirtualGPU::ViewportTransform(Varying& v) const {
         const Rect& vp = state_.viewport;
 
         real half_width = vp.width * 0.5_r;
-        real x = ((v.ndc.x * half_width) + half_width + vp.x);
+        real x = ((v.viewport_coord.x * half_width) + half_width + vp.x);
 
         real half_height = vp.height * 0.5_r;
-        real y = -(v.ndc.y * half_height) + half_height + vp.y;
+        real y = -(v.viewport_coord.y * half_height) + half_height + vp.y;
 
-        real z = (v.ndc.z * (state_.max_depth - state_.min_depth) + (state_.max_depth + state_.min_depth)) * 0.5_r;
+        real z = (v.viewport_coord.z * (state_.max_depth - state_.min_depth) + (state_.max_depth + state_.min_depth)) *
+                 0.5_r;
 
         v.viewport_coord = Vector3(x, y, z);
     }
@@ -474,20 +474,20 @@ namespace ho {
 
         if (ScissorTest(frag.screen_coord.x, frag.screen_coord.y) &&
             TestDepthStencil(frag.screen_coord.x, frag.screen_coord.y, frag.depth, true, true)) {
-            frag.world_pos = v.world_pos;
-            frag.view_pos = v.view_pos;
-            frag.normal = v.normal;
-            frag.tangent = v.tangent;
-            frag.uv0 = v.uv0;
-            frag.uv1 = v.uv1;
-            frag.color0 = v.color0;
-            frag.color1 = v.color1;
+            frag.used_smooth_register_size = v.used_smooth_register_size;
+            std::copy_n(v.smooth_register.begin(), v.used_smooth_register_size, frag.smooth_register.begin());
+            frag.used_flat_register_size = v.used_flat_register_size;
+            std::copy_n(v.flat_register.begin(), v.used_flat_register_size, frag.flat_register.begin());
             out.push_back(frag);
         }
+
         return out;
     }
 
     std::vector<VirtualGPU::Fragment> VirtualGPU::Rasterize(const Varying& v1, const Varying& v2) {
+        assert(v1.used_smooth_register_size == v2.used_smooth_register_size);
+        assert(v1.used_flat_register_size == v2.used_flat_register_size);
+
         std::vector<Fragment> out;
 
         int x0 = (int)math::Floor(v1.viewport_coord.x);
@@ -516,8 +516,8 @@ namespace ho {
         real gy = Dy / dd;
 
         // Set component for incremental perspective correct interpolation
-        real inv_w1 = 1.0_r / v1.clip_coord.w;
-        real inv_w2 = 1.0_r / v2.clip_coord.w;
+        real inv_w1 = 1.0_r / v1.vg_Position.w;
+        real inv_w2 = 1.0_r / v2.vg_Position.w;
 
         real inv_w = inv_w1;
         real inv_w_dx = (inv_w2 - inv_w1) * gx * (real)sx;
@@ -531,37 +531,15 @@ namespace ho {
         real depth_dx = (offset_depth_v2 - depth) * gx * (real)sx;
         real depth_dy = (offset_depth_v2 - depth) * gy * (real)sy;
 
-        Vector3 world_pw = v1.world_pos * inv_w1;
-        Vector3 world_pw_dx = (v2.world_pos * inv_w2 - world_pw) * gx * (real)sx;
-        Vector3 world_pw_dy = (v2.world_pos * inv_w2 - world_pw) * gy * (real)sy;
+        float smooth_register_pw[VG_SMOOTH_REGISTER_SIZE];
+        float smooth_register_pw_dx[VG_SMOOTH_REGISTER_SIZE];
+        float smooth_register_pw_dy[VG_SMOOTH_REGISTER_SIZE];
 
-        Vector3 view_pw = v1.view_pos * inv_w1;
-        Vector3 view_pw_dx = (v2.view_pos * inv_w2 - view_pw) * gx * (real)sx;
-        Vector3 view_pw_dy = (v2.view_pos * inv_w2 - view_pw) * gy * (real)sy;
-
-        Vector3 normal_pw = v1.normal * inv_w1;
-        Vector3 normal_pw_dx = (v2.normal * inv_w2 - normal_pw) * gx * (real)sx;
-        Vector3 normal_pw_dy = (v2.normal * inv_w2 - normal_pw) * gy * (real)sy;
-
-        Vector3 tangent_pw = Vector3(v1.tangent) * inv_w1;
-        Vector3 tangent_pw_dx = (Vector3(v2.tangent) * inv_w2 - tangent_pw) * gx * (real)sx;
-        Vector3 tangent_pw_dy = (Vector3(v2.tangent) * inv_w2 - tangent_pw) * gy * (real)sy;
-
-        Vector2 uv0_pw = v1.uv0 * inv_w1;
-        Vector2 uv0_pw_dx = (v2.uv0 * inv_w2 - uv0_pw) * gx * (real)sx;
-        Vector2 uv0_pw_dy = (v2.uv0 * inv_w2 - uv0_pw) * gy * (real)sy;
-
-        Vector2 uv1_pw = v1.uv1 * inv_w1;
-        Vector2 uv1_pw_dx = (v2.uv1 * inv_w2 - uv1_pw) * gx * (real)sx;
-        Vector2 uv1_pw_dy = (v2.uv1 * inv_w2 - uv1_pw) * gy * (real)sy;
-
-        Color128 color0_pw = v1.color0 * inv_w1;
-        Color128 color0_pw_dx = (v2.color0 * inv_w2 - color0_pw) * gx * (real)sx;
-        Color128 color0_pw_dy = (v2.color0 * inv_w2 - color0_pw) * gy * (real)sy;
-
-        Color128 color1_pw = v1.color1 * inv_w1;
-        Color128 color1_pw_dx = (v2.color1 * inv_w2 - color1_pw) * gx * (real)sx;
-        Color128 color1_pw_dy = (v2.color1 * inv_w2 - color1_pw) * gy * (real)sy;
+        for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+            smooth_register_pw[i] = v1.smooth_register[i] * inv_w1;
+            smooth_register_pw_dx[i] = (v2.smooth_register[i] * inv_w2 - smooth_register_pw[i]) * gx * (real)sx;
+            smooth_register_pw_dy[i] = (v2.smooth_register[i] * inv_w2 - smooth_register_pw[i]) * gy * (real)sy;
+        }
 
         // Bresenham loop
         int x = x0, y = y0;
@@ -576,17 +554,13 @@ namespace ho {
                 frag.screen_coord = screen_coord;
                 frag.depth = depth;
 
-                frag.world_pos = world_pw * w;
-                frag.view_pos = view_pw * w;
-                frag.normal = (normal_pw * w).Normalized();
+                frag.used_smooth_register_size = v1.used_smooth_register_size;
+                for (uint32_t i = 0; i < frag.used_smooth_register_size; i++) {
+                    frag.smooth_register[i] = smooth_register_pw[i] * w;
+                }
 
-                Vector3 t = tangent_pw * w;
-                frag.tangent = Vector4(t.x, t.y, t.z, v1.tangent.w);
-
-                frag.uv0 = uv0_pw * w;
-                frag.uv1 = uv1_pw * w;
-                frag.color0 = color0_pw * w;
-                frag.color1 = color1_pw * w;
+                frag.used_flat_register_size = v2.used_flat_register_size;
+                std::copy_n(v2.flat_register.begin(), frag.used_flat_register_size, frag.flat_register.begin());
 
                 out.push_back(frag);
             }
@@ -613,32 +587,27 @@ namespace ho {
             if (step_x) {
                 inv_w += inv_w_dx;
                 depth += depth_dx;
-                world_pw += world_pw_dx;
-                view_pw += view_pw_dx;
-                normal_pw += normal_pw_dx;
-                tangent_pw += tangent_pw_dx;
-                uv0_pw += uv0_pw_dx;
-                uv1_pw += uv1_pw_dx;
-                color0_pw += color0_pw_dx;
-                color1_pw += color1_pw_dx;
+                for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+                    smooth_register_pw[i] += smooth_register_pw_dx[i];
+                }
             }
             if (step_y) {
                 inv_w += inv_w_dy;
                 depth += depth_dy;
-                world_pw += world_pw_dy;
-                view_pw += view_pw_dy;
-                normal_pw += normal_pw_dy;
-                tangent_pw += tangent_pw_dy;
-                uv0_pw += uv0_pw_dy;
-                uv1_pw += uv1_pw_dy;
-                color0_pw += color0_pw_dy;
-                color1_pw += color1_pw_dy;
+                for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+                    smooth_register_pw[i] += smooth_register_pw_dy[i];
+                }
             }
         }
         return out;
     }
 
     std::vector<VirtualGPU::Fragment> VirtualGPU::Rasterize(const Varying& v1, const Varying& v2, const Varying& v3) {
+        assert(v1.used_smooth_register_size == v2.used_smooth_register_size);
+        assert(v1.used_flat_register_size == v2.used_flat_register_size);
+        assert(v2.used_smooth_register_size == v3.used_smooth_register_size);
+        assert(v2.used_flat_register_size == v3.used_flat_register_size);
+
         // Edge Function and Incremental Perspective Correct Interpolation
         std::vector<Fragment> out;
 
@@ -699,9 +668,9 @@ namespace ho {
         const real inv_area = 1.0_r / area;
 
         // Set component for incremental perspective correct interpolation
-        const real iw1 = 1.0_r / v1.clip_coord.w;
-        const real iw2 = 1.0_r / v2.clip_coord.w;
-        const real iw3 = 1.0_r / v3.clip_coord.w;
+        const real inv_w1 = 1.0_r / v1.vg_Position.w;
+        const real inv_w2 = 1.0_r / v2.vg_Position.w;
+        const real inv_w3 = 1.0_r / v3.vg_Position.w;
 
         const uint64_t depth_bit =
             bound_draw_frame_buffer_->depth_stencil_attachment.format == VG_DEPTH_COMPONENT ? 32u : 24u;
@@ -712,37 +681,9 @@ namespace ho {
         const double offset_depth_v3 =
             (double)ApplyDepthOffset(v3.viewport_coord.z, depth_slope, depth_bit, state_.polygon_mode);
 
-        const Vector3 world_pw1 = v1.world_pos * iw1;
-        const Vector3 world_pw2 = v2.world_pos * iw2;
-        const Vector3 world_pw3 = v3.world_pos * iw3;
-
-        const Vector3 view_pw1 = v1.view_pos * iw1;
-        const Vector3 view_pw2 = v2.view_pos * iw2;
-        const Vector3 view_pw3 = v3.view_pos * iw3;
-
-        const Vector3 normal_pw1 = v1.normal * iw1;
-        const Vector3 normal_pw2 = v2.normal * iw2;
-        const Vector3 normal_pw3 = v3.normal * iw3;
-
-        const Vector3 tangent_pw1 = Vector3(v1.tangent) * iw1;
-        const Vector3 tangent_pw2 = Vector3(v2.tangent) * iw2;
-        const Vector3 tangent_pw3 = Vector3(v3.tangent) * iw3;
-
-        const Vector2 uv0_pw1 = v1.uv0 * iw1;
-        const Vector2 uv0_pw2 = v2.uv0 * iw2;
-        const Vector2 uv0_pw3 = v3.uv0 * iw3;
-
-        const Vector2 uv1_pw1 = v1.uv1 * iw1;
-        const Vector2 uv1_pw2 = v2.uv1 * iw2;
-        const Vector2 uv1_pw3 = v3.uv1 * iw3;
-
-        const Color128 c0_pw1 = v1.color0 * iw1;
-        const Color128 c0_pw2 = v2.color0 * iw2;
-        const Color128 c0_pw3 = v3.color0 * iw3;
-
-        const Color128 c1_pw1 = v1.color1 * iw1;
-        const Color128 c1_pw2 = v2.color1 * iw2;
-        const Color128 c1_pw3 = v3.color1 * iw3;
+        float smooth_register_pw1[VG_SMOOTH_REGISTER_SIZE];
+        float smooth_register_pw2[VG_SMOOTH_REGISTER_SIZE];
+        float smooth_register_pw3[VG_SMOOTH_REGISTER_SIZE];
 
         // Initial edge values at start pixel center of bounding box
         real f12_row = ef12.initial_value;
@@ -751,54 +692,37 @@ namespace ho {
 
         // per-pixel x increments for edge functions are ef*.dx, per-row y increments
         // are ef*.dy
-        const real invw_dx = (ef23.dx * iw1 + ef31.dx * iw2 + ef12.dx * iw3) * inv_area;
-        const real invw_dy = (ef23.dy * iw1 + ef31.dy * iw2 + ef12.dy * iw3) * inv_area;
+        const real inv_w_dx = (ef23.dx * inv_w1 + ef31.dx * inv_w2 + ef12.dx * inv_w3) * inv_area;
+        const real inv_w_dy = (ef23.dy * inv_w1 + ef31.dy * inv_w2 + ef12.dy * inv_w3) * inv_area;
 
         const double depth_dx =
             (double)(ef23.dx * offset_depth_v1 + ef31.dx * offset_depth_v2 + ef12.dx * offset_depth_v3) * inv_area;
         const double depth_dy =
             (double)(ef23.dy * offset_depth_v1 + ef31.dy * offset_depth_v2 + ef12.dy * offset_depth_v3) * inv_area;
 
-        const Vector3 world_dx = (ef23.dx * world_pw1 + ef31.dx * world_pw2 + ef12.dx * world_pw3) * inv_area;
-        const Vector3 world_dy = (ef23.dy * world_pw1 + ef31.dy * world_pw2 + ef12.dy * world_pw3) * inv_area;
-
-        const Vector3 view_dx = (ef23.dx * view_pw1 + ef31.dx * view_pw2 + ef12.dx * view_pw3) * inv_area;
-        const Vector3 view_dy = (ef23.dy * view_pw1 + ef31.dy * view_pw2 + ef12.dy * view_pw3) * inv_area;
-
-        const Vector3 normal_dx = (ef23.dx * normal_pw1 + ef31.dx * normal_pw2 + ef12.dx * normal_pw3) * inv_area;
-        const Vector3 normal_dy = (ef23.dy * normal_pw1 + ef31.dy * normal_pw2 + ef12.dy * normal_pw3) * inv_area;
-
-        const Vector3 tangent_dx = (ef23.dx * tangent_pw1 + ef31.dx * tangent_pw2 + ef12.dx * tangent_pw3) * inv_area;
-        const Vector3 tangent_dy = (ef23.dy * tangent_pw1 + ef31.dy * tangent_pw2 + ef12.dy * tangent_pw3) * inv_area;
-
-        const Vector2 uv0_dx = (ef23.dx * uv0_pw1 + ef31.dx * uv0_pw2 + ef12.dx * uv0_pw3) * inv_area;
-        const Vector2 uv0_dy = (ef23.dy * uv0_pw1 + ef31.dy * uv0_pw2 + ef12.dy * uv0_pw3) * inv_area;
-
-        const Vector2 uv1_dx = (ef23.dx * uv1_pw1 + ef31.dx * uv1_pw2 + ef12.dx * uv1_pw3) * inv_area;
-        const Vector2 uv1_dy = (ef23.dy * uv1_pw1 + ef31.dy * uv1_pw2 + ef12.dy * uv1_pw3) * inv_area;
-
-        const Color128 c0_dx = (c0_pw1 * ef23.dx + c0_pw2 * ef31.dx + c0_pw3 * ef12.dx) * inv_area;
-
-        const Color128 c0_dy = (c0_pw1 * ef23.dy + c0_pw2 * ef31.dy + c0_pw3 * ef12.dy) * inv_area;
-
-        const Color128 c1_dx = (c1_pw1 * ef23.dx + c1_pw2 * ef31.dx + c1_pw3 * ef12.dx) * inv_area;
-
-        const Color128 c1_dy = (c1_pw1 * ef23.dy + c1_pw2 * ef31.dy + c1_pw3 * ef12.dy) * inv_area;
+        float smooth_register_dx[VG_SMOOTH_REGISTER_SIZE];
+        float smooth_register_dy[VG_SMOOTH_REGISTER_SIZE];
 
         // initial row accumulators for inv_w and attributes at p0
-        real invw_row = (f23_row * iw1 + f31_row * iw2 + f12_row * iw3) * inv_area;
+        real inv_w_row = (f23_row * inv_w1 + f31_row * inv_w2 + f12_row * inv_w3) * inv_area;
         const double depth_init =
             (double)(f23_row * offset_depth_v1 + f31_row * offset_depth_v2 + f12_row * offset_depth_v3) * inv_area;
+        float smooth_register_row[VG_SMOOTH_REGISTER_SIZE];
 
-        Vector3 world_row = (f23_row * world_pw1 + f31_row * world_pw2 + f12_row * world_pw3) * inv_area;
-        Vector3 view_row = (f23_row * view_pw1 + f31_row * view_pw2 + f12_row * view_pw3) * inv_area;
-        Vector3 normal_row = (f23_row * normal_pw1 + f31_row * normal_pw2 + f12_row * normal_pw3) * inv_area;
-        Vector3 tangent_row = (f23_row * tangent_pw1 + f31_row * tangent_pw2 + f12_row * tangent_pw3) * inv_area;
-        Vector2 uv0_row = (f23_row * uv0_pw1 + f31_row * uv0_pw2 + f12_row * uv0_pw3) * inv_area;
-        Vector2 uv1_row = (f23_row * uv1_pw1 + f31_row * uv1_pw2 + f12_row * uv1_pw3) * inv_area;
-
-        Color128 c0_row = (c0_pw1 * f23_row + c0_pw2 * f31_row + c0_pw3 * f12_row) * inv_area;
-        Color128 c1_row = (c1_pw1 * f23_row + c1_pw2 * f31_row + c1_pw3 * f12_row) * inv_area;
+        for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+            smooth_register_pw1[i] = v1.smooth_register[i] * inv_w1;
+            smooth_register_pw2[i] = v2.smooth_register[i] * inv_w2;
+            smooth_register_pw3[i] = v3.smooth_register[i] * inv_w3;
+            smooth_register_dx[i] = (ef23.dx * smooth_register_pw1[i] + ef31.dx * smooth_register_pw2[i] +
+                                     ef12.dx * smooth_register_pw3[i]) *
+                                    inv_area;
+            smooth_register_dy[i] = (ef23.dy * smooth_register_pw1[i] + ef31.dy * smooth_register_pw2[i] +
+                                     ef12.dy * smooth_register_pw3[i]) *
+                                    inv_area;
+            smooth_register_row[i] = (f23_row * smooth_register_pw1[i] + f31_row * smooth_register_pw2[i] +
+                                      f12_row * smooth_register_pw3[i]) *
+                                     inv_area;
+        }
 
         // min include, max exclude
         const int x_min = (int)math::Ceil(b.min.x - 0.5_r);
@@ -813,18 +737,12 @@ namespace ho {
             real f23_ev = f23_row;
             real f31_ev = f31_row;
 
-            real invw = invw_row;
+            real inv_w = inv_w_row;
             const double dy_offset = (double)(y - y_min);
             double depth = depth_init + dy_offset * depth_dy;
 
-            Vector3 world = world_row;
-            Vector3 view = view_row;
-            Vector3 normal = normal_row;
-            Vector3 tangent = tangent_row;
-            Vector2 uv0 = uv0_row;
-            Vector2 uv1 = uv1_row;
-            Color128 c0 = c0_row;
-            Color128 c1 = c1_row;
+            float smooth_register[VG_SMOOTH_REGISTER_SIZE];
+            std::memcpy(smooth_register, smooth_register_row, v1.used_smooth_register_size * sizeof(float));
 
             for (int x = x_min; x < x_max; ++x) {
                 bool inside12 =
@@ -837,7 +755,7 @@ namespace ho {
                 if (inside12 && inside23 && inside31) {
                     Vector2 target_coord(real(x) + 0.5_r, real(y) + 0.5_r);
 
-                    real w = 1.0_r / invw;
+                    real w = 1.0_r / inv_w;
 
                     if (ScissorTest(target_coord.x, target_coord.y) &&
                         TestDepthStencil(target_coord.x, target_coord.y, (real)depth, is_front, true)) {
@@ -845,19 +763,13 @@ namespace ho {
                         frag.screen_coord = target_coord;
                         frag.depth = (real)depth;
 
-                        frag.world_pos = world * w;
-                        frag.view_pos = view * w;
+                        frag.used_smooth_register_size = v1.used_smooth_register_size;
+                        for (uint32_t i = 0; i < frag.used_smooth_register_size; i++) {
+                            frag.smooth_register[i] = smooth_register[i] * w;
+                        }
 
-                        frag.normal = (normal * w).Normalized();
-
-                        Vector3 t = tangent * w;
-                        frag.tangent = Vector4(t.x, t.y, t.z, v1.tangent.w);
-
-                        frag.uv0 = uv0 * w;
-                        frag.uv1 = uv1 * w;
-
-                        frag.color0 = c0 * w;
-                        frag.color1 = c1 * w;
+                        frag.used_flat_register_size = v3.used_flat_register_size;
+                        std::copy_n(v3.flat_register.begin(), frag.used_flat_register_size, frag.flat_register.begin());
 
                         frag.is_front = is_front;
                         out.push_back(frag);
@@ -869,16 +781,12 @@ namespace ho {
                 f23_ev += ef23.dx;
                 f31_ev += ef31.dx;
 
-                invw += invw_dx;
+                inv_w += inv_w_dx;
                 depth += depth_dx;
-                world += world_dx;
-                view += view_dx;
-                normal += normal_dx;
-                tangent += tangent_dx;
-                uv0 += uv0_dx;
-                uv1 += uv1_dx;
-                c0 += c0_dx;
-                c1 += c1_dx;
+
+                for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+                    smooth_register[i] += smooth_register_dx[i];
+                }
             }
 
             // +1 in y: advance row start edge and row start attributes
@@ -886,15 +794,11 @@ namespace ho {
             f23_row += ef23.dy;
             f31_row += ef31.dy;
 
-            invw_row += invw_dy;
-            world_row += world_dy;
-            view_row += view_dy;
-            normal_row += normal_dy;
-            tangent_row += tangent_dy;
-            uv0_row += uv0_dy;
-            uv1_row += uv1_dy;
-            c0_row += c0_dy;
-            c1_row += c1_dy;
+            inv_w_row += inv_w_dy;
+
+            for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+                smooth_register_row[i] += smooth_register_dy[i];
+            }
         }
 
         return out;
@@ -1412,12 +1316,12 @@ namespace ho {
             if (!vg.TestDepthStencil(frag.screen_coord.x, frag.screen_coord.y, frag.depth, frag.is_front)) {
                 continue;
             }
-            for (uint32_t slot = 0; slot < VG_DRAW_BUFFER_SLOT_COUNT; ++slot) {
+            for (uint32_t slot = 0; slot < VG_DRAW_BUFFER_SLOT_COUNT; slot++) {
                 if (!outputs.written.test(slot)) {
                     continue;
                 }
 
-                vg.WriteColor(frag.screen_coord.x, frag.screen_coord.y, outputs.values[slot].color, slot);
+                vg.WriteColor(frag.screen_coord.x, frag.screen_coord.y, outputs.values[slot], slot);
             }
         }
         delete in;

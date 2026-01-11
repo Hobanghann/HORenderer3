@@ -7,6 +7,10 @@ using namespace ho;
 TEST(VirtualGPUTest, InitializeSuccess) { EXPECT_TRUE(VirtualGPUTester::InitializeSuccess()); }
 TEST(VirtualGPUTest, InitializeFail) { EXPECT_TRUE(VirtualGPUTester::InitializeFail()); }
 
+TEST(VirtualGPUTest, VaryingOut) { EXPECT_TRUE(VirtualGPUTester::VaryingOut()); }
+TEST(VirtualGPUTest, FragmentIn) { EXPECT_TRUE(VirtualGPUTester::FragmentIn()); }
+TEST(VirtualGPUTest, FSOutput) { EXPECT_TRUE(VirtualGPUTester::FSOutputOut()); }
+
 TEST(VirtualGPUTest, GetColorLock) { EXPECT_TRUE(VirtualGPUTester::GetColorLock()); }
 TEST(VirtualGPUTest, GetDepthLock) { EXPECT_TRUE(VirtualGPUTester::GetDepthLock()); }
 
@@ -119,6 +123,8 @@ TEST(VirtualGPUTest, ClipAgainstPlaneTriangleCollinear) {
 TEST(VirtualGPUTest, ClipAgainstPlaneTriangleAllOnPlane) {
     EXPECT_TRUE(VirtualGPUTester::ClipAgainstPlaneTriangleAllOnPlane());
 }
+
+TEST(VirtualGPUTest, ClipAgainstPlaneInterpolation) { EXPECT_TRUE(VirtualGPUTester::ClipAgainstPlaneInterpolation()); }
 
 TEST(VirtualGPUTest, ClipAllInside) { EXPECT_TRUE(VirtualGPUTester::ClipAllInside()); }
 TEST(VirtualGPUTest, ClipOnePlaneClipped) { EXPECT_TRUE(VirtualGPUTester::ClipOnePlaneClipped()); }

@@ -417,7 +417,7 @@ namespace ho {
 
     // T can be float, Color128
     template <typename T>
-    ALWAYS_INLINE T SampleTexture1D(VGuint unit_slot, VGfloat u) {
+    ALWAYS_INLINE T Texture1D(VGuint unit_slot, VGfloat u) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         VirtualGPU::TextureUnit& unit = vg.texture_units_[unit_slot];
         VirtualGPU::TextureObject* tex = unit.bound_texture_targets[vg::GetTextureSlot(VG_TEXTURE_1D)];
@@ -456,7 +456,7 @@ namespace ho {
 
     // T can be float, Color128
     template <typename T>
-    ALWAYS_INLINE T SampleTexture2D(VGuint unit_slot, VGfloat u, VGfloat v) {
+    ALWAYS_INLINE T Texture2D(VGuint unit_slot, const Vector2& tex_coord) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         VirtualGPU::TextureUnit& unit = vg.texture_units_[unit_slot];
 
@@ -468,7 +468,7 @@ namespace ho {
         VirtualGPU::Sampler* sam = unit.bound_sampler ? unit.bound_sampler : &tex->default_sampler;
 
         // 1) wrap
-        VGfloat wrap_u = ApplyWrap(sam->wrap_s, u);
+        VGfloat wrap_u = ApplyWrap(sam->wrap_s, tex_coord.x);
         if (wrap_u < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -479,7 +479,7 @@ namespace ho {
             }
         }
 
-        VGfloat wrap_v = ApplyWrap(sam->wrap_t, v);
+        VGfloat wrap_v = ApplyWrap(sam->wrap_t, tex_coord.y);
         if (wrap_v < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -508,7 +508,7 @@ namespace ho {
 
     // T can be float, Color128
     template <typename T>
-    ALWAYS_INLINE T SampleTexture3D(VGuint unit_slot, VGfloat u, VGfloat v, VGfloat w) {
+    ALWAYS_INLINE T Texture3D(VGuint unit_slot, const Vector3& tex_coord) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         VirtualGPU::TextureUnit& unit = vg.texture_units_[unit_slot];
 
@@ -520,7 +520,7 @@ namespace ho {
         VirtualGPU::Sampler* sam = unit.bound_sampler ? unit.bound_sampler : &tex->default_sampler;
 
         // 1) wrap
-        VGfloat wrap_u = ApplyWrap(sam->wrap_s, u);
+        VGfloat wrap_u = ApplyWrap(sam->wrap_s, tex_coord.x);
         if (wrap_u < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -531,7 +531,7 @@ namespace ho {
             }
         }
 
-        VGfloat wrap_v = ApplyWrap(sam->wrap_t, v);
+        VGfloat wrap_v = ApplyWrap(sam->wrap_t, tex_coord.y);
         if (wrap_v < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -542,7 +542,7 @@ namespace ho {
             }
         }
 
-        VGfloat wrap_w = ApplyWrap(sam->wrap_r, w);
+        VGfloat wrap_w = ApplyWrap(sam->wrap_r, tex_coord.z);
         if (wrap_w < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -567,6 +567,36 @@ namespace ho {
         // 7) swizzle -> no op
 
         return filtered;
+    }
+
+    ALWAYS_INLINE float TextureSize1D(VGuint unit_slot, uint32_t lod) {
+        VirtualGPU& vg = VirtualGPU::GetInstance();
+        VirtualGPU::TextureUnit& unit = vg.texture_units_[unit_slot];
+
+        VirtualGPU::TextureObject* tex = unit.bound_texture_targets[vg::GetTextureSlot(VG_TEXTURE_1D)];
+        assert(tex);
+        assert(tex->mipmap_count > lod);
+        return (float)tex->mipmap[lod].width;
+    }
+
+    ALWAYS_INLINE Vector2 TextureSize2D(VGuint unit_slot, uint32_t lod) {
+        VirtualGPU& vg = VirtualGPU::GetInstance();
+        VirtualGPU::TextureUnit& unit = vg.texture_units_[unit_slot];
+
+        VirtualGPU::TextureObject* tex = unit.bound_texture_targets[vg::GetTextureSlot(VG_TEXTURE_2D)];
+        assert(tex);
+        assert(tex->mipmap_count > lod);
+        return Vector2((float)tex->mipmap[lod].width, (float)tex->mipmap[lod].height);
+    }
+
+    ALWAYS_INLINE Vector3 TextureSize3D(VGuint unit_slot, uint32_t lod) {
+        VirtualGPU& vg = VirtualGPU::GetInstance();
+        VirtualGPU::TextureUnit& unit = vg.texture_units_[unit_slot];
+
+        VirtualGPU::TextureObject* tex = unit.bound_texture_targets[vg::GetTextureSlot(VG_TEXTURE_3D)];
+        assert(tex);
+        assert(tex->mipmap_count > lod);
+        return Vector3((float)tex->mipmap[lod].width, (float)tex->mipmap[lod].height, (float)tex->mipmap[lod].depth);
     }
 
 }  // namespace ho
