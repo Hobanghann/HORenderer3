@@ -48,10 +48,8 @@ TEST(IDTest, Decrement) {
 
 #ifdef DEBUG
 TEST(IDTest, DecrementOverflow) {
-
     TestID id;
     EXPECT_DEATH(id.Decrement(), "");
-
 }
 #endif
 TEST(IDTest, ComparisonOperators) {
