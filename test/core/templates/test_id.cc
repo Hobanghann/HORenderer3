@@ -46,15 +46,14 @@ TEST(IDTest, Decrement) {
     EXPECT_EQ(id.id(), 0ull);
 }
 
+#ifdef DEBUG
 TEST(IDTest, DecrementOverflow) {
-#ifdef NDEBUG
-    GTEST_SKIP() << "Assert tests are skipped in release mode.";
-#else
+
     TestID id;
     EXPECT_DEATH(id.Decrement(), "");
-#endif
-}
 
+}
+#endif
 TEST(IDTest, ComparisonOperators) {
     TestID a;
     TestID b;
