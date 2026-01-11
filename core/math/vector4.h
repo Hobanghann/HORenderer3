@@ -175,6 +175,9 @@ namespace ho {
     constexpr Vector4 Vector4::operator-() const { return Vector4(-x, -y, -z, -w); }
 
     ALWAYS_INLINE constexpr Vector4 operator*(real scalar, const Vector4& vector) { return vector * scalar; }
+    constexpr Vector4 operator/(real scalar, const Vector4& vector) {
+        return Vector4(scalar / vector.x, scalar / vector.y, scalar / vector.z, scalar / vector.w);
+    }
 
     constexpr bool Vector4::operator==(const Vector4& rhs) const {
         return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
