@@ -152,5 +152,5 @@ TEST_F(FrustumTest, FromMatrix4x4) {
     EXPECT_FALSE(f.planes[PLANE_POS_TOP].IsEqualApprox(f.planes[PLANE_POS_BOTTOM]));
     EXPECT_FALSE(f.planes[PLANE_POS_NEAR].IsEqualApprox(f.planes[PLANE_POS_FAR]));
 
-    EXPECT_TRUE(f1.IsNotEqualApprox(f));
+    EXPECT_TRUE(f1.IsEqualApprox(f));
 }
