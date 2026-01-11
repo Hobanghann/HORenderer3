@@ -35,7 +35,7 @@ jobs:
           echo "Running clang-format check..."  
           mkdir formatted
           error_count=0  
-          for file in $(find core platforms test -name "*.h" -o -name "*.cc"); do
+          for file in $(find core platforms virtual_gpu test -name "*.h" -o -name "*.cc"); do
             mkdir -p formatted/$(dirname "$file")
             clang-format-21 "$file" > formatted/"$file"  
             if ! diff -q "$file" formatted/"$file" >/dev/null; then
@@ -96,7 +96,7 @@ jobs:
         run: |
           echo "Running clang-tidy check..."
 
-          run-clang-tidy -p build -quiet -source-filter='.*(core|resource)[\\/].*\.cc$'
+          run-clang-tidy -p build -quiet -source-filter='.*(core|resource|virtual_gpu)[\\/].*\.cc$'
 
 
   build-test:
@@ -176,3 +176,8 @@ jobs:
         working-directory: build
         run: |
           ctest -R Resource
+
+      - name: Test VirtualGPU
+        working-directory: build
+        run: |
+          ctest -R VirtualGPU
