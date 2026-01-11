@@ -54,7 +54,7 @@ namespace ho {
         d = p_d / l;
     }
     Plane::Plane(const Vector3& p_normal, const Vector3& p_point)
-        : normal(p_normal.Normalized()), d(p_normal.Dot(p_point)) {}
+        : normal(p_normal.Normalized()), d(-p_normal.Dot(p_point)) {}
     Plane::Plane(const Vector3& v1, const Vector3& v2, const Vector3& v3, math::ClockDirection dir) {
         switch (dir) {
             case math::CLOCK_WISE:
@@ -64,7 +64,7 @@ namespace ho {
                 normal = (v2 - v1).Cross(v3 - v1).Normalized();
                 break;
         }
-        d = normal.Dot(v1);
+        d = -normal.Dot(v1);
     }
 
     Plane& Plane::operator=(const Plane& rhs) {
@@ -80,7 +80,7 @@ namespace ho {
         return normal.IsEqualApprox(rhs.normal) && math::IsEqualApprox(d, rhs.d);
     }
     bool Plane::IsNotEqualApprox(const Plane& rhs) const { return !IsEqualApprox(rhs); }
-    real Plane::DistToPoint(const Vector3& point) const { return normal.Dot(point) - d; }
+    real Plane::DistToPoint(const Vector3& point) const { return normal.Dot(point) + d; }
 
     Vector3 Plane::Project(const Vector3& point) const {
         real dist = DistToPoint(point);
@@ -100,7 +100,7 @@ namespace ho {
     }
 
     math::Side Plane::GetSide(const Vector3& p) const {
-        real res = normal.Dot(p) - d;
+        real res = normal.Dot(p) + d;
         if (res > math::EPSILON_POINT_ON_PLANE) {
             return math::OUTSIDE;
         } else if (res < -math::EPSILON_POINT_ON_PLANE) {

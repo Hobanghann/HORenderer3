@@ -7,7 +7,7 @@
 namespace ho {
     // axis aligned box bounding volume
     struct AABB {
-        static AABB ConstructFromPositions(const std::vector<Vector3>& positions);
+        static AABB FromPositions(const std::vector<Vector3>& positions);
 
         constexpr static AABB Merge(const AABB& lhs, const AABB& rhs);
 

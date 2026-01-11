@@ -34,6 +34,10 @@ namespace ho {
             assert(min <= max);
             return target < min ? min : (target > max ? max : target);
         }
+        template <typename T>
+        ALWAYS_INLINE constexpr T Abs(T x) {
+            return (x < (T)0) ? -x : x;
+        }
 
         ALWAYS_INLINE constexpr real Fmod(real x, real y) {
             if (y == 0.0_r) return static_cast<real>(0);
@@ -51,8 +55,6 @@ namespace ho {
             const long long i = static_cast<long long>(x);
             return (x > 0 && static_cast<real>(i) != x) ? static_cast<real>(i + 1) : static_cast<real>(i);
         }
-
-        ALWAYS_INLINE constexpr real Abs(real x) { return (x < 0) ? -x : x; }
 
         ALWAYS_INLINE constexpr bool IsEqualApprox(real lhs, real rhs, real tolerance) {
             if (lhs == rhs) {

@@ -80,8 +80,8 @@ namespace ho {
                   morph_targets(std::move(p_morph_targets)),
                   material(p_material) {
                 if (!positions.empty()) {
-                    aabb = AABB::ConstructFromPositions(positions);
-                    sphere = Sphere::ConstructRitterFromPositions(positions);
+                    aabb = AABB::FromPositions(positions);
+                    sphere = Sphere::FromPositionsRitter(positions);
                 }
                 for (uint32_t i = 0; i < morph_targets.size(); i++) {
                     morph_name_to_index[morph_targets[i].name] = i;
@@ -148,7 +148,7 @@ namespace ho {
                     all_positions.insert(all_positions.end(), sm.positions.begin(), sm.positions.end());
                 }
                 if (!all_positions.empty()) {
-                    sphere = Sphere::ConstructRitterFromPositions(all_positions);
+                    sphere = Sphere::FromPositionsRitter(all_positions);
                 }
             }
             for (uint32_t i = 0; i < sub_meshes.size(); i++) {

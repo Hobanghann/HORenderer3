@@ -158,6 +158,9 @@ namespace ho {
     constexpr Vector3 Vector3::operator-() const { return Vector3(-x, -y, -z); }
 
     constexpr Vector3 operator*(real scalar, const Vector3& v) { return v * scalar; }
+    constexpr Vector3 operator/(real scalar, const Vector3& vector) {
+        return Vector3(scalar / vector.x, scalar / vector.y, scalar / vector.z);
+    }
 
     constexpr bool Vector3::operator==(const Vector3& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
     constexpr bool Vector3::operator!=(const Vector3& rhs) const { return !(*this == rhs); }

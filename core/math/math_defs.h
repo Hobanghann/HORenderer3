@@ -52,6 +52,12 @@ namespace ho {
         // Epsilon for checking if a matrix is orthogonal or orthonormal.
         inline constexpr real EPSILON_ORTHO = 1e-3_r;
 
+        // Epsilon for rasterization comparisons.
+        // Used where floating-point error accumulates during rasterization
+        // (edge tests, barycentric coords, NDC/screen-space boundaries).
+        // Looser tolerance to ensure stable pixel coverage near edges.
+        inline constexpr real EPSILON_RASTERIZATION = 1e-4_r;
+
         inline constexpr real PI = 3.14159265358979323846_r;
         inline constexpr real PI2 = 1.57079632679489661923_r;
         inline constexpr real PI4 = 0.785398163397448309616_r;
