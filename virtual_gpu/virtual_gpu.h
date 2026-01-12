@@ -24,23 +24,23 @@
 namespace ho {
     class VirtualGPUTester;
 
-    constexpr VGint WORKER_COUNT = 8;
+    constexpr int WORKER_COUNT = 8;
 
-    constexpr VGint TILE_WIDTH = 16;
-    constexpr VGint TILE_HEIGHT = 16;
-    constexpr VGint VG_MAX_ATTACHMENT_WIDTH = 4096;
-    constexpr VGint VG_MAX_ATTACHMENT_HEIGHT = 4096;
-    constexpr VGint MAX_LOCK_TABLE_WIDTH = VG_MAX_ATTACHMENT_WIDTH / TILE_WIDTH;
-    constexpr VGint MAX_LOCK_TABLE_HEIGHT = VG_MAX_ATTACHMENT_HEIGHT / TILE_HEIGHT;
+    constexpr int TILE_WIDTH = 16;
+    constexpr int TILE_HEIGHT = 16;
+    constexpr int VG_MAX_ATTACHMENT_WIDTH = 4096;
+    constexpr int VG_MAX_ATTACHMENT_HEIGHT = 4096;
+    constexpr int MAX_LOCK_TABLE_WIDTH = VG_MAX_ATTACHMENT_WIDTH / TILE_WIDTH;
+    constexpr int MAX_LOCK_TABLE_HEIGHT = VG_MAX_ATTACHMENT_HEIGHT / TILE_HEIGHT;
 
-    constexpr VGint VG_COLOR_ATTACHMENT_COUNT = VG_COLOR_ATTACHMENT31 - VG_COLOR_ATTACHMENT0 + 1;
-    constexpr VGint VG_TEXTURE_UNIT_COUNT = VG_TEXTURE31 - VG_TEXTURE0 + 1;
-    constexpr VGint VG_DRAW_BUFFER_SLOT_COUNT = VG_DRAW_BUFFER15 - VG_DRAW_BUFFER0 + 1;
-    constexpr VGint VG_BUFFER_OBJECT_SLOT_COUNT = 9;
+    constexpr int VG_COLOR_ATTACHMENT_COUNT = VG_COLOR_ATTACHMENT31 - VG_COLOR_ATTACHMENT0 + 1;
+    constexpr int VG_TEXTURE_UNIT_COUNT = VG_TEXTURE31 - VG_TEXTURE0 + 1;
+    constexpr int VG_DRAW_BUFFER_SLOT_COUNT = VG_DRAW_BUFFER15 - VG_DRAW_BUFFER0 + 1;
+    constexpr int VG_BUFFER_OBJECT_SLOT_COUNT = 9;
 
-    constexpr VGint VG_MAX_VARYING_COUNT = 10;
-    constexpr VGint VG_SMOOTH_REGISTER_SIZE = 32;
-    constexpr VGint VG_FLAT_REGISTER_SIZE = 32;
+    constexpr int VG_MAX_VARYING_COUNT = 10;
+    constexpr int VG_SMOOTH_REGISTER_SIZE = 32;
+    constexpr int VG_FLAT_REGISTER_SIZE = 32;
 
     class VirtualGPU {
        public:
@@ -49,8 +49,7 @@ namespace ho {
             return instance;
         }
 
-        bool Initialize(uint8_t* color_buffer, VGsizei width, VGsizei height, VGenum color_format,
-                        VGsizei component_type);
+        bool Initialize(uint8_t* color_buffer, int width, int height, VGenum color_format, VGenum component_type);
 
         class Varying {
            public:
@@ -63,9 +62,9 @@ namespace ho {
             template <typename T>
             void Out(uint32_t name_hash, const T& v) {
                 Program* prog = VirtualGPU::GetInstance().using_program_;
-                uint32_t reg_index = 0xFFFFFFFF;
+                int reg_index = -1;
 
-                for (uint32_t i = 0; i < prog->smooth_varying_count; i++) {
+                for (int i = 0; i < prog->smooth_varying_count; i++) {
                     if (prog->smooth_varying_name_hashes[i] == name_hash) {
                         assert(prog->smooth_varying_descs[i].size == sizeof(T) / sizeof(float));
                         reg_index = prog->smooth_varying_descs[i].register_index;
@@ -76,7 +75,7 @@ namespace ho {
 
                 if (reg_index == 0xFFFFFFFF) {
                     reg_index = used_smooth_register_size;
-                    uint32_t var_index = prog->smooth_varying_count++;
+                    int var_index = prog->smooth_varying_count++;
 
                     prog->smooth_varying_name_hashes[var_index] = name_hash;
                     prog->smooth_varying_descs[var_index].size = sizeof(T) / sizeof(float);
@@ -88,12 +87,13 @@ namespace ho {
                 *(T*)(&smooth_register[reg_index]) = v;
             }
 
+            // T can be float, Vector2, Vector3, Vector4
             template <typename T>
             void OutFlat(uint32_t name_hash, const T& v) {
                 Program* prog = VirtualGPU::GetInstance().using_program_;
-                uint32_t reg_index = 0xFFFFFFFF;
+                int reg_index = 0xFFFFFFFF;
 
-                for (uint32_t i = 0; i < prog->flat_varying_count; i++) {
+                for (int i = 0; i < prog->flat_varying_count; i++) {
                     if (prog->flat_varying_name_hashes[i] == name_hash) {
                         assert(prog->flat_varying_descs[i].size == sizeof(T) / sizeof(float));
                         reg_index = prog->flat_varying_descs[i].register_index;
@@ -104,7 +104,7 @@ namespace ho {
 
                 if (reg_index == 0xFFFFFFFF) {
                     reg_index = used_flat_register_size;
-                    uint32_t var_index = prog->flat_varying_count++;
+                    int var_index = prog->flat_varying_count++;
 
                     prog->flat_varying_name_hashes[var_index] = name_hash;
                     prog->flat_varying_descs[var_index].size = sizeof(T) / sizeof(float);
@@ -120,10 +120,8 @@ namespace ho {
             Vector3 viewport_coord;
             std::array<float, VG_SMOOTH_REGISTER_SIZE> smooth_register;  // its interpolated in rasterization
             std::array<float, VG_FLAT_REGISTER_SIZE> flat_register;      // its not interpolated in rasterization
-            uint32_t used_smooth_register_size =
-                0;  // Number of float elements currently used in the smooth register array.
-            uint32_t used_flat_register_size =
-                0;  // Number of float elements currently used in the flat register array.
+            int used_smooth_register_size = 0;  // Number of float elements currently used in the smooth register array.
+            int used_flat_register_size = 0;    // Number of float elements currently used in the flat register array.
         };
 
         class Fragment {
@@ -131,12 +129,13 @@ namespace ho {
             friend VirtualGPU;
             friend VirtualGPUTester;
 
+            // T can be float, Vector2, Vector3, Vector4
             template <typename T>
             T In(uint32_t name_hash) const {
                 Program* prog = VirtualGPU::GetInstance().using_program_;
-                uint32_t reg_index = 0xFFFFFFFF;
+                int reg_index = 0xFFFFFFFF;
 
-                for (uint32_t i = 0; i < prog->smooth_varying_count; ++i) {
+                for (int i = 0; i < prog->smooth_varying_count; ++i) {
                     if (prog->smooth_varying_name_hashes[i] == name_hash) {
                         assert(prog->smooth_varying_descs[i].size == sizeof(T) / sizeof(float));
                         reg_index = prog->smooth_varying_descs[i].register_index;
@@ -148,12 +147,13 @@ namespace ho {
                 return *(const T*)(&smooth_register[reg_index]);
             }
 
+            // T can be float, Vector2, Vector3, Vector4
             template <typename T>
             T InFlat(uint32_t name_hash) const {
                 Program* prog = VirtualGPU::GetInstance().using_program_;
-                uint32_t reg_index = 0xFFFFFFFF;
+                int reg_index = 0xFFFFFFFF;
 
-                for (uint32_t i = 0; i < prog->flat_varying_count; ++i) {
+                for (int i = 0; i < prog->flat_varying_count; ++i) {
                     if (prog->flat_varying_name_hashes[i] == name_hash) {
                         assert(prog->flat_varying_descs[i].size == sizeof(T) / sizeof(float));
                         reg_index = prog->flat_varying_descs[i].register_index;
@@ -170,8 +170,8 @@ namespace ho {
             real depth;
             std::array<float, VG_SMOOTH_REGISTER_SIZE> smooth_register;
             std::array<float, VG_FLAT_REGISTER_SIZE> flat_register;
-            uint32_t used_smooth_register_size = 0;
-            uint32_t used_flat_register_size = 0;
+            int used_smooth_register_size = 0;
+            int used_flat_register_size = 0;
             bool is_front;
         };
 
@@ -180,7 +180,7 @@ namespace ho {
             friend VirtualGPU;
             friend VirtualGPUTester;
 
-            void Out(uint32_t location, const Color128& out) {
+            void Out(int location, const Color128& out) {
                 assert(location < VG_DRAW_BUFFER_SLOT_COUNT);
                 written[location] = true;
                 values[location] = out;
@@ -203,11 +203,11 @@ namespace ho {
         //  VirtualGPU Core Object and State Definitions
         // ======================================================
 
-        using VertexShader = void (*)(uint32_t vertex_index, Varying& out);
+        using VertexShader = void (*)(int vertex_index, Varying& out);
         using FragmentShader = void (*)(const Fragment& in, FSOutputs& out);
 
         struct BufferObject {
-            VGuint id;
+            uint32_t id = 0;
             std::vector<uint8_t>* memory = nullptr;
             VGenum usage = VG_STATIC_DRAW;
             bool mapped = false;
@@ -244,23 +244,23 @@ namespace ho {
 
         struct Attribute {
             BufferObject* buffer = nullptr;
-            bool enabled = false;
-            VGint size = 4;
             VGenum type = VG_FLOAT;
+            VGint size = 4;
+            VGsizei stride = 0;
+            int offset = 0;
             bool is_pure_integer = false;
             bool normalized = false;
-            VGsizei stride = 0;
-            VGint offset = 0;
+            bool enabled = false;
         };
 
         struct VertexArray {
-            VGuint id = 0;
-            VGuint vertex_count = std::numeric_limits<uint32_t>::max();
+            uint32_t id = 0;
+            int vertex_count = std::numeric_limits<int>::max();
             std::unordered_map<VGuint, Attribute> index_to_attrib;
             BufferObject* element_buffer;
-            bool is_bound_once = false;
             int refcount = 0;
             bool is_deleted = false;
+            bool is_bound_once = false;
         };
 
         struct BufferBinding {
@@ -270,7 +270,7 @@ namespace ho {
         };
 
         struct Sampler {
-            VGuint id = 0;
+            uint32_t id = 0;
 
             // Wrap
             VGint wrap_s = VG_REPEAT;
@@ -303,9 +303,9 @@ namespace ho {
         };
 
         struct TextureObject {
-            VGuint id = 0;
+            uint32_t id = 0;
             std::array<TextureLevel, 1> mipmap;
-            VGuint mipmap_count = 1;
+            int mipmap_count = 1;
             VGenum texture_type = VG_NONE;
             VGenum component_type = VG_NONE;
             VGenum internal_format = VG_RGBA;
@@ -327,7 +327,7 @@ namespace ho {
         };
 
         struct RenderBuffer {
-            VGuint id = 0;
+            uint32_t id = 0;
             std::vector<uint8_t>* memory = nullptr;
             VGenum component_type = VG_NONE;
             VGenum format = VG_RGBA;
@@ -338,7 +338,7 @@ namespace ho {
         };
 
         struct Attachment {
-            VGuint ref_id = 0;  // referenced texture or render buffer id
+            uint32_t ref_id = 0;  // referenced texture or render buffer id
             uint8_t* external_memory = nullptr;
             std::vector<uint8_t>* memory = nullptr;
             VGenum component_type = VG_NONE;
@@ -349,7 +349,7 @@ namespace ho {
         };
 
         struct FrameBuffer {
-            VGuint id = 0;  // id is 0 on default freame buffer
+            uint32_t id = 0;  // id is 0 on default freame buffer
             std::array<Attachment, VG_COLOR_ATTACHMENT31 - VG_COLOR_ATTACHMENT0 + 1> color_attachments;
             Attachment depth_stencil_attachment;  // default frame buffer has depth
                                                   // stencil attachment
@@ -373,7 +373,7 @@ namespace ho {
         };
 
         struct Shader {
-            VGuint id = 0;
+            uint32_t id = 0;
             VGenum type = VG_NONE;
             void* source = nullptr;
             int refcount = 0;
@@ -382,19 +382,19 @@ namespace ho {
 
         struct Uniform {
             VGenum type = VG_NONE;
-            VGint size = 0;
+            int size = 0;
             VGsizei count = 0;
             std::vector<uint8_t> data;
         };
 
         struct VaryingDesc {
             VGenum type = VG_FLOAT;
-            uint32_t size = 0;
-            uint32_t register_index = 0;
+            int size = 0;
+            int register_index = 0;
         };
 
         struct Program {
-            VGuint id = 0;
+            uint32_t id = 0;
             Shader* vertex_shader = nullptr;
             Shader* fragment_shader = nullptr;
 
@@ -404,15 +404,15 @@ namespace ho {
             // index.
             std::array<uint32_t, VG_MAX_VARYING_COUNT> smooth_varying_name_hashes;
             std::array<VaryingDesc, VG_MAX_VARYING_COUNT> smooth_varying_descs;
-            uint32_t smooth_varying_count = 0;
+            int smooth_varying_count = 0;
 
             std::array<uint32_t, VG_MAX_VARYING_COUNT> flat_varying_name_hashes;
             std::array<VaryingDesc, VG_MAX_VARYING_COUNT> flat_varying_descs;
-            uint32_t flat_varying_count = 0;
+            int flat_varying_count = 0;
 
             std::vector<Uniform> uniforms;
-            std::unordered_map<uint32_t, uint32_t> uniform_name_hash_to_location;
-            std::unordered_map<uint32_t, uint32_t> fragout_name_hash_to_draw_buffer_slot;
+            std::unordered_map<uint32_t, int> uniform_name_hash_to_location;
+            std::unordered_map<uint32_t, int> fragout_name_hash_to_draw_buffer_slot;
 
             VGenum link_status = VG_FALSE;
             int refcount = 0;
@@ -441,9 +441,9 @@ namespace ho {
 
             bool depth_test_enabled = false;
             bool depth_write_enabled = true;
-            VGfloat clear_depth = 1.f;
-            VGfloat min_depth = 0.f;
-            VGfloat max_depth = 1.f;
+            VGdouble clear_depth = 1.f;
+            VGdouble min_depth = 0.f;
+            VGdouble max_depth = 1.f;
             VGfloat depth_factor = 0.f;
             VGfloat depth_unit = 0.f;
             VGenum depth_func = VG_LESS;
@@ -479,8 +479,6 @@ namespace ho {
 
             VGenum polygon_mode = VG_FILL;
 
-            VGfloat line_width = 1.f;
-
             VGenum error_state = VG_NO_ERROR;
         };
 
@@ -490,19 +488,19 @@ namespace ho {
 
         std::list<std::vector<uint8_t>> vram_;
 
-        VGuint base_handle_ = 0;
-        std::unordered_map<VGuint, VertexArray> vertex_array_pool_;
-        std::unordered_map<VGuint, BufferObject> buffer_pool_;
-        std::unordered_map<VGuint, TextureObject> texture_pool_;
-        std::unordered_map<VGuint, Sampler> sampler_pool_;
-        std::unordered_map<VGuint, FrameBuffer> frame_buffer_pool_;
-        std::unordered_map<VGuint, RenderBuffer> render_buffer_pool_;
-        std::unordered_map<VGuint, Shader> shader_pool_;
-        std::unordered_map<VGuint, Program> program_pool_;
+        uint32_t base_id_ = 0;
+        std::unordered_map<uint32_t, VertexArray> vertex_array_pool_;
+        std::unordered_map<uint32_t, BufferObject> buffer_pool_;
+        std::unordered_map<uint32_t, TextureObject> texture_pool_;
+        std::unordered_map<uint32_t, Sampler> sampler_pool_;
+        std::unordered_map<uint32_t, FrameBuffer> frame_buffer_pool_;
+        std::unordered_map<uint32_t, RenderBuffer> render_buffer_pool_;
+        std::unordered_map<uint32_t, Shader> shader_pool_;
+        std::unordered_map<uint32_t, Program> program_pool_;
 
         VertexArray* bound_vertex_array_ = nullptr;
         Program* using_program_ = nullptr;
-        VGuint active_texture_unit_ = 0;
+        int active_texture_unit_ = 0;
         std::array<BufferObject*, VG_BUFFER_OBJECT_SLOT_COUNT> bound_buffer_targets_;
         FrameBuffer* bound_draw_frame_buffer_;
         FrameBuffer* bound_read_frame_buffer_;
@@ -521,42 +519,42 @@ namespace ho {
         // Rendering Pipeline API
         // ======================================================
 
-        ALWAYS_INLINE SpinLock& GetColorLock(VGuint attachment_index, VGint x, VGint y) {
+        ALWAYS_INLINE SpinLock& GetColorLock(int attachment_index, int x, int y) {
             assert(x >= 0 && x < VG_MAX_ATTACHMENT_WIDTH);
             assert(y >= 0 && y < VG_MAX_ATTACHMENT_HEIGHT);
 
-            VGint lock_x = x / TILE_WIDTH;
-            VGint lock_y = y / TILE_HEIGHT;
+            int lock_x = x / TILE_WIDTH;
+            int lock_y = y / TILE_HEIGHT;
 
-            VGint lock_index = lock_y * MAX_LOCK_TABLE_WIDTH + lock_x;
+            int lock_index = lock_y * MAX_LOCK_TABLE_WIDTH + lock_x;
             return state_.color_lock_tables[attachment_index][lock_index];
         }
 
-        ALWAYS_INLINE SpinLock& GetDepthLock(VGint x, VGint y) {
+        ALWAYS_INLINE SpinLock& GetDepthLock(int x, int y) {
             assert(x >= 0 && x < VG_MAX_ATTACHMENT_WIDTH);
             assert(y >= 0 && y < VG_MAX_ATTACHMENT_HEIGHT);
 
-            VGint lock_x = x / TILE_WIDTH;
-            VGint lock_y = y / TILE_HEIGHT;
+            int lock_x = x / TILE_WIDTH;
+            int lock_y = y / TILE_HEIGHT;
 
-            VGint lock_index = lock_y * MAX_LOCK_TABLE_WIDTH + lock_x;
+            int lock_index = lock_y * MAX_LOCK_TABLE_WIDTH + lock_x;
             return state_.depth_lock_table[lock_index];
         }
 
-        void ClearColorAttachment(uint32_t slot, const Color128& clear_color);
-        void ClearDepthAttachment(float clear_depth);
-        void ClearDepthStencilAttachment(bool is_depth_cleared, bool is_stencil_cleared, float clear_depth,
+        void ClearColorAttachment(int slot, const Color128& clear_color);
+        void ClearDepthAttachment(real clear_depth);
+        void ClearDepthStencilAttachment(bool is_depth_cleared, bool is_stencil_cleared, real clear_depth,
                                          uint8_t clear_stencil);
 
         // Vertex Processing
         struct VSJobInput {
             VertexShader vs;
-            uint32_t base_index;
-            uint32_t first_index;
-            uint32_t last_index;
+            int base_index;
+            int first_index;
+            int last_index;
         };
 
-        static void VSJobEntry(void* input, uint32_t size);
+        static void VSJobEntry(void* input, int size);
 
         // Rasterization, true: passed, false: not passed
         enum PlanePos {
@@ -608,42 +606,42 @@ namespace ho {
         bool ScissorTest(real x, real y) const;
 
         real ComputeDepthSlope(const Vector3& v0, const Vector3& v1, const Vector3& v2) const;
-        VGfloat ApplyDepthOffset(VGfloat depth, VGfloat depth_slope, uint64_t depth_bits, VGenum primitive_mode) const;
+        real ApplyDepthOffset(real depth, real depth_slope, uint64_t depth_bits, VGenum primitive_mode) const;
 
         // true: passed, false: not passed
-        bool TestDepthStencil(VGfloat x, VGfloat y, VGfloat depth, bool is_front_face, bool compare_only = false);
+        bool TestDepthStencil(real x, real y, real depth, bool is_front_face, bool compare_only = false);
 
         real GetBlendFactor(VGenum factor, const Color128& src, const Color128& dst, int channel) const;
 
         real ApplyBlendEquation(VGenum eq, real src_term, real dst_term) const;
 
-        void WriteColor(VGfloat x, VGfloat y, const Color128& color, uint32_t slot);
+        void WriteColor(real x, real y, const Color128& color, int slot);
 
         struct AfterVSJobInput {
             std::vector<Varying*> poly;
             FragmentShader fs;
         };
 
-        static void AfterVSJobEntry(void* input, uint32_t size);
+        static void AfterVSJobEntry(void* input, int size);
 
         // ======================================================
         // Friend decl
         // ======================================================
 
         template <typename T>
-        friend T FetchAttribute(VGuint location, VGuint index);
+        friend T FetchAttribute(VGuint location, VGint index);
         template <typename T>
-        friend T FetchUniform(uint32_t name_hash, VGuint index);
+        friend T FetchUniform(uint32_t name_hash, VGint index);
         template <typename T>
-        friend T FetchUniformBlock(VGuint binding, VGuint offset);
+        friend T FetchUniformBlock(VGuint binding, VGint offset);
 
         friend VGfloat ApplyWrap(VGint wrap_mode, VGfloat coord);
         template <typename T>
-        friend T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, uint32_t level, VGfloat u);
+        friend T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, VGint level, VGfloat u);
         template <typename T>
-        friend T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, uint32_t level, VGfloat u, VGfloat v);
+        friend T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, VGint level, VGfloat u, VGfloat v);
         template <typename T>
-        friend T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, uint32_t level, VGfloat u, VGfloat v,
+        friend T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, VGint level, VGfloat u, VGfloat v,
                              VGfloat w);
         template <typename T>
         friend T Texture1D(VGuint unit_slot, VGfloat u);
@@ -652,9 +650,9 @@ namespace ho {
         template <typename T>
         friend T Texture3D(VGuint unit_slot, const Vector3& tex_coord);
 
-        friend float TextureSize1D(VGuint unit_slot, uint32_t lod);
-        friend Vector2 TextureSize2D(VGuint unit_slot, uint32_t lod);
-        friend Vector3 TextureSize3D(VGuint unit_slot, uint32_t lod);
+        friend float TextureSize1D(VGuint unit_slot, VGint level);
+        friend Vector2 TextureSize2D(VGuint unit_slot, VGint level);
+        friend Vector3 TextureSize3D(VGuint unit_slot, VGint level);
 
         friend void FreeVram(std::vector<uint8_t>* mem);
         friend void ReleaseAttachment(VGuint refid);

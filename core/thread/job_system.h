@@ -14,10 +14,10 @@ namespace ho {
 
     // A single job to be executed by the JobSystem
     struct JobDeclaration {
-        using Entry = void (*)(void* input, uint32_t size);
+        using Entry = void (*)(void* input, int size);
         Entry entry = nullptr;                                  // job function pointer
         void* input_data = nullptr;                             // input payload
-        uint32_t input_size = 0;                                // size of input payload
+        int input_size = 0;                                     // size of input payload
         std::shared_ptr<AtomicNumeric<std::uint32_t>> counter;  // completion counter
     };
 

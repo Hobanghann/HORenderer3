@@ -7,8 +7,8 @@
 #include "virtual_gpu_utils.h"
 
 namespace ho {
-    bool VirtualGPU::Initialize(uint8_t* color_buffer, VGsizei width, VGsizei height, VGenum color_format,
-                                VGsizei component_type) {
+    bool VirtualGPU::Initialize(uint8_t* color_buffer, int width, int height, VGenum color_format,
+                                VGenum component_type) {
         if (color_buffer == nullptr || width <= 0 || width > VG_MAX_ATTACHMENT_WIDTH || height <= 0 ||
             height > VG_MAX_ATTACHMENT_HEIGHT) {
             return false;
@@ -21,7 +21,7 @@ namespace ho {
         // Clear states
         vram_.clear();
 
-        base_handle_ = 0;
+        base_id_ = 0;
         vertex_array_pool_.clear();
         buffer_pool_.clear();
         texture_pool_.clear();
@@ -94,8 +94,6 @@ namespace ho {
 
         state_.polygon_mode = VG_FILL;
 
-        state_.line_width = 1.f;
-
         state_.error_state = VG_NO_ERROR;
 
         // Create Default Frame Buffer
@@ -112,7 +110,7 @@ namespace ho {
         default_fb.color_attachments[0].offset = 0;
 
         // create default depth/stencil attachment
-        vram_.push_back(std::vector<uint8_t>(width * height * 4));
+        vram_.push_back(std::vector<uint8_t>(static_cast<size_t>(width) * height * 4));
         auto* mem = &vram_.back();
         default_fb.depth_stencil_attachment.ref_id = 0;
         default_fb.depth_stencil_attachment.memory = mem;
@@ -140,7 +138,7 @@ namespace ho {
 
     VirtualGPU::VirtualGPU() : job_system_(WORKER_COUNT) {}
 
-    void VirtualGPU::ClearColorAttachment(uint32_t slot, const Color128& clear_color) {
+    void VirtualGPU::ClearColorAttachment(int slot, const Color128& clear_color) {
         FrameBuffer* fb = bound_draw_frame_buffer_;
 
         if (!fb) {
@@ -153,25 +151,25 @@ namespace ho {
 
         Attachment& attch = fb->color_attachments[fb->draw_slot_to_color_attachment[slot]];
 
-        const int w = (int)attch.width;
-        const int h = (int)attch.height;
+        const int w = attch.width;
+        const int h = attch.height;
 
         // Calculate viewport, scissor intersection
 
         // viewport
-        int vx0 = math::Clamp(state_.viewport.x, 0, w);
-        int vy0 = math::Clamp(state_.viewport.y, 0, h);
-        int vx1 = math::Clamp(state_.viewport.x + state_.viewport.width, 0, w);
-        int vy1 = math::Clamp(state_.viewport.y + state_.viewport.height, 0, h);
+        const int vx0 = math::Clamp(state_.viewport.x, 0, w);
+        const int vy0 = math::Clamp(state_.viewport.y, 0, h);
+        const int vx1 = math::Clamp(state_.viewport.x + state_.viewport.width, 0, w);
+        const int vy1 = math::Clamp(state_.viewport.y + state_.viewport.height, 0, h);
 
         int x0 = vx0, y0 = vy0, x1 = vx1, y1 = vy1;
 
         // scissor
         if (state_.scissor_test_enabled) {
-            int sx0 = math::Clamp(state_.scissor.x, 0, w);
-            int sy0 = math::Clamp(state_.scissor.y, 0, h);
-            int sx1 = math::Clamp(state_.scissor.x + state_.scissor.width, 0, w);
-            int sy1 = math::Clamp(state_.scissor.y + state_.scissor.height, 0, h);
+            const int sx0 = math::Clamp(state_.scissor.x, 0, w);
+            const int sy0 = math::Clamp(state_.scissor.y, 0, h);
+            const int sx1 = math::Clamp(state_.scissor.x + state_.scissor.width, 0, w);
+            const int sy1 = math::Clamp(state_.scissor.y + state_.scissor.height, 0, h);
             x0 = math::Max(x0, sx0);
             y0 = math::Max(y0, sy0);
             x1 = math::Min(x1, sx1);
@@ -182,21 +180,21 @@ namespace ho {
             return;
         }
 
-        uint32_t pixel_size = vg::GetPixelSize(attch.format, attch.component_type);
+        const int pixel_size = vg::GetPixelSize(attch.format, attch.component_type);
         uint8_t* base = attch.external_memory != nullptr ? attch.external_memory : attch.memory->data();
         base += attch.offset;
 
         for (int y = y0; y < y1; y++) {
-            uint8_t* row = base + (size_t(y) * attch.width + x0) * pixel_size;
+            uint8_t* row = base + (static_cast<size_t>(y) * attch.width + x0) * pixel_size;
             for (int x = x0; x < x1; x++) {
-                vg::CopyPixel(row, (const uint8_t*)(&clear_color), attch.format, attch.component_type, VG_RGBA,
-                              VG_FLOAT, state_.draw_buffer_states[slot].color_mask);
+                vg::CopyPixel(row, reinterpret_cast<const uint8_t*>(&clear_color), attch.format, attch.component_type,
+                              VG_RGBA, VG_FLOAT, state_.draw_buffer_states[slot].color_mask);
                 row += pixel_size;
             }
         }
     }
 
-    void VirtualGPU::ClearDepthAttachment(float clear_depth) {
+    void VirtualGPU::ClearDepthAttachment(real clear_depth) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         FrameBuffer* fb = vg.bound_draw_frame_buffer_;
 
@@ -212,19 +210,19 @@ namespace ho {
         // Calculate viewport, scissor intersection
 
         // viewport
-        int vx0 = math::Clamp(state_.viewport.x, 0, w);
-        int vy0 = math::Clamp(state_.viewport.y, 0, h);
-        int vx1 = math::Clamp(state_.viewport.x + state_.viewport.width, 0, w);
-        int vy1 = math::Clamp(state_.viewport.y + state_.viewport.height, 0, h);
+        const int vx0 = math::Clamp(state_.viewport.x, 0, w);
+        const int vy0 = math::Clamp(state_.viewport.y, 0, h);
+        const int vx1 = math::Clamp(state_.viewport.x + state_.viewport.width, 0, w);
+        const int vy1 = math::Clamp(state_.viewport.y + state_.viewport.height, 0, h);
 
         int x0 = vx0, y0 = vy0, x1 = vx1, y1 = vy1;
 
         // scissor
         if (state_.scissor_test_enabled) {
-            int sx0 = math::Clamp(state_.scissor.x, 0, w);
-            int sy0 = math::Clamp(state_.scissor.y, 0, h);
-            int sx1 = math::Clamp(state_.scissor.x + state_.scissor.width, 0, w);
-            int sy1 = math::Clamp(state_.scissor.y + state_.scissor.height, 0, h);
+            const int sx0 = math::Clamp(state_.scissor.x, 0, w);
+            const int sy0 = math::Clamp(state_.scissor.y, 0, h);
+            const int sx1 = math::Clamp(state_.scissor.x + state_.scissor.width, 0, w);
+            const int sy1 = math::Clamp(state_.scissor.y + state_.scissor.height, 0, h);
             x0 = math::Max(x0, sx0);
             y0 = math::Max(y0, sy0);
             x1 = math::Min(x1, sx1);
@@ -238,22 +236,22 @@ namespace ho {
         if (attch.format == VG_DEPTH_STENCIL) {
             ClearDepthStencilAttachment(true, false, clear_depth, 0);
         } else {
-            uint32_t pixel_size = vg::GetPixelSize(attch.format, attch.component_type);
+            int pixel_size = vg::GetPixelSize(attch.format, attch.component_type);
             uint8_t* base = attch.external_memory != nullptr ? attch.external_memory : attch.memory->data();
             base += attch.offset;
 
             for (int y = y0; y < y1; y++) {
-                uint8_t* row = base + (size_t(y) * attch.width + x0) * pixel_size;
+                uint8_t* row = base + (static_cast<size_t>(y) * attch.width + x0) * pixel_size;
                 for (int x = x0; x < x1; x++) {
-                    vg::CopyPixel(row, (const uint8_t*)(&clear_depth), attch.format, attch.component_type,
-                                  VG_DEPTH_COMPONENT, VG_FLOAT);
+                    vg::CopyPixel(row, reinterpret_cast<const uint8_t*>(&clear_depth), attch.format,
+                                  attch.component_type, VG_DEPTH_COMPONENT, VG_FLOAT);
                     row += pixel_size;
                 }
             }
         }
     }
 
-    void VirtualGPU::ClearDepthStencilAttachment(bool is_depth_cleared, bool is_stencil_cleared, float clear_depth,
+    void VirtualGPU::ClearDepthStencilAttachment(bool is_depth_cleared, bool is_stencil_cleared, real clear_depth,
                                                  uint8_t clear_stencil) {
         FrameBuffer* fb = bound_draw_frame_buffer_;
 
@@ -267,25 +265,25 @@ namespace ho {
             return;
         }
 
-        const int w = (int)attch.width;
-        const int h = (int)attch.height;
+        const int w = attch.width;
+        const int h = attch.height;
 
         // Calculate viewport, scissor intersection
 
         // viewport
-        int vx0 = math::Clamp(state_.viewport.x, 0, w);
-        int vy0 = math::Clamp(state_.viewport.y, 0, h);
-        int vx1 = math::Clamp(state_.viewport.x + state_.viewport.width, 0, w);
-        int vy1 = math::Clamp(state_.viewport.y + state_.viewport.height, 0, h);
+        const int vx0 = math::Clamp(state_.viewport.x, 0, w);
+        const int vy0 = math::Clamp(state_.viewport.y, 0, h);
+        const int vx1 = math::Clamp(state_.viewport.x + state_.viewport.width, 0, w);
+        const int vy1 = math::Clamp(state_.viewport.y + state_.viewport.height, 0, h);
 
         int x0 = vx0, y0 = vy0, x1 = vx1, y1 = vy1;
 
         // scissor
         if (state_.scissor_test_enabled) {
-            int sx0 = math::Clamp(state_.scissor.x, 0, w);
-            int sy0 = math::Clamp(state_.scissor.y, 0, h);
-            int sx1 = math::Clamp(state_.scissor.x + state_.scissor.width, 0, w);
-            int sy1 = math::Clamp(state_.scissor.y + state_.scissor.height, 0, h);
+            const int sx0 = math::Clamp(state_.scissor.x, 0, w);
+            const int sy0 = math::Clamp(state_.scissor.y, 0, h);
+            const int sx1 = math::Clamp(state_.scissor.x + state_.scissor.width, 0, w);
+            const int sy1 = math::Clamp(state_.scissor.y + state_.scissor.height, 0, h);
             x0 = math::Max(x0, sx0);
             y0 = math::Max(y0, sy0);
             x1 = math::Min(x1, sx1);
@@ -302,9 +300,9 @@ namespace ho {
         const uint8_t stencil_mask = static_cast<uint8_t>(state_.stencil_write_mask[0]);
 
         for (int y = y0; y < y1; y++) {
-            uint8_t* row = base + (size_t(y) * attch.width + x0) * 4;
+            uint8_t* row = base + (static_cast<size_t>(y) * attch.width + x0) * 4;
             for (int x = x0; x < x1; x++) {
-                VGfloat depth;
+                float depth;
                 uint8_t stencil;
 
                 vg::DecodeDepthStencil(&depth, &stencil, row);
@@ -324,12 +322,12 @@ namespace ho {
         }
     }
 
-    void VirtualGPU::VSJobEntry(void* input, uint32_t size) {
+    void VirtualGPU::VSJobEntry(void* input, int size) {
         assert(size == sizeof(VSJobInput));
         (void)size;
         VSJobInput* in = static_cast<VSJobInput*>(input);
         VirtualGPU& vg = VirtualGPU::GetInstance();
-        for (uint32_t i = in->first_index; i <= in->last_index; i++) {
+        for (int i = in->first_index; i <= in->last_index; i++) {
             in->vs(i, vg.using_program_->varying_buffer[i - in->base_index]);
         }
         delete in;
@@ -362,8 +360,8 @@ namespace ho {
             const Varying& prev_v = polygon[(i - 1 + v_count) % v_count];
             const Varying& curr_v = polygon[i];
 
-            bool is_prev_in = IsInside(prev_v.vg_Position, plane_pos);
-            bool is_curr_in = IsInside(curr_v.vg_Position, plane_pos);
+            const bool is_prev_in = IsInside(prev_v.vg_Position, plane_pos);
+            const bool is_curr_in = IsInside(curr_v.vg_Position, plane_pos);
 
             if (is_prev_in && is_curr_in) {
                 // Case 1: in to in
@@ -421,9 +419,9 @@ namespace ho {
 
     Vector2 VirtualGPU::GetClipBarycentric(const Vector4& clip_coord1, const Vector4& clip_coord2,
                                            PlanePos plane_pos) const {
-        real e1 = EvalFrustumPlane(clip_coord1, plane_pos);
-        real e2 = EvalFrustumPlane(clip_coord2, plane_pos);
-        real denom = e1 - e2;
+        const real e1 = EvalFrustumPlane(clip_coord1, plane_pos);
+        const real e2 = EvalFrustumPlane(clip_coord2, plane_pos);
+        const real denom = e1 - e2;
         if (math::IsZeroApprox(denom)) {
             return Vector2(math::REAL_NaN, math::REAL_NaN);
         }
@@ -440,7 +438,7 @@ namespace ho {
         Varying v;
         v.vg_Position = math::Lerp(v1.vg_Position, v2.vg_Position, barycentric);
         v.used_smooth_register_size = v2.used_smooth_register_size;
-        for (uint32_t i = 0; i < v.used_smooth_register_size; i++) {
+        for (int i = 0; i < v.used_smooth_register_size; i++) {
             v.smooth_register[i] = math::Lerp(v1.smooth_register[i], v2.smooth_register[i], barycentric);
         }
         v.used_flat_register_size = v2.used_flat_register_size;
@@ -452,14 +450,15 @@ namespace ho {
     void VirtualGPU::ViewportTransform(Varying& v) const {
         const Rect& vp = state_.viewport;
 
-        real half_width = vp.width * 0.5_r;
-        real x = ((v.viewport_coord.x * half_width) + half_width + vp.x);
+        const real half_width = static_cast<real>(vp.width) * 0.5_r;
+        const real x = ((v.viewport_coord.x * half_width) + half_width + static_cast<real>(vp.x));
 
-        real half_height = vp.height * 0.5_r;
-        real y = -(v.viewport_coord.y * half_height) + half_height + vp.y;
+        const real half_height = static_cast<real>(vp.height) * 0.5_r;
+        const real y = -(v.viewport_coord.y * half_height) + half_height + static_cast<real>(vp.y);
 
-        real z = (v.viewport_coord.z * (state_.max_depth - state_.min_depth) + (state_.max_depth + state_.min_depth)) *
-                 0.5_r;
+        const real z = (v.viewport_coord.z * static_cast<real>(state_.max_depth - state_.min_depth) +
+                        static_cast<real>(state_.max_depth + state_.min_depth)) *
+                       0.5_r;
 
         v.viewport_coord = Vector3(x, y, z);
     }
@@ -490,15 +489,16 @@ namespace ho {
 
         std::vector<Fragment> out;
 
-        int x0 = (int)math::Floor(v1.viewport_coord.x);
-        int y0 = (int)math::Floor(v1.viewport_coord.y);
-        int x1 = (int)math::Floor(v2.viewport_coord.x);
-        int y1 = (int)math::Floor(v2.viewport_coord.y);
+        const int x0 = (int)math::Floor(v1.viewport_coord.x);
+        const int y0 = (int)math::Floor(v1.viewport_coord.y);
+        const int x1 = (int)math::Floor(v2.viewport_coord.x);
+        const int y1 = (int)math::Floor(v2.viewport_coord.y);
 
-        int dx = math::Abs(x1 - x0);
-        int dy = math::Abs(y1 - y0);
-        int sx = (x0 < x1) ? 1 : -1;
-        int sy = (y0 < y1) ? 1 : -1;
+        const int dx = math::Abs(x1 - x0);
+        const int dy = math::Abs(y1 - y0);
+        const int sx = (x0 < x1) ? 1 : -1;
+        const int sy = (y0 < y1) ? 1 : -1;
+
         int err = dx - dy;
 
         if (dx == 0 && dy == 0) {
@@ -508,54 +508,57 @@ namespace ho {
         out.reserve(dx + dy + 1);
 
         // Calculate gradient
-        real Dx = real(x1 - x0);
-        real Dy = real(y1 - y0);
-        real dd = Dx * Dx + Dy * Dy;
+        const real Dx = static_cast<real>(x1 - x0);
+        const real Dy = static_cast<real>(y1 - y0);
+        const real dd = Dx * Dx + Dy * Dy;
 
-        real gx = Dx / dd;
-        real gy = Dy / dd;
+        const real gx = Dx / dd;
+        const real gy = Dy / dd;
 
         // Set component for incremental perspective correct interpolation
-        real inv_w1 = 1.0_r / v1.vg_Position.w;
-        real inv_w2 = 1.0_r / v2.vg_Position.w;
+        const real inv_w1 = 1.0_r / v1.vg_Position.w;
+        const real inv_w2 = 1.0_r / v2.vg_Position.w;
 
         real inv_w = inv_w1;
-        real inv_w_dx = (inv_w2 - inv_w1) * gx * (real)sx;
-        real inv_w_dy = (inv_w2 - inv_w1) * gy * (real)sy;
+        const real inv_w_dx = (inv_w2 - inv_w1) * gx * static_cast<real>(sx);
+        const real inv_w_dy = (inv_w2 - inv_w1) * gy * static_cast<real>(sy);
 
         const uint64_t depth_bit =
             bound_draw_frame_buffer_->depth_stencil_attachment.format == VG_DEPTH_COMPONENT ? 32u : 24u;
-        const real offset_depth_v1 = ApplyDepthOffset(v1.viewport_coord.z, 0.f, depth_bit, state_.polygon_mode);
-        const real offset_depth_v2 = ApplyDepthOffset(v2.viewport_coord.z, 0.f, depth_bit, state_.polygon_mode);
+        const real offset_depth_v1 = ApplyDepthOffset(v1.viewport_coord.z, 0.0_r, depth_bit, state_.polygon_mode);
+        const real offset_depth_v2 = ApplyDepthOffset(v2.viewport_coord.z, 0.0_r, depth_bit, state_.polygon_mode);
         real depth = offset_depth_v1;
-        real depth_dx = (offset_depth_v2 - depth) * gx * (real)sx;
-        real depth_dy = (offset_depth_v2 - depth) * gy * (real)sy;
+        const real depth_dx = (offset_depth_v2 - depth) * gx * static_cast<real>(sx);
+        const real depth_dy = (offset_depth_v2 - depth) * gy * static_cast<real>(sy);
 
         float smooth_register_pw[VG_SMOOTH_REGISTER_SIZE];
         float smooth_register_pw_dx[VG_SMOOTH_REGISTER_SIZE];
         float smooth_register_pw_dy[VG_SMOOTH_REGISTER_SIZE];
 
-        for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+        for (int i = 0; i < v1.used_smooth_register_size; i++) {
             smooth_register_pw[i] = v1.smooth_register[i] * inv_w1;
-            smooth_register_pw_dx[i] = (v2.smooth_register[i] * inv_w2 - smooth_register_pw[i]) * gx * (real)sx;
-            smooth_register_pw_dy[i] = (v2.smooth_register[i] * inv_w2 - smooth_register_pw[i]) * gy * (real)sy;
+            smooth_register_pw_dx[i] =
+                (v2.smooth_register[i] * inv_w2 - smooth_register_pw[i]) * gx * static_cast<real>(sx);
+            smooth_register_pw_dy[i] =
+                (v2.smooth_register[i] * inv_w2 - smooth_register_pw[i]) * gy * static_cast<real>(sy);
         }
 
         // Bresenham loop
-        int x = x0, y = y0;
+        int x = x0;
+        int y = y0;
 
         while (true) {
-            Vector2 screen_coord(x + 0.5_r, y + 0.5_r);
+            Vector2 screen_coord(static_cast<real>(x) + 0.5_r, static_cast<real>(y) + 0.5_r);
             real w = 1.0_r / inv_w;
 
             if (ScissorTest(screen_coord.x, screen_coord.y) &&
                 TestDepthStencil(screen_coord.x, screen_coord.y, depth, true, true)) {
                 Fragment frag;
                 frag.screen_coord = screen_coord;
-                frag.depth = depth;
+                frag.depth = static_cast<real>(depth);
 
                 frag.used_smooth_register_size = v1.used_smooth_register_size;
-                for (uint32_t i = 0; i < frag.used_smooth_register_size; i++) {
+                for (int i = 0; i < frag.used_smooth_register_size; i++) {
                     frag.smooth_register[i] = smooth_register_pw[i] * w;
                 }
 
@@ -587,14 +590,14 @@ namespace ho {
             if (step_x) {
                 inv_w += inv_w_dx;
                 depth += depth_dx;
-                for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+                for (int i = 0; i < v1.used_smooth_register_size; i++) {
                     smooth_register_pw[i] += smooth_register_pw_dx[i];
                 }
             }
             if (step_y) {
                 inv_w += inv_w_dy;
                 depth += depth_dy;
-                for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+                for (int i = 0; i < v1.used_smooth_register_size; i++) {
                     smooth_register_pw[i] += smooth_register_pw_dy[i];
                 }
             }
@@ -611,28 +614,28 @@ namespace ho {
         // Edge Function and Incremental Perspective Correct Interpolation
         std::vector<Fragment> out;
 
-        BoundingBox2D b =
+        const BoundingBox2D b =
             BoundingBox2D(Vector2(v1.viewport_coord), Vector2(v2.viewport_coord), Vector2(v3.viewport_coord));
 
         const Vector2 p0(math::Ceil(b.min.x - 0.5_r) + 0.5_r, math::Ceil(b.min.y - 0.5_r) + 0.5_r);
 
-        EdgeFunction ef12(Vector2(v1.viewport_coord), Vector2(v2.viewport_coord), p0);
-        bool ef12_is_topleft = (v2.viewport_coord.y < v1.viewport_coord.y) ||
-                               (math::IsEqualApprox(v2.viewport_coord.y, v1.viewport_coord.y) &&
-                                v2.viewport_coord.x > v1.viewport_coord.x);
+        const EdgeFunction ef12(Vector2(v1.viewport_coord), Vector2(v2.viewport_coord), p0);
+        const bool ef12_is_topleft = (v2.viewport_coord.y < v1.viewport_coord.y) ||
+                                     (math::IsEqualApprox(v2.viewport_coord.y, v1.viewport_coord.y) &&
+                                      v2.viewport_coord.x > v1.viewport_coord.x);
 
-        EdgeFunction ef23(Vector2(v2.viewport_coord), Vector2(v3.viewport_coord), p0);
-        bool ef23_is_topleft = (v3.viewport_coord.y < v2.viewport_coord.y) ||
-                               (math::IsEqualApprox(v3.viewport_coord.y, v2.viewport_coord.y) &&
-                                v3.viewport_coord.x > v2.viewport_coord.x);
+        const EdgeFunction ef23(Vector2(v2.viewport_coord), Vector2(v3.viewport_coord), p0);
+        const bool ef23_is_topleft = (v3.viewport_coord.y < v2.viewport_coord.y) ||
+                                     (math::IsEqualApprox(v3.viewport_coord.y, v2.viewport_coord.y) &&
+                                      v3.viewport_coord.x > v2.viewport_coord.x);
 
-        EdgeFunction ef31(Vector2(v3.viewport_coord), Vector2(v1.viewport_coord), p0);
-        bool ef31_is_topleft = (v1.viewport_coord.y < v3.viewport_coord.y) ||
-                               (math::IsEqualApprox(v1.viewport_coord.y, v3.viewport_coord.y) &&
-                                v1.viewport_coord.x > v3.viewport_coord.x);
+        const EdgeFunction ef31(Vector2(v3.viewport_coord), Vector2(v1.viewport_coord), p0);
+        const bool ef31_is_topleft = (v1.viewport_coord.y < v3.viewport_coord.y) ||
+                                     (math::IsEqualApprox(v1.viewport_coord.y, v3.viewport_coord.y) &&
+                                      v1.viewport_coord.x > v3.viewport_coord.x);
 
-        real area = (v2.viewport_coord.x - v1.viewport_coord.x) * (v3.viewport_coord.y - v1.viewport_coord.y) -
-                    (v2.viewport_coord.y - v1.viewport_coord.y) * (v3.viewport_coord.x - v1.viewport_coord.x);
+        const real area = (v2.viewport_coord.x - v1.viewport_coord.x) * (v3.viewport_coord.y - v1.viewport_coord.y) -
+                          (v2.viewport_coord.y - v1.viewport_coord.y) * (v3.viewport_coord.x - v1.viewport_coord.x);
 
         if (math::IsEqualApprox(area, math::EPSILON_RASTERIZATION)) {
             // degenerate case
@@ -640,7 +643,7 @@ namespace ho {
         }
 
         // Face culling: Since screen space is Y-down, CCW winding results in negative area.
-        bool is_front = (state_.front_face == VG_CCW) ? (area < 0) : (area > 0);
+        const bool is_front = (state_.front_face == VG_CCW) ? (area < 0) : (area > 0);
         if (state_.cull_enabled) {
             switch (state_.cull_face) {
                 case VG_BACK:
@@ -651,6 +654,8 @@ namespace ho {
                     break;
                 case VG_FRONT_AND_BACK:
                     return out;
+                default:
+                    return out;
             }
         }
 
@@ -660,10 +665,10 @@ namespace ho {
         // (negative inside, positive outside).
         // The 'sign' value is used to unify the inside/outside test for both
         // CCW and CW triangles under a single condition.
-        real sign = area > 0.0_r ? 1.0_r : -1.0_r;
+        const real sign = area > 0.0_r ? 1.0_r : -1.0_r;
 
         // polygon offset slope
-        real depth_slope = ComputeDepthSlope(v1.viewport_coord, v2.viewport_coord, v3.viewport_coord);
+        const real depth_slope = ComputeDepthSlope(v1.viewport_coord, v2.viewport_coord, v3.viewport_coord);
 
         const real inv_area = 1.0_r / area;
 
@@ -675,11 +680,11 @@ namespace ho {
         const uint64_t depth_bit =
             bound_draw_frame_buffer_->depth_stencil_attachment.format == VG_DEPTH_COMPONENT ? 32u : 24u;
         const double offset_depth_v1 =
-            (double)ApplyDepthOffset(v1.viewport_coord.z, depth_slope, depth_bit, state_.polygon_mode);
+            static_cast<double>(ApplyDepthOffset(v1.viewport_coord.z, depth_slope, depth_bit, state_.polygon_mode));
         const double offset_depth_v2 =
-            (double)ApplyDepthOffset(v2.viewport_coord.z, depth_slope, depth_bit, state_.polygon_mode);
+            static_cast<double>(ApplyDepthOffset(v2.viewport_coord.z, depth_slope, depth_bit, state_.polygon_mode));
         const double offset_depth_v3 =
-            (double)ApplyDepthOffset(v3.viewport_coord.z, depth_slope, depth_bit, state_.polygon_mode);
+            static_cast<double>(ApplyDepthOffset(v3.viewport_coord.z, depth_slope, depth_bit, state_.polygon_mode));
 
         float smooth_register_pw1[VG_SMOOTH_REGISTER_SIZE];
         float smooth_register_pw2[VG_SMOOTH_REGISTER_SIZE];
@@ -709,7 +714,7 @@ namespace ho {
             (double)(f23_row * offset_depth_v1 + f31_row * offset_depth_v2 + f12_row * offset_depth_v3) * inv_area;
         float smooth_register_row[VG_SMOOTH_REGISTER_SIZE];
 
-        for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+        for (int i = 0; i < v1.used_smooth_register_size; i++) {
             smooth_register_pw1[i] = v1.smooth_register[i] * inv_w1;
             smooth_register_pw2[i] = v2.smooth_register[i] * inv_w2;
             smooth_register_pw3[i] = v3.smooth_register[i] * inv_w3;
@@ -745,26 +750,26 @@ namespace ho {
             std::memcpy(smooth_register, smooth_register_row, v1.used_smooth_register_size * sizeof(float));
 
             for (int x = x_min; x < x_max; ++x) {
-                bool inside12 =
+                const bool inside12 =
                     (f12_ev * sign > 0) || (ef12_is_topleft && math::Abs(f12_ev) <= math::EPSILON_RASTERIZATION);
-                bool inside23 =
+                const bool inside23 =
                     (f23_ev * sign > 0) || (ef23_is_topleft && math::Abs(f23_ev) <= math::EPSILON_RASTERIZATION);
-                bool inside31 =
+                const bool inside31 =
                     (f31_ev * sign > 0) || (ef31_is_topleft && math::Abs(f31_ev) <= math::EPSILON_RASTERIZATION);
 
                 if (inside12 && inside23 && inside31) {
-                    Vector2 target_coord(real(x) + 0.5_r, real(y) + 0.5_r);
+                    const Vector2 target_coord(real(x) + 0.5_r, real(y) + 0.5_r);
 
-                    real w = 1.0_r / inv_w;
+                    const real w = 1.0_r / inv_w;
 
                     if (ScissorTest(target_coord.x, target_coord.y) &&
-                        TestDepthStencil(target_coord.x, target_coord.y, (real)depth, is_front, true)) {
+                        TestDepthStencil(target_coord.x, target_coord.y, static_cast<real>(depth), is_front, true)) {
                         Fragment frag;
                         frag.screen_coord = target_coord;
-                        frag.depth = (real)depth;
+                        frag.depth = static_cast<real>(depth);
 
                         frag.used_smooth_register_size = v1.used_smooth_register_size;
-                        for (uint32_t i = 0; i < frag.used_smooth_register_size; i++) {
+                        for (int i = 0; i < frag.used_smooth_register_size; i++) {
                             frag.smooth_register[i] = smooth_register[i] * w;
                         }
 
@@ -784,7 +789,7 @@ namespace ho {
                 inv_w += inv_w_dx;
                 depth += depth_dx;
 
-                for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+                for (int i = 0; i < v1.used_smooth_register_size; i++) {
                     smooth_register[i] += smooth_register_dx[i];
                 }
             }
@@ -796,7 +801,7 @@ namespace ho {
 
             inv_w_row += inv_w_dy;
 
-            for (uint32_t i = 0; i < v1.used_smooth_register_size; i++) {
+            for (int i = 0; i < v1.used_smooth_register_size; i++) {
                 smooth_register_row[i] += smooth_register_dy[i];
             }
         }
@@ -808,27 +813,30 @@ namespace ho {
         if (!state_.scissor_test_enabled) {
             return true;
         }
-        const int px = (int)math::Floor(x), py = (int)math::Floor(y);
+        const int px = static_cast<int>(math::Floor(x));
+        const int py = static_cast<int>(math::Floor(y));
         const auto& vp = state_.viewport;
-        if (px < (int)vp.x || py < (int)vp.y || px >= (int)(vp.x + vp.width) || py >= (int)(vp.y + vp.height))
+        if (px < vp.x || py < vp.y || px >= (vp.x + vp.width) || py >= (vp.y + vp.height)) {
             return false;
+        }
 
-        const auto& r = state_.scissor;
-        return (px >= (int)r.x && px < (int)(r.x + r.width) && py >= (int)r.y && py < (int)(r.y + r.height));
+        const Rect& r = state_.scissor;
+        return (px >= r.x && px < (r.x + r.width) && py >= r.y && py < (r.y + r.height));
     }
 
     real VirtualGPU::ComputeDepthSlope(const Vector3& v0, const Vector3& v1, const Vector3& v2) const {
-        real denom = (v1.x - v0.x) * (v2.y - v0.y) - (v2.x - v0.x) * (v1.y - v0.y);
-        if (math::IsZeroApprox(denom)) return 0.0_r;  // degenerate triangle
+        const real denom = (v1.x - v0.x) * (v2.y - v0.y) - (v2.x - v0.x) * (v1.y - v0.y);
+        if (math::IsZeroApprox(denom)) {
+            return 0.0_r;  // degenerate triangle
+        }
 
-        real dzdx = ((v1.z - v0.z) * (v2.y - v0.y) - (v2.z - v0.z) * (v1.y - v0.y)) / denom;
-        real dzdy = ((v2.z - v0.z) * (v1.x - v0.x) - (v1.z - v0.z) * (v2.x - v0.x)) / denom;
+        const real dzdx = ((v1.z - v0.z) * (v2.y - v0.y) - (v2.z - v0.z) * (v1.y - v0.y)) / denom;
+        const real dzdy = ((v2.z - v0.z) * (v1.x - v0.x) - (v1.z - v0.z) * (v2.x - v0.x)) / denom;
 
         return math::Max(math::Abs(dzdx), math::Abs(dzdy));
     }
 
-    VGfloat VirtualGPU::ApplyDepthOffset(VGfloat depth, VGfloat depth_slope, uint64_t depth_bits,
-                                         VGenum primitive_mode) const {
+    real VirtualGPU::ApplyDepthOffset(real depth, real depth_slope, uint64_t depth_bits, VGenum primitive_mode) const {
         bool enabled = false;
         switch (primitive_mode) {
             case VG_FILL:
@@ -840,32 +848,35 @@ namespace ho {
             case VG_POINT:
                 enabled = state_.point_offset_enabled;
                 break;
+            default:
+                // no op
+                break;
         }
 
         if (!enabled) {
             return depth;
         }
-        (void)depth_bits;
-        double r = (double)(1.0 / (double)((uint64_t)1 << depth_bits));
 
-        VGfloat bias = depth_slope * state_.depth_factor + (float)r * state_.depth_unit;
-        return math::Clamp(depth + bias, state_.min_depth, state_.max_depth);
+        const double r = (double)(1.0 / (double)((uint64_t)1 << depth_bits));
+
+        const double bias = static_cast<double>(depth_slope) * state_.depth_factor + r * state_.depth_unit;
+        return static_cast<real>(math::Clamp(static_cast<double>(depth) + bias, state_.min_depth, state_.max_depth));
     }
 
-    bool VirtualGPU::TestDepthStencil(VGfloat x, VGfloat y, VGfloat depth, bool is_front_face, bool compare_only) {
+    bool VirtualGPU::TestDepthStencil(real x, real y, real depth, bool is_front_face, bool compare_only) {
         FrameBuffer* fb = bound_draw_frame_buffer_;
         Attachment& attch = fb->depth_stencil_attachment;
         if (!attch.memory) {
             return true;
         }
 
-        VGsizei px = (VGsizei)math::Floor(x);
-        VGsizei py = (VGsizei)math::Floor(y);
+        const int px = static_cast<int>(math::Floor(x));
+        const int py = static_cast<int>(math::Floor(y));
         if (px < 0 || py < 0 || px >= attch.width || py >= attch.height) {
             return false;
         }
 
-        size_t pixel_index = (size_t)py * attch.width + (size_t)px;
+        const size_t pixel_index = static_cast<size_t>(py) * attch.width + px;
         uint8_t* pixel_addr =
             attch.memory->data() + attch.offset + pixel_index * vg::GetPixelSize(attch.format, attch.component_type);
         SpinLock& lock = GetDepthLock(px, py);
@@ -913,15 +924,15 @@ namespace ho {
                         stencil_pass = (ref_m != val_m);
                         break;
                     default:
-                        stencil_pass = true;
+                        // no op
                         break;
                 }
             }
         } else {
             // Read depth only
             lock.Lock();
-            vg::CopyPixel((uint8_t*)(&old_depth), pixel_addr, attch.format, attch.component_type, VG_DEPTH_COMPONENT,
-                          VG_FLOAT);
+            vg::CopyPixel(reinterpret_cast<uint8_t*>(&old_depth), pixel_addr, attch.format, attch.component_type,
+                          VG_DEPTH_COMPONENT, VG_FLOAT);
             lock.Unlock();
         }
 
@@ -951,6 +962,9 @@ namespace ho {
                     break;
                 case VG_ALWAYS:
                     depth_pass = true;
+                    break;
+                default:
+                    // no op
                     break;
             }
         }
@@ -995,6 +1009,9 @@ namespace ho {
                             case VG_DECR_WRAP:
                                 result = (uint8_t)((stencil - 1) & 0xFF);
                                 break;
+                            default:
+                                // no op
+                                break;
                         }
                         stencil = (stencil & ~write_mask) | (result & write_mask);
                     }
@@ -1018,8 +1035,8 @@ namespace ho {
                 // Write depth only
                 if (state_.depth_test_enabled && depth_pass && state_.depth_write_enabled) {
                     lock.Lock();
-                    vg::CopyPixel(pixel_addr, (uint8_t*)(&depth), VG_DEPTH_COMPONENT, VG_FLOAT, VG_DEPTH_COMPONENT,
-                                  VG_FLOAT);
+                    vg::CopyPixel(pixel_addr, reinterpret_cast<const uint8_t*>(&depth), VG_DEPTH_COMPONENT, VG_FLOAT,
+                                  VG_DEPTH_COMPONENT, VG_FLOAT);
                     lock.Unlock();
                 }
             }
@@ -1166,7 +1183,7 @@ namespace ho {
         }
     }
 
-    void VirtualGPU::WriteColor(VGfloat x, VGfloat y, const Color128& color, uint32_t slot) {
+    void VirtualGPU::WriteColor(real x, real y, const Color128& color, int slot) {
         FrameBuffer* fb = bound_draw_frame_buffer_;
         if (!fb) {
             return;
@@ -1181,12 +1198,12 @@ namespace ho {
             return;
         }
 
-        DrawBufferState& dbs = state_.draw_buffer_states[slot];
+        const DrawBufferState& dbs = state_.draw_buffer_states[slot];
 
-        uint32_t px = (uint32_t)math::Floor(x);
-        uint32_t py = (uint32_t)math::Floor(y);
+        const int px = static_cast<int>(math::Floor(x));
+        const int py = static_cast<int>(math::Floor(y));
 
-        size_t pixel_index = static_cast<size_t>(py) * attch.width + px;
+        const size_t pixel_index = static_cast<size_t>(py) * attch.width + px;
         uint8_t* base = attch.external_memory != nullptr ? attch.external_memory : attch.memory->data();
         uint8_t* pixel_addr = base + attch.offset + pixel_index * vg::GetPixelSize(attch.format, attch.component_type);
         SpinLock& lock = GetColorLock(fb->draw_slot_to_color_attachment[slot], px, py);
@@ -1196,33 +1213,34 @@ namespace ho {
         // read previous color
         lock.Lock();
         vg::DecodeColor(&dst_color, pixel_addr, attch.format, attch.component_type);
+        lock.Unlock();
 
         Color128 final_color = color;
 
         // blending
         if (dbs.blend_enabled) {
             // RGB
-            real r_src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 0);
-            real r_dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 0);
+            const real r_src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 0);
+            const real r_dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 0);
             real src_term = color.r * r_src_factor;
             real dst_term = dst_color.r * r_dst_factor;
             final_color.r = ApplyBlendEquation(state_.blend_rgb_equation, src_term, dst_term);
 
-            real g_src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 1);
-            real g_dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 1);
+            const real g_src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 1);
+            const real g_dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 1);
             src_term = color.g * g_src_factor;
             dst_term = dst_color.g * g_dst_factor;
             final_color.g = ApplyBlendEquation(state_.blend_rgb_equation, src_term, dst_term);
 
-            real b_src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 2);
-            real b_dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 2);
+            const real b_src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 2);
+            const real b_dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 2);
             src_term = color.b * b_src_factor;
             dst_term = dst_color.b * b_dst_factor;
             final_color.b = ApplyBlendEquation(state_.blend_rgb_equation, src_term, dst_term);
 
             // Alpha
-            real a_src_factor = GetBlendFactor(state_.blend_src_alpha_factor, color, dst_color, 3);
-            real a_dst_factor = GetBlendFactor(state_.blend_dst_alpha_factor, color, dst_color, 3);
+            const real a_src_factor = GetBlendFactor(state_.blend_src_alpha_factor, color, dst_color, 3);
+            const real a_dst_factor = GetBlendFactor(state_.blend_dst_alpha_factor, color, dst_color, 3);
             src_term = color.a * a_src_factor;
             dst_term = dst_color.a * a_dst_factor;
             final_color.a = ApplyBlendEquation(state_.blend_alpha_equation, src_term, dst_term);
@@ -1235,17 +1253,19 @@ namespace ho {
         if (dbs.color_mask[2]) write_color.b = final_color.b;
         if (dbs.color_mask[3]) write_color.a = final_color.a;
 
+        lock.Lock();
         vg::EncodeColor(pixel_addr, write_color, attch.format, attch.component_type);
         lock.Unlock();
     }
 
-    void VirtualGPU::AfterVSJobEntry(void* input, uint32_t size) {
+    void VirtualGPU::AfterVSJobEntry(void* input, int size) {
         assert(size == sizeof(AfterVSJobInput));
         (void)size;
         VirtualGPU& vg = VirtualGPU::GetInstance();
         AfterVSJobInput* in = static_cast<AfterVSJobInput*>(input);
 
         std::vector<Varying> poly;
+        poly.reserve(in->poly.size());
 
         for (Varying* v : in->poly) {
             poly.push_back(*v);
@@ -1268,7 +1288,7 @@ namespace ho {
         // Rasterization
         std::vector<Fragment> frags;
         std::vector<Fragment> temp_frags;
-        const auto pmode = vg.state_.polygon_mode;
+        const VGenum pmode = vg.state_.polygon_mode;
 
         if (poly.size() == 1) {
             frags = vg.Rasterize(poly[0]);
@@ -1285,7 +1305,7 @@ namespace ho {
                     break;
 
                 case VG_LINE:
-                    for (size_t i = 0; i < poly.size(); ++i) {
+                    for (size_t i = 0; i < poly.size(); i++) {
                         const Varying& a = poly[i];
                         const Varying& b = poly[(i + 1) % poly.size()];
                         temp_frags = vg.Rasterize(a, b);
@@ -1294,11 +1314,14 @@ namespace ho {
                     }
                     break;
                 case VG_FILL:
-                    for (size_t i = 1; i + 1 < poly.size(); ++i) {
+                    for (size_t i = 1; i + 1 < poly.size(); i++) {
                         temp_frags = vg.Rasterize(poly[0], poly[i], poly[i + 1]);
                         frags.insert(frags.end(), std::make_move_iterator(temp_frags.begin()),
                                      std::make_move_iterator(temp_frags.end()));
                     }
+                    break;
+                default:
+                    // no op
                     break;
             }
         }
@@ -1316,7 +1339,7 @@ namespace ho {
             if (!vg.TestDepthStencil(frag.screen_coord.x, frag.screen_coord.y, frag.depth, frag.is_front)) {
                 continue;
             }
-            for (uint32_t slot = 0; slot < VG_DRAW_BUFFER_SLOT_COUNT; slot++) {
+            for (int slot = 0; slot < VG_DRAW_BUFFER_SLOT_COUNT; slot++) {
                 if (!outputs.written.test(slot)) {
                     continue;
                 }

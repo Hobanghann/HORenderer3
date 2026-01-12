@@ -95,15 +95,15 @@ namespace ho {
     // T can be  float, Vector2, Vector3, Vector4, uint8_t, int8_t, uint16_t,
     // int16_t,uint32_t,int32_t
     template <typename T>
-    ALWAYS_INLINE T FetchAttribute(VGuint location, VGuint index = 0) {
+    ALWAYS_INLINE T FetchAttribute(VGuint location, VGint index = 0) {
         static uint8_t default_zero[16] = {0};
 
         VirtualGPU& vg = VirtualGPU::GetInstance();
 
         const uint8_t* src = nullptr;
         VGenum type;
-        uint32_t type_size = 0;
-        uint32_t comp_count = 0;
+        int type_size = 0;
+        int comp_count = 0;
         bool normalized = false;
         bool is_pure_integer = false;
 
@@ -115,7 +115,7 @@ namespace ho {
             comp_count = attr.size;
             normalized = attr.normalized;
             is_pure_integer = attr.is_pure_integer;
-            uint32_t stride = attr.stride == 0 ? attr.size * type_size : attr.stride;
+            int stride = attr.stride == 0 ? attr.size * type_size : attr.stride;
             src = attr.buffer->memory->data() + attr.offset + (stride * index);
         } else {
             auto cit = vg.constant_attributes_.find(location);
@@ -139,25 +139,25 @@ namespace ho {
 
         if constexpr (std::is_same_v<T, float>) {
             float comps[4] = {0.f, 0.f, 0.f, 1.f};
-            for (uint32_t i = 0; i < comp_count; ++i) {
+            for (int i = 0; i < comp_count; i++) {
                 comps[i] = LoadAsFloat(src + i * type_size, type, normalized);
             }
             return comps[0];
         } else if constexpr (std::is_same_v<T, Vector2>) {
             float comps[4] = {0.f, 0.f, 0.f, 1.f};
-            for (uint32_t i = 0; i < comp_count; ++i) {
+            for (int i = 0; i < comp_count; i++) {
                 comps[i] = LoadAsFloat(src + i * type_size, type, normalized);
             }
             return Vector2(comps[0], comps[1]);
         } else if constexpr (std::is_same_v<T, Vector3>) {
             float comps[4] = {0.f, 0.f, 0.f, 1.f};
-            for (uint32_t i = 0; i < comp_count; ++i) {
+            for (int i = 0; i < comp_count; i++) {
                 comps[i] = LoadAsFloat(src + i * type_size, type, normalized);
             }
             return Vector3(comps[0], comps[1], comps[2]);
         } else if constexpr (std::is_same_v<T, Vector4>) {
             float comps[4] = {0.f, 0.f, 0.f, 1.f};
-            for (uint32_t i = 0; i < comp_count; ++i) {
+            for (int i = 0; i < comp_count; i++) {
                 comps[i] = LoadAsFloat(src + i * type_size, type, normalized);
             }
             return Vector4(comps[0], comps[1], comps[2], comps[3]);
@@ -187,7 +187,7 @@ namespace ho {
     // T can be  float, Vector2, Vector3, Vector4, Matrix2x2, Matrix3x3, Matrix4x4,
     // uint32_t, int32_t
     template <typename T>
-    ALWAYS_INLINE T FetchUniform(uint32_t name_hash, VGuint index = 0) {
+    ALWAYS_INLINE T FetchUniform(uint32_t name_hash, VGint index = 0) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         assert(vg.using_program_);
         auto loc_it = vg.using_program_->uniform_name_hash_to_location.find(name_hash);
@@ -203,7 +203,7 @@ namespace ho {
     // T can be  float, Vector2, Vector3, Vector4, Matrix2x2, Matrix3x3, Matrix4x4,
     // uint32_t, int32_t
     template <typename T>
-    ALWAYS_INLINE T FetchUniformBlock(VGuint binding, VGuint offset) {
+    ALWAYS_INLINE T FetchUniformBlock(VGuint binding, VGint offset) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         auto it = vg.uniform_buffer_bindings_.find(binding);
         assert(it != vg.uniform_buffer_bindings_.end());
@@ -214,7 +214,7 @@ namespace ho {
         return dst;
     }
 
-    ALWAYS_INLINE VGfloat ApplyWrap(VGint wrap_mode, VGfloat coord) {
+    ALWAYS_INLINE VGfloat ApplyWrap(VGenum wrap_mode, VGfloat coord) {
         real t = 0.0_r;
         real frac = 0.0_r;
         switch (wrap_mode) {
@@ -234,12 +234,12 @@ namespace ho {
     }
 
     template <typename T>
-    ALWAYS_INLINE T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, uint32_t level, VGfloat u) {
+    ALWAYS_INLINE T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, VGint level, VGfloat u) {
         const auto& lvl = tex.mipmap[level];
         const uint8_t* base = lvl.memory->data();
-        const uint32_t pixel_size = vg::GetPixelSize(tex.internal_format, tex.component_type);
+        const int pixel_size = vg::GetPixelSize(tex.internal_format, tex.component_type);
 
-        const float x = u * (float)(lvl.width - 1);
+        const float x = u * static_cast<float>(lvl.width - 1);
 
         auto GetTexel = [&](int index) -> T {
             const uint8_t* pixel_ptr = base + index * pixel_size;
@@ -258,12 +258,12 @@ namespace ho {
 
         switch (filter) {
             case VG_NEAREST: {
-                int px = (int)(math::Round(x));
+                int px = static_cast<int>(math::Round(x));
                 return GetTexel(px);
             }
 
             case VG_LINEAR: {
-                int x0 = (int)(math::Floor(x));
+                int x0 = static_cast<int>(math::Floor(x));
                 int x1 = x0 + 1;
                 float t = x - x0;
 
@@ -279,14 +279,13 @@ namespace ho {
     }
 
     template <typename T>
-    ALWAYS_INLINE T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, uint32_t level, VGfloat u,
-                                VGfloat v) {
+    ALWAYS_INLINE T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, VGint level, VGfloat u, VGfloat v) {
         const auto& lvl = tex.mipmap[level];
         const uint8_t* base = lvl.memory->data();
-        const uint32_t pixel_size = vg::GetPixelSize(tex.internal_format, tex.component_type);
+        const int pixel_size = vg::GetPixelSize(tex.internal_format, tex.component_type);
 
-        const float x = u * (float)(lvl.width - 1);
-        const float y = v * (float)(lvl.height - 1);
+        const float x = u * static_cast<float>(lvl.width - 1);
+        const float y = v * static_cast<float>(lvl.height - 1);
 
         auto GetTexel = [&](int x_idx, int y_idx) -> T {
             const uint8_t* pixel_ptr = base + (y_idx * lvl.width + x_idx) * pixel_size;
@@ -305,14 +304,14 @@ namespace ho {
 
         switch (filter) {
             case VG_NEAREST: {
-                int px = (int)(math::Round(x));
-                int py = (int)(math::Round(y));
+                int px = static_cast<int>(math::Round(x));
+                int py = static_cast<int>(math::Round(y));
                 return GetTexel(px, py);
             }
 
             case VG_LINEAR: {
-                int x0 = (int)(math::Floor(x));
-                int y0 = (int)(math::Floor(y));
+                int x0 = static_cast<int>(math::Floor(x));
+                int y0 = static_cast<int>(math::Floor(y));
 
                 int x1 = x0 + 1;
                 int y1 = y0 + 1;
@@ -337,15 +336,15 @@ namespace ho {
     }
 
     template <typename T>
-    ALWAYS_INLINE T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, uint32_t level, VGfloat u,
-                                VGfloat v, VGfloat w) {
+    ALWAYS_INLINE T ApplyFilter(VGint filter, const VirtualGPU::TextureObject& tex, VGint level, VGfloat u, VGfloat v,
+                                VGfloat w) {
         const auto& lvl = tex.mipmap[level];
         const uint8_t* base = lvl.memory->data();
-        const uint32_t pixel_size = vg::GetPixelSize(tex.internal_format, tex.component_type);
+        const int pixel_size = vg::GetPixelSize(tex.internal_format, tex.component_type);
 
-        const float x = u * (float)(lvl.width - 1);
-        const float y = v * (float)(lvl.height - 1);
-        const float z = w * (float)(lvl.depth - 1);
+        const float x = u * static_cast<float>(lvl.width - 1);
+        const float y = v * static_cast<float>(lvl.height - 1);
+        const float z = w * static_cast<float>(lvl.depth - 1);
 
         auto GetTexel = [&](int x_idx, int y_idx, int z_idx) -> T {
             const size_t index = ((size_t)z_idx * lvl.height + y_idx) * lvl.width + x_idx;
@@ -365,16 +364,16 @@ namespace ho {
 
         switch (filter) {
             case VG_NEAREST: {
-                int ix = (int)(math::Round(x));
-                int iy = (int)(math::Round(y));
-                int iz = (int)(math::Round(z));
+                int ix = static_cast<int>(math::Round(x));
+                int iy = static_cast<int>(math::Round(y));
+                int iz = static_cast<int>(math::Round(z));
                 return GetTexel(ix, iy, iz);
             }
 
             case VG_LINEAR: {
-                int x0 = (int)(math::Floor(x));
-                int y0 = (int)(math::Floor(y));
-                int z0 = (int)(math::Floor(z));
+                int x0 = static_cast<int>(math::Floor(x));
+                int y0 = static_cast<int>(math::Floor(y));
+                int z0 = static_cast<int>(math::Floor(z));
 
                 int x1 = x0 + 1;
                 int y1 = y0 + 1;
@@ -569,34 +568,35 @@ namespace ho {
         return filtered;
     }
 
-    ALWAYS_INLINE float TextureSize1D(VGuint unit_slot, uint32_t lod) {
+    ALWAYS_INLINE float TextureSize1D(VGuint unit_slot, VGint level) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         VirtualGPU::TextureUnit& unit = vg.texture_units_[unit_slot];
 
         VirtualGPU::TextureObject* tex = unit.bound_texture_targets[vg::GetTextureSlot(VG_TEXTURE_1D)];
         assert(tex);
-        assert(tex->mipmap_count > lod);
-        return (float)tex->mipmap[lod].width;
+        assert(tex->mipmap_count > level);
+        return (float)tex->mipmap[level].width;
     }
 
-    ALWAYS_INLINE Vector2 TextureSize2D(VGuint unit_slot, uint32_t lod) {
+    ALWAYS_INLINE Vector2 TextureSize2D(VGuint unit_slot, VGint level) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         VirtualGPU::TextureUnit& unit = vg.texture_units_[unit_slot];
 
         VirtualGPU::TextureObject* tex = unit.bound_texture_targets[vg::GetTextureSlot(VG_TEXTURE_2D)];
         assert(tex);
-        assert(tex->mipmap_count > lod);
-        return Vector2((float)tex->mipmap[lod].width, (float)tex->mipmap[lod].height);
+        assert(tex->mipmap_count > level);
+        return Vector2((float)tex->mipmap[level].width, (float)tex->mipmap[level].height);
     }
 
-    ALWAYS_INLINE Vector3 TextureSize3D(VGuint unit_slot, uint32_t lod) {
+    ALWAYS_INLINE Vector3 TextureSize3D(VGuint unit_slot, VGint level) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         VirtualGPU::TextureUnit& unit = vg.texture_units_[unit_slot];
 
         VirtualGPU::TextureObject* tex = unit.bound_texture_targets[vg::GetTextureSlot(VG_TEXTURE_3D)];
         assert(tex);
-        assert(tex->mipmap_count > lod);
-        return Vector3((float)tex->mipmap[lod].width, (float)tex->mipmap[lod].height, (float)tex->mipmap[lod].depth);
+        assert(tex->mipmap_count > level);
+        return Vector3((float)tex->mipmap[level].width, (float)tex->mipmap[level].height,
+                       (float)tex->mipmap[level].depth);
     }
 
 }  // namespace ho

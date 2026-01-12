@@ -177,12 +177,12 @@ namespace ho {
             v.vg_Position = Vector4(smooth_start, smooth_start, smooth_start, 1.0f);
 
             v.used_smooth_register_size = 10;
-            for (uint32_t i = 0; i < v.used_smooth_register_size; ++i) {
+            for (int i = 0; i < v.used_smooth_register_size; ++i) {
                 v.smooth_register[i] = smooth_start + (float)i;
             }
 
             v.used_flat_register_size = 5;
-            for (uint32_t i = 0; i < v.used_flat_register_size; ++i) {
+            for (int i = 0; i < v.used_flat_register_size; ++i) {
                 v.flat_register[i] = flat_val + (float)i;
             }
         };

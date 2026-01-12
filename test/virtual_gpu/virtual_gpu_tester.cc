@@ -113,7 +113,7 @@ namespace ho {
             return false;
         }
 
-        if (vg.base_handle_ != 0u) {
+        if (vg.base_id_ != 0u) {
             return false;
         }
 
@@ -167,7 +167,7 @@ namespace ho {
         if (s.clear_color != Color128(0.f, 0.f, 0.f, 0.f)) {
             return false;
         }
-        if (!math::IsEqualApprox(s.clear_depth, 1.f)) {
+        if (!math::IsEqualApprox(static_cast<real>(s.clear_depth), 1.0_r)) {
             return false;
         }
         if (s.clear_stencil != 0) {
@@ -321,10 +321,6 @@ namespace ho {
             return false;
         }
         if (s.polygon_mode != VG_FILL) {
-            return false;
-        }
-
-        if (!math::IsEqualApprox(s.line_width, 1.f)) {
             return false;
         }
 
@@ -1485,12 +1481,12 @@ namespace ho {
         if (out.vg_Position != v1.vg_Position) return false;
 
         if (out.used_smooth_register_size != v1.used_smooth_register_size) return false;
-        for (uint32_t i = 0; i < out.used_smooth_register_size; ++i) {
+        for (int i = 0; i < out.used_smooth_register_size; ++i) {
             if (!math::IsEqualApprox(out.smooth_register[i], v1.smooth_register[i])) return false;
         }
 
         if (out.used_flat_register_size != v1.used_flat_register_size) return false;
-        for (uint32_t i = 0; i < out.used_flat_register_size; ++i) {
+        for (int i = 0; i < out.used_flat_register_size; ++i) {
             if (!math::IsEqualApprox(out.flat_register[i], v2.flat_register[i])) return false;
         }
 
@@ -1512,11 +1508,11 @@ namespace ho {
 
         if (out.vg_Position != v2.vg_Position) return false;
 
-        for (uint32_t i = 0; i < out.used_smooth_register_size; ++i) {
+        for (int i = 0; i < out.used_smooth_register_size; ++i) {
             if (!math::IsEqualApprox(out.smooth_register[i], v2.smooth_register[i])) return false;
         }
 
-        for (uint32_t i = 0; i < out.used_flat_register_size; ++i) {
+        for (int i = 0; i < out.used_flat_register_size; ++i) {
             if (!math::IsEqualApprox(out.flat_register[i], v2.flat_register[i])) return false;
         }
 
@@ -1541,12 +1537,12 @@ namespace ho {
         if (!math::IsEqualApprox(out.vg_Position.z, 5.0f, 1e-5f)) return false;
         if (!math::IsEqualApprox(out.vg_Position.w, 1.0f, 1e-5f)) return false;
 
-        for (uint32_t i = 0; i < out.used_smooth_register_size; ++i) {
+        for (int i = 0; i < out.used_smooth_register_size; ++i) {
             float expected = (v1.smooth_register[i] + v2.smooth_register[i]) * 0.5f;
             if (!math::IsEqualApprox(out.smooth_register[i], expected, 1e-5f)) return false;
         }
 
-        for (uint32_t i = 0; i < out.used_flat_register_size; ++i) {
+        for (int i = 0; i < out.used_flat_register_size; ++i) {
             if (math::IsEqualApprox(out.flat_register[i], v1.flat_register[i], 1e-5f)) return false;
             if (!math::IsEqualApprox(out.flat_register[i], v2.flat_register[i], 1e-5f)) return false;
         }
@@ -4038,12 +4034,12 @@ namespace ho {
         if (!math::IsEqualApprox(frag.depth, 0.5_r)) return false;
 
         if (frag.used_smooth_register_size != v.used_smooth_register_size) return false;
-        for (uint32_t i = 0; i < v.used_smooth_register_size; ++i) {
+        for (int i = 0; i < v.used_smooth_register_size; ++i) {
             if (!math::IsEqualApprox(frag.smooth_register[i], v.smooth_register[i])) return false;
         }
 
         if (frag.used_flat_register_size != v.used_flat_register_size) return false;
-        for (uint32_t i = 0; i < v.used_flat_register_size; ++i) {
+        for (int i = 0; i < v.used_flat_register_size; ++i) {
             if (!math::IsEqualApprox(frag.flat_register[i], v.flat_register[i])) return false;
         }
 
@@ -4206,7 +4202,7 @@ namespace ho {
 
         std::vector<float> smooth_min(v0.used_smooth_register_size);
         std::vector<float> smooth_max(v0.used_smooth_register_size);
-        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
             smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
             smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
         }
@@ -4219,7 +4215,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+            for (int i = 0; i < f.used_smooth_register_size; ++i) {
                 float val = f.smooth_register[i];
                 if (val < smooth_min[i] - eps || val > smooth_max[i] + eps) return false;
             }
@@ -4288,7 +4284,7 @@ namespace ho {
         std::vector<float> smooth_min(v0.used_smooth_register_size);
         std::vector<float> smooth_max(v0.used_smooth_register_size);
 
-        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
             smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
             smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
         }
@@ -4301,7 +4297,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+            for (int i = 0; i < f.used_smooth_register_size; ++i) {
                 float val = f.smooth_register[i];
                 float mn = smooth_min[i];
                 float mx = smooth_max[i];
@@ -4373,7 +4369,7 @@ namespace ho {
         std::vector<float> smooth_min(v0.used_smooth_register_size);
         std::vector<float> smooth_max(v0.used_smooth_register_size);
 
-        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
             smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
             smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
         }
@@ -4386,7 +4382,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+            for (int i = 0; i < f.used_smooth_register_size; ++i) {
                 float val = f.smooth_register[i];
                 float mn = smooth_min[i];
                 float mx = smooth_max[i];
@@ -4458,7 +4454,7 @@ namespace ho {
         std::vector<float> smooth_min(v0.used_smooth_register_size);
         std::vector<float> smooth_max(v0.used_smooth_register_size);
 
-        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
             smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
             smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
         }
@@ -4471,7 +4467,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+            for (int i = 0; i < f.used_smooth_register_size; ++i) {
                 float val = f.smooth_register[i];
                 float mn = smooth_min[i];
                 float mx = smooth_max[i];
@@ -4660,7 +4656,7 @@ namespace ho {
         std::vector<float> smooth_min(v0.used_smooth_register_size);
         std::vector<float> smooth_max(v0.used_smooth_register_size);
 
-        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
             smooth_min[i] = math::Min(v0.smooth_register[i], math::Min(v1.smooth_register[i], v2.smooth_register[i]));
             smooth_max[i] = math::Max(v0.smooth_register[i], math::Max(v1.smooth_register[i], v2.smooth_register[i]));
         }
@@ -4673,7 +4669,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+            for (int i = 0; i < f.used_smooth_register_size; ++i) {
                 float val = f.smooth_register[i];
                 if (val < smooth_min[i] - eps || val > smooth_max[i] + eps) return false;
             }
@@ -4820,7 +4816,7 @@ namespace ho {
         std::vector<float> smooth_min(v0.used_smooth_register_size);
         std::vector<float> smooth_max(v0.used_smooth_register_size);
 
-        for (uint32_t i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
             smooth_min[i] = math::Min(v0.smooth_register[i], math::Min(v1.smooth_register[i], v2.smooth_register[i]));
             smooth_max[i] = math::Max(v0.smooth_register[i], math::Max(v1.smooth_register[i], v2.smooth_register[i]));
         }
@@ -4833,7 +4829,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (uint32_t i = 0; i < f.used_smooth_register_size; ++i) {
+            for (int i = 0; i < f.used_smooth_register_size; ++i) {
                 float val = f.smooth_register[i];
                 if (val < smooth_min[i] - eps || val > smooth_max[i] + eps) return false;
             }

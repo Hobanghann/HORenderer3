@@ -14,7 +14,7 @@
 #include "vg.h"
 
 namespace ho {
-    INLINE constexpr uint32_t VG_INVALID_SLOT = 0xFFFFFFFF;
+    INLINE constexpr int VG_INVALID_SLOT = -1;
 
     // hash function for uniform location
     constexpr uint32_t fnv1a_32(const char* s, size_t n, uint32_t hash = 2166136261u) {
@@ -24,8 +24,7 @@ namespace ho {
     constexpr uint32_t operator"" _vg(const char* s, size_t n) { return fnv1a_32(s, n); }
 
     namespace vg {
-
-        ALWAYS_INLINE uint32_t GetBufferSlot(VGenum target) {
+        ALWAYS_INLINE int GetBufferSlot(VGenum target) {
             switch (target) {
                 case VG_ARRAY_BUFFER:
                     return 0;
@@ -40,7 +39,7 @@ namespace ho {
             }
         }
 
-        ALWAYS_INLINE uint32_t GetTextureSlot(VGenum target) {
+        ALWAYS_INLINE int GetTextureSlot(VGenum target) {
             switch (target) {
                 case VG_TEXTURE_1D:
                 case VG_PROXY_TEXTURE_1D:
@@ -78,7 +77,7 @@ namespace ho {
                    (type == VG_FLOAT);
         }
 
-        ALWAYS_INLINE uint32_t GetTypeSize(VGenum type) {
+        ALWAYS_INLINE int GetTypeSize(VGenum type) {
             switch (type) {
                 case VG_UNSIGNED_BYTE:
                 case VG_BYTE:
@@ -97,7 +96,7 @@ namespace ho {
             }
         }
 
-        ALWAYS_INLINE uint32_t GetChannelCount(VGenum format) {
+        ALWAYS_INLINE int GetChannelCount(VGenum format) {
             switch (format) {
                 case VG_RED:
                 case VG_DEPTH_COMPONENT:
@@ -116,8 +115,8 @@ namespace ho {
             }
         }
 
-        ALWAYS_INLINE uint32_t GetPixelSize(VGenum format, VGenum type) {
-            const uint32_t type_size = GetTypeSize(type);
+        ALWAYS_INLINE int GetPixelSize(VGenum format, VGenum type) {
+            const int type_size = GetTypeSize(type);
             switch (format) {
                 case VG_DEPTH_COMPONENT:
                 case VG_RED:
@@ -154,13 +153,13 @@ namespace ho {
                                      VGenum src_format, VGenum src_type, const bool* color_mask = nullptr) {
             // Color & depth only
             if (dst_format != VG_DEPTH_STENCIL || src_format != VG_DEPTH_STENCIL) {
-                const uint32_t src_channel_count = GetChannelCount(src_format);
-                const uint32_t dst_channel_count = GetChannelCount(dst_format);
-                const uint32_t src_type_size = GetTypeSize(src_type);
-                const uint32_t dst_type_size = GetTypeSize(dst_type);
+                const int src_channel_count = GetChannelCount(src_format);
+                const int dst_channel_count = GetChannelCount(dst_format);
+                const int src_type_size = GetTypeSize(src_type);
+                const int dst_type_size = GetTypeSize(dst_type);
 
                 // physical channel means actual memory location of logical channel
-                auto GetPhysicalChannel = [](VGenum format, uint32_t logical_channel) -> uint32_t {
+                auto GetPhysicalChannel = [](VGenum format, int logical_channel) -> int {
                     if (format == VG_BGR || format == VG_BGRA) {
                         if (logical_channel == 0) return 2;
                         if (logical_channel == 2) return 0;
@@ -168,9 +167,9 @@ namespace ho {
                     return logical_channel;
                 };
                 // logical channel always r, g, b, a ordered.
-                for (uint32_t logical_channel = 0; logical_channel < dst_channel_count; logical_channel++) {
-                    uint32_t src_physical_channel = GetPhysicalChannel(src_format, logical_channel);
-                    uint32_t dst_physical_channel = GetPhysicalChannel(dst_format, logical_channel);
+                for (int logical_channel = 0; logical_channel < dst_channel_count; logical_channel++) {
+                    const int src_physical_channel = GetPhysicalChannel(src_format, logical_channel);
+                    const int dst_physical_channel = GetPhysicalChannel(dst_format, logical_channel);
 
                     if (color_mask && !color_mask[dst_physical_channel]) {
                         continue;
@@ -314,16 +313,16 @@ namespace ho {
             dst->a = dst_pixel[3];
         }
 
-        ALWAYS_INLINE void EncodeDepthStencil(uint8_t* dst, VGfloat depth, VGint stencil) {
+        ALWAYS_INLINE void EncodeDepthStencil(uint8_t* dst, real depth, uint8_t stencil) {
             depth = math::Clamp(depth, 0.f, 1.f);
             uint32_t qd = static_cast<uint32_t>(depth * 16777215.0f);
-            dst[0] = (uint8_t)stencil;
-            dst[1] = (uint8_t)((qd >> 0) & 0xFF);
-            dst[2] = (uint8_t)((qd >> 8) & 0xFF);
-            dst[3] = (uint8_t)((qd >> 16) & 0xFF);
+            dst[0] = stencil;
+            dst[1] = static_cast<uint8_t>((qd >> 0) & 0xFF);
+            dst[2] = static_cast<uint8_t>((qd >> 8) & 0xFF);
+            dst[3] = static_cast<uint8_t>((qd >> 16) & 0xFF);
         }
 
-        ALWAYS_INLINE void DecodeDepthStencil(VGfloat* depth, uint8_t* stencil, const uint8_t* src) {
+        ALWAYS_INLINE void DecodeDepthStencil(real* depth, uint8_t* stencil, const uint8_t* src) {
             *stencil = src[0];
             uint32_t d0 = src[1];
             uint32_t d1 = src[2];
