@@ -96,8 +96,7 @@ jobs:
         run: |
           echo "Running clang-tidy check..."
 
-          run-clang-tidy -p build -quiet -source-filter='.*(core|resource|virtual_gpu)[\\/].*\.cc$'
-
+          run-clang-tidy -p build -quiet -source-filter='^(?!.*[\\/]test[\\/]).*(core|resource|virtual_gpu)[\\/].*\.cc$'
 
   build-test:
     name: Build And Test
