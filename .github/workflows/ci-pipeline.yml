@@ -35,7 +35,7 @@ jobs:
           echo "Running clang-format check..."  
           mkdir formatted
           error_count=0  
-          for file in $(find core platforms virtual_gpu test -name "*.h" -o -name "*.cc"); do
+          for file in $(find core platforms virtual_gpu test -type f \( -name "*.h" -o -name "*.cc" \)); do
             mkdir -p formatted/$(dirname "$file")
             clang-format-21 "$file" > formatted/"$file"  
             if ! diff -q "$file" formatted/"$file" >/dev/null; then

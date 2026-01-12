@@ -14,17 +14,17 @@
 #include "vg.h"
 
 namespace ho {
-    INLINE constexpr int VG_INVALID_SLOT = -1;
+    INLINE constexpr size_t INVALID_SLOT = std::numeric_limits<size_t>::max();
 
     // hash function for uniform location
     constexpr uint32_t fnv1a_32(const char* s, size_t n, uint32_t hash = 2166136261u) {
         return n == 0 ? hash : fnv1a_32(s + 1, n - 1, (hash ^ static_cast<uint8_t>(*s)) * 16777619u);
     }
 
-    constexpr uint32_t operator"" _vg(const char* s, size_t n) { return fnv1a_32(s, n); }
+    constexpr uint32_t operator""_vg(const char* s, size_t n) { return fnv1a_32(s, n); }
 
     namespace vg {
-        ALWAYS_INLINE int GetBufferSlot(VGenum target) {
+        ALWAYS_INLINE size_t GetBufferSlot(VGenum target) {
             switch (target) {
                 case VG_ARRAY_BUFFER:
                     return 0;
@@ -35,11 +35,11 @@ namespace ho {
                 case VG_UNIFORM_BUFFER:
                     return 3;
                 default:
-                    return VG_INVALID_SLOT;
+                    return INVALID_SLOT;
             }
         }
 
-        ALWAYS_INLINE int GetTextureSlot(VGenum target) {
+        ALWAYS_INLINE size_t GetTextureSlot(VGenum target) {
             switch (target) {
                 case VG_TEXTURE_1D:
                 case VG_PROXY_TEXTURE_1D:
@@ -51,7 +51,7 @@ namespace ho {
                 case VG_PROXY_TEXTURE_3D:
                     return 2;
                 default:
-                    return VG_INVALID_SLOT;
+                    return INVALID_SLOT;
             }
         }
 
@@ -314,8 +314,8 @@ namespace ho {
         }
 
         ALWAYS_INLINE void EncodeDepthStencil(uint8_t* dst, real depth, uint8_t stencil) {
-            depth = math::Clamp(depth, 0.f, 1.f);
-            uint32_t qd = static_cast<uint32_t>(depth * 16777215.0f);
+            depth = math::Clamp(depth, 0.0_r, 1.0_r);
+            uint32_t qd = static_cast<uint32_t>(depth * 16777215.0_r);
             dst[0] = stencil;
             dst[1] = static_cast<uint8_t>((qd >> 0) & 0xFF);
             dst[2] = static_cast<uint8_t>((qd >> 8) & 0xFF);
@@ -328,7 +328,7 @@ namespace ho {
             uint32_t d1 = src[2];
             uint32_t d2 = src[3];
             uint32_t qd = (d0 << 0) | (d1 << 8) | (d2 << 16);
-            *depth = static_cast<float>(qd) / 16777215.f;
+            *depth = static_cast<real>(qd) / 16777215.0_r;
         }
 
     }  // namespace vg

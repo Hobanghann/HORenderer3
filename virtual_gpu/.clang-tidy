@@ -63,7 +63,7 @@ Checks: >
 
 WarningsAsErrors: '*'
 
-HeaderFilterRegex: '.*virtual_gpu/.*'
+HeaderFilterRegex: '.*(core|resource|virtual_gpu)/.*'
 
 FormatStyle: none
 

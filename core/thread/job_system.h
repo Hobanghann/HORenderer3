@@ -129,7 +129,7 @@ namespace ho {
         }
 
         // Job synchronization
-        void WaitForCounter(std::shared_ptr<AtomicNumeric<std::uint32_t>> counter) {
+        void WaitForCounter(std::shared_ptr<AtomicNumeric<std::uint32_t>>& counter) {
             int spin_count = 100;
             while (counter->Get() > 0 && spin_count) {
                 if (counter->Get() == 0) return;

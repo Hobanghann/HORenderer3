@@ -367,12 +367,12 @@ namespace ho {
         }
 
         // case: width too large
-        if (vg.Initialize(buffer.data(), VG_MAX_ATTACHMENT_WIDTH + 1, kHeight, VG_RGBA, VG_UNSIGNED_BYTE)) {
+        if (vg.Initialize(buffer.data(), VirtualGPU::MAX_ATTACHMENT_WIDTH + 1, kHeight, VG_RGBA, VG_UNSIGNED_BYTE)) {
             return false;
         }
 
         // case: height too large
-        if (vg.Initialize(buffer.data(), kWidth, VG_MAX_ATTACHMENT_HEIGHT + 1, VG_RGBA, VG_UNSIGNED_BYTE)) {
+        if (vg.Initialize(buffer.data(), kWidth, VirtualGPU::MAX_ATTACHMENT_HEIGHT + 1, VG_RGBA, VG_UNSIGNED_BYTE)) {
             return false;
         }
 
@@ -637,7 +637,7 @@ namespace ho {
         if (outputs.written[4]) return false;
 
         // Boundary Test (Last Slot)
-        uint32_t last_slot = ho::VG_DRAW_BUFFER_SLOT_COUNT - 1;
+        uint32_t last_slot = VirtualGPU::DRAW_BUFFER_SLOT_COUNT - 1;
         Color128 color_last(0.5f, 0.5f, 0.5f, 0.5f);
 
         outputs.Out(last_slot, color_last);
@@ -683,13 +683,13 @@ namespace ho {
         }
 
         // same tile
-        auto& l02 = vg.GetColorLock(att0, x0 + TILE_WIDTH - 1, y0 + TILE_HEIGHT - 1);
+        auto& l02 = vg.GetColorLock(att0, x0 + VirtualGPU::TILE_WIDTH - 1, y0 + VirtualGPU::TILE_HEIGHT - 1);
         if (&l00 != &l02) {
             return false;
         }
 
         // different tile
-        auto& l10 = vg.GetColorLock(att0, x0 + TILE_WIDTH, y0);
+        auto& l10 = vg.GetColorLock(att0, x0 + VirtualGPU::TILE_WIDTH, y0);
         if (&l00 == &l10) {
             return false;
         }
@@ -720,13 +720,13 @@ namespace ho {
         }
 
         // same tile
-        auto& l02 = vg.GetDepthLock(x0 + TILE_WIDTH - 1, y0 + TILE_HEIGHT - 1);
+        auto& l02 = vg.GetDepthLock(x0 + VirtualGPU::TILE_WIDTH - 1, y0 + VirtualGPU::TILE_HEIGHT - 1);
         if (&l00 != &l02) {
             return false;
         }
 
         // different tile
-        auto& l10 = vg.GetDepthLock(x0 + TILE_WIDTH, y0);
+        auto& l10 = vg.GetDepthLock(x0 + VirtualGPU::TILE_WIDTH, y0);
         if (&l00 == &l10) {
             return false;
         }
@@ -3737,7 +3737,7 @@ namespace ho {
         VirtualGPU::FrameBuffer fb;
         fb.id = 1;
 
-        fb.draw_slot_to_color_attachment[0] = -1;
+        fb.draw_slot_to_color_attachment[0] = INVALID_SLOT;
         gpu.bound_draw_frame_buffer_ = &fb;
 
         // should not crash
@@ -4169,10 +4169,10 @@ namespace ho {
                                             1.0f,  0.0f,  0.0f, 1.0f,  0.9f, 0.7f,  0.8f, 0.1f, 200.f,
                                             150.f, 100.f, 80.f, 220.f, 10.f, 180.f, 128.f};
 
-        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        v0.used_smooth_register_size = static_cast<int>(v0_data.size());
         std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        v1.used_smooth_register_size = static_cast<int>(v1_data.size());
         std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
         v0.used_flat_register_size = 1;

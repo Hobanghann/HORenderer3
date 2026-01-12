@@ -9,8 +9,8 @@
 namespace ho {
     bool VirtualGPU::Initialize(uint8_t* color_buffer, int width, int height, VGenum color_format,
                                 VGenum component_type) {
-        if (color_buffer == nullptr || width <= 0 || width > VG_MAX_ATTACHMENT_WIDTH || height <= 0 ||
-            height > VG_MAX_ATTACHMENT_HEIGHT) {
+        if (color_buffer == nullptr || width <= 0 || width > MAX_ATTACHMENT_WIDTH || height <= 0 ||
+            height > MAX_ATTACHMENT_HEIGHT) {
             return false;
         }
 
@@ -110,7 +110,7 @@ namespace ho {
         default_fb.color_attachments[0].offset = 0;
 
         // create default depth/stencil attachment
-        vram_.push_back(std::vector<uint8_t>(static_cast<size_t>(width) * height * 4));
+        vram_.emplace_back(std::vector<uint8_t>(static_cast<size_t>(width) * static_cast<size_t>(height) * 4));
         auto* mem = &vram_.back();
         default_fb.depth_stencil_attachment.ref_id = 0;
         default_fb.depth_stencil_attachment.memory = mem;
@@ -120,7 +120,7 @@ namespace ho {
         default_fb.depth_stencil_attachment.component_type = VG_UNSIGNED_INT;
         default_fb.depth_stencil_attachment.offset = 0;
 
-        default_fb.draw_slot_to_color_attachment.fill(-1);
+        default_fb.draw_slot_to_color_attachment.fill(INVALID_SLOT);
 
         // bind draw slot 0 -> color attachment 0
         default_fb.draw_slot_to_color_attachment[0] = 0;
@@ -138,14 +138,14 @@ namespace ho {
 
     VirtualGPU::VirtualGPU() : job_system_(WORKER_COUNT) {}
 
-    void VirtualGPU::ClearColorAttachment(int slot, const Color128& clear_color) {
+    void VirtualGPU::ClearColorAttachment(size_t slot, const Color128& clear_color) {
         FrameBuffer* fb = bound_draw_frame_buffer_;
 
         if (!fb) {
             return;
         }
 
-        if (fb->draw_slot_to_color_attachment[slot] == -1) {
+        if (fb->draw_slot_to_color_attachment[slot] == INVALID_SLOT) {
             return;
         }
 
@@ -185,11 +185,11 @@ namespace ho {
         base += attch.offset;
 
         for (int y = y0; y < y1; y++) {
-            uint8_t* row = base + (static_cast<size_t>(y) * attch.width + x0) * pixel_size;
+            uint8_t* row = base + static_cast<size_t>((y * attch.width + x0) * pixel_size);
             for (int x = x0; x < x1; x++) {
                 vg::CopyPixel(row, reinterpret_cast<const uint8_t*>(&clear_color), attch.format, attch.component_type,
                               VG_RGBA, VG_FLOAT, state_.draw_buffer_states[slot].color_mask);
-                row += pixel_size;
+                row += static_cast<size_t>(pixel_size);
             }
         }
     }
@@ -241,10 +241,11 @@ namespace ho {
             base += attch.offset;
 
             for (int y = y0; y < y1; y++) {
-                uint8_t* row = base + (static_cast<size_t>(y) * attch.width + x0) * pixel_size;
+                uint8_t* row = base + static_cast<size_t>((y * attch.width + x0) * pixel_size);
                 for (int x = x0; x < x1; x++) {
-                    vg::CopyPixel(row, reinterpret_cast<const uint8_t*>(&clear_depth), attch.format,
-                                  attch.component_type, VG_DEPTH_COMPONENT, VG_FLOAT);
+                    float fdepth = static_cast<float>(clear_depth);
+                    vg::CopyPixel(row, reinterpret_cast<const uint8_t*>(&fdepth), attch.format, attch.component_type,
+                                  VG_DEPTH_COMPONENT, VG_FLOAT);
                     row += pixel_size;
                 }
             }
@@ -300,9 +301,9 @@ namespace ho {
         const uint8_t stencil_mask = static_cast<uint8_t>(state_.stencil_write_mask[0]);
 
         for (int y = y0; y < y1; y++) {
-            uint8_t* row = base + (static_cast<size_t>(y) * attch.width + x0) * 4;
+            uint8_t* row = base + static_cast<size_t>((y * attch.width + x0) * 4);
             for (int x = x0; x < x1; x++) {
-                float depth;
+                real depth;
                 uint8_t stencil;
 
                 vg::DecodeDepthStencil(&depth, &stencil, row);
@@ -327,7 +328,7 @@ namespace ho {
         (void)size;
         VSJobInput* in = static_cast<VSJobInput*>(input);
         VirtualGPU& vg = VirtualGPU::GetInstance();
-        for (int i = in->first_index; i <= in->last_index; i++) {
+        for (size_t i = in->first_index; i <= in->last_index; i++) {
             in->vs(i, vg.using_program_->varying_buffer[i - in->base_index]);
         }
         delete in;
@@ -354,9 +355,9 @@ namespace ho {
             return out_polygon;
         }
 
-        const int v_count = (int)polygon.size();
+        const size_t v_count = polygon.size();
 
-        for (int i = 0; i < v_count; i++) {
+        for (size_t i = 0; i < v_count; i++) {
             const Varying& prev_v = polygon[(i - 1 + v_count) % v_count];
             const Varying& curr_v = polygon[i];
 
@@ -365,14 +366,14 @@ namespace ho {
 
             if (is_prev_in && is_curr_in) {
                 // Case 1: in to in
-                out_polygon.push_back(curr_v);
+                out_polygon.emplace_back(curr_v);
             } else if (is_prev_in && !is_curr_in) {
                 // Case 2: in to out
                 Vector2 bary = GetClipBarycentric(prev_v.vg_Position, curr_v.vg_Position, plane_pos);
                 // if clip isn't parallel on plane or degenerated push interpolated
                 // varying.
                 if (!math::IsNaN(bary.x) && !math::IsNaN(bary.y)) {
-                    out_polygon.push_back(LerpVarying(prev_v, curr_v, bary));
+                    out_polygon.emplace_back(LerpVarying(prev_v, curr_v, bary));
                 }
             } else if (!is_prev_in && is_curr_in) {
                 // Case 3: out to in
@@ -380,9 +381,9 @@ namespace ho {
                 // if clip isn't parallel on plane or degenerated push interpolated
                 // varying.
                 if (!math::IsNaN(bary.x) && !math::IsNaN(bary.y)) {
-                    out_polygon.push_back(LerpVarying(prev_v, curr_v, bary));
+                    out_polygon.emplace_back(LerpVarying(prev_v, curr_v, bary));
                 }
-                out_polygon.push_back(curr_v);
+                out_polygon.emplace_back(curr_v);
             } else {
                 // Case 4: out to out
                 // Do Nothing.
@@ -438,7 +439,7 @@ namespace ho {
         Varying v;
         v.vg_Position = math::Lerp(v1.vg_Position, v2.vg_Position, barycentric);
         v.used_smooth_register_size = v2.used_smooth_register_size;
-        for (int i = 0; i < v.used_smooth_register_size; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(v.used_smooth_register_size); i++) {
             v.smooth_register[i] = math::Lerp(v1.smooth_register[i], v2.smooth_register[i], barycentric);
         }
         v.used_flat_register_size = v2.used_flat_register_size;
@@ -477,7 +478,7 @@ namespace ho {
             std::copy_n(v.smooth_register.begin(), v.used_smooth_register_size, frag.smooth_register.begin());
             frag.used_flat_register_size = v.used_flat_register_size;
             std::copy_n(v.flat_register.begin(), v.used_flat_register_size, frag.flat_register.begin());
-            out.push_back(frag);
+            out.emplace_back(frag);
         }
 
         return out;
@@ -505,7 +506,7 @@ namespace ho {
             return out;
         }
 
-        out.reserve(dx + dy + 1);
+        out.reserve(static_cast<size_t>(dx) + static_cast<size_t>(dy) + 1);
 
         // Calculate gradient
         const real Dx = static_cast<real>(x1 - x0);
@@ -525,17 +526,19 @@ namespace ho {
 
         const uint64_t depth_bit =
             bound_draw_frame_buffer_->depth_stencil_attachment.format == VG_DEPTH_COMPONENT ? 32u : 24u;
-        const real offset_depth_v1 = ApplyDepthOffset(v1.viewport_coord.z, 0.0_r, depth_bit, state_.polygon_mode);
-        const real offset_depth_v2 = ApplyDepthOffset(v2.viewport_coord.z, 0.0_r, depth_bit, state_.polygon_mode);
-        real depth = offset_depth_v1;
-        const real depth_dx = (offset_depth_v2 - depth) * gx * static_cast<real>(sx);
-        const real depth_dy = (offset_depth_v2 - depth) * gy * static_cast<real>(sy);
+        const double offset_depth_v1 =
+            static_cast<double>(ApplyDepthOffset(v1.viewport_coord.z, 0.0_r, depth_bit, state_.polygon_mode));
+        const double offset_depth_v2 =
+            static_cast<double>(ApplyDepthOffset(v2.viewport_coord.z, 0.0_r, depth_bit, state_.polygon_mode));
+        double depth = offset_depth_v1;
+        const double depth_dx = (offset_depth_v2 - depth) * gx * static_cast<double>(sx);
+        const double depth_dy = (offset_depth_v2 - depth) * gy * static_cast<double>(sy);
 
-        float smooth_register_pw[VG_SMOOTH_REGISTER_SIZE];
-        float smooth_register_pw_dx[VG_SMOOTH_REGISTER_SIZE];
-        float smooth_register_pw_dy[VG_SMOOTH_REGISTER_SIZE];
+        float smooth_register_pw[SMOOTH_REGISTER_SIZE];
+        float smooth_register_pw_dx[SMOOTH_REGISTER_SIZE];
+        float smooth_register_pw_dy[SMOOTH_REGISTER_SIZE];
 
-        for (int i = 0; i < v1.used_smooth_register_size; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(v1.used_smooth_register_size); i++) {
             smooth_register_pw[i] = v1.smooth_register[i] * inv_w1;
             smooth_register_pw_dx[i] =
                 (v2.smooth_register[i] * inv_w2 - smooth_register_pw[i]) * gx * static_cast<real>(sx);
@@ -552,20 +555,20 @@ namespace ho {
             real w = 1.0_r / inv_w;
 
             if (ScissorTest(screen_coord.x, screen_coord.y) &&
-                TestDepthStencil(screen_coord.x, screen_coord.y, depth, true, true)) {
+                TestDepthStencil(screen_coord.x, screen_coord.y, static_cast<real>(depth), true, true)) {
                 Fragment frag;
                 frag.screen_coord = screen_coord;
                 frag.depth = static_cast<real>(depth);
 
                 frag.used_smooth_register_size = v1.used_smooth_register_size;
                 for (int i = 0; i < frag.used_smooth_register_size; i++) {
-                    frag.smooth_register[i] = smooth_register_pw[i] * w;
+                    frag.smooth_register[i] = smooth_register_pw[i] * w;  // NOLINT
                 }
 
                 frag.used_flat_register_size = v2.used_flat_register_size;
                 std::copy_n(v2.flat_register.begin(), frag.used_flat_register_size, frag.flat_register.begin());
 
-                out.push_back(frag);
+                out.emplace_back(frag);
             }
 
             if (x == x1 && y == y1) {
@@ -653,7 +656,6 @@ namespace ho {
                     if (is_front) return out;
                     break;
                 case VG_FRONT_AND_BACK:
-                    return out;
                 default:
                     return out;
             }
@@ -686,9 +688,9 @@ namespace ho {
         const double offset_depth_v3 =
             static_cast<double>(ApplyDepthOffset(v3.viewport_coord.z, depth_slope, depth_bit, state_.polygon_mode));
 
-        float smooth_register_pw1[VG_SMOOTH_REGISTER_SIZE];
-        float smooth_register_pw2[VG_SMOOTH_REGISTER_SIZE];
-        float smooth_register_pw3[VG_SMOOTH_REGISTER_SIZE];
+        float smooth_register_pw1[SMOOTH_REGISTER_SIZE];
+        float smooth_register_pw2[SMOOTH_REGISTER_SIZE];
+        float smooth_register_pw3[SMOOTH_REGISTER_SIZE];
 
         // Initial edge values at start pixel center of bounding box
         real f12_row = ef12.initial_value;
@@ -701,20 +703,23 @@ namespace ho {
         const real inv_w_dy = (ef23.dy * inv_w1 + ef31.dy * inv_w2 + ef12.dy * inv_w3) * inv_area;
 
         const double depth_dx =
-            (double)(ef23.dx * offset_depth_v1 + ef31.dx * offset_depth_v2 + ef12.dx * offset_depth_v3) * inv_area;
+            static_cast<double>(ef23.dx * offset_depth_v1 + ef31.dx * offset_depth_v2 + ef12.dx * offset_depth_v3) *
+            inv_area;
         const double depth_dy =
-            (double)(ef23.dy * offset_depth_v1 + ef31.dy * offset_depth_v2 + ef12.dy * offset_depth_v3) * inv_area;
+            static_cast<double>(ef23.dy * offset_depth_v1 + ef31.dy * offset_depth_v2 + ef12.dy * offset_depth_v3) *
+            inv_area;
 
-        float smooth_register_dx[VG_SMOOTH_REGISTER_SIZE];
-        float smooth_register_dy[VG_SMOOTH_REGISTER_SIZE];
+        float smooth_register_dx[SMOOTH_REGISTER_SIZE];
+        float smooth_register_dy[SMOOTH_REGISTER_SIZE];
 
         // initial row accumulators for inv_w and attributes at p0
         real inv_w_row = (f23_row * inv_w1 + f31_row * inv_w2 + f12_row * inv_w3) * inv_area;
         const double depth_init =
-            (double)(f23_row * offset_depth_v1 + f31_row * offset_depth_v2 + f12_row * offset_depth_v3) * inv_area;
-        float smooth_register_row[VG_SMOOTH_REGISTER_SIZE];
+            static_cast<double>(f23_row * offset_depth_v1 + f31_row * offset_depth_v2 + f12_row * offset_depth_v3) *
+            inv_area;
+        float smooth_register_row[SMOOTH_REGISTER_SIZE];
 
-        for (int i = 0; i < v1.used_smooth_register_size; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(v1.used_smooth_register_size); i++) {
             smooth_register_pw1[i] = v1.smooth_register[i] * inv_w1;
             smooth_register_pw2[i] = v2.smooth_register[i] * inv_w2;
             smooth_register_pw3[i] = v3.smooth_register[i] * inv_w3;
@@ -730,10 +735,10 @@ namespace ho {
         }
 
         // min include, max exclude
-        const int x_min = (int)math::Ceil(b.min.x - 0.5_r);
-        const int x_max = (int)math::Floor(b.max.x - 0.5_r) + 1;
-        const int y_min = (int)math::Ceil(b.min.y - 0.5_r);
-        const int y_max = (int)math::Floor(b.max.y - 0.5_r) + 1;
+        const int x_min = static_cast<int>(math::Ceil(b.min.x - 0.5_r));
+        const int x_max = static_cast<int>(math::Floor(b.max.x - 0.5_r)) + 1;
+        const int y_min = static_cast<int>(math::Ceil(b.min.y - 0.5_r));
+        const int y_max = static_cast<int>(math::Floor(b.max.y - 0.5_r)) + 1;
 
         out.reserve((x_max - x_min) * (y_max - y_min) / 2);
         // Raster loop
@@ -743,11 +748,12 @@ namespace ho {
             real f31_ev = f31_row;
 
             real inv_w = inv_w_row;
-            const double dy_offset = (double)(y - y_min);
+            const double dy_offset = static_cast<double>(y - y_min);
             double depth = depth_init + dy_offset * depth_dy;
 
-            float smooth_register[VG_SMOOTH_REGISTER_SIZE];
-            std::memcpy(smooth_register, smooth_register_row, v1.used_smooth_register_size * sizeof(float));
+            float smooth_register[SMOOTH_REGISTER_SIZE];
+            std::memcpy(smooth_register, smooth_register_row,
+                        static_cast<size_t>(v1.used_smooth_register_size) * sizeof(float));
 
             for (int x = x_min; x < x_max; ++x) {
                 const bool inside12 =
@@ -768,16 +774,16 @@ namespace ho {
                         frag.screen_coord = target_coord;
                         frag.depth = static_cast<real>(depth);
 
-                        frag.used_smooth_register_size = v1.used_smooth_register_size;
-                        for (int i = 0; i < frag.used_smooth_register_size; i++) {
-                            frag.smooth_register[i] = smooth_register[i] * w;
+                        frag.used_smooth_register_size = v3.used_smooth_register_size;
+                        for (size_t i = 0; i < static_cast<size_t>(frag.used_smooth_register_size); i++) {
+                            frag.smooth_register[i] = smooth_register[i] * w;  // NOLINT
                         }
 
                         frag.used_flat_register_size = v3.used_flat_register_size;
                         std::copy_n(v3.flat_register.begin(), frag.used_flat_register_size, frag.flat_register.begin());
 
                         frag.is_front = is_front;
-                        out.push_back(frag);
+                        out.emplace_back(frag);
                     }
                 }
 
@@ -789,7 +795,7 @@ namespace ho {
                 inv_w += inv_w_dx;
                 depth += depth_dx;
 
-                for (int i = 0; i < v1.used_smooth_register_size; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(v3.used_smooth_register_size); i++) {
                     smooth_register[i] += smooth_register_dx[i];
                 }
             }
@@ -801,7 +807,7 @@ namespace ho {
 
             inv_w_row += inv_w_dy;
 
-            for (int i = 0; i < v1.used_smooth_register_size; i++) {
+            for (size_t i = 0; i < static_cast<size_t>(v3.used_smooth_register_size); i++) {
                 smooth_register_row[i] += smooth_register_dy[i];
             }
         }
@@ -857,7 +863,7 @@ namespace ho {
             return depth;
         }
 
-        const double r = (double)(1.0 / (double)((uint64_t)1 << depth_bits));
+        const double r = 1.0 / static_cast<double>(1ull << depth_bits);
 
         const double bias = static_cast<double>(depth_slope) * state_.depth_factor + r * state_.depth_unit;
         return static_cast<real>(math::Clamp(static_cast<double>(depth) + bias, state_.min_depth, state_.max_depth));
@@ -885,18 +891,19 @@ namespace ho {
         bool depth_pass = true;
         uint8_t stencil = 0;
         bool stencil_pass = true;
-        const int face_idx = is_front_face ? 0 : 1;
+        const size_t face_idx = is_front_face ? 0 : 1;
 
         // Read
+        lock.Lock();
         if (attch.format == VG_DEPTH_STENCIL) {
             // Read depth, stencil
-            lock.Lock();
+
             vg::DecodeDepthStencil(&old_depth, &stencil, pixel_addr);
-            lock.Unlock();
 
             // Stencil test
             if (state_.stencil_test_enabled) {
-                const uint8_t ref_m = (uint8_t)state_.stencil_ref[face_idx] & state_.stencil_func_mask[face_idx];
+                const uint8_t ref_m =
+                    static_cast<uint8_t>(state_.stencil_ref[face_idx]) & state_.stencil_func_mask[face_idx];
                 const uint8_t val_m = stencil & state_.stencil_func_mask[face_idx];
                 switch (state_.stencil_func[face_idx]) {
                     case VG_NEVER:
@@ -930,10 +937,8 @@ namespace ho {
             }
         } else {
             // Read depth only
-            lock.Lock();
             vg::CopyPixel(reinterpret_cast<uint8_t*>(&old_depth), pixel_addr, attch.format, attch.component_type,
                           VG_DEPTH_COMPONENT, VG_FLOAT);
-            lock.Unlock();
         }
 
         // Depth test
@@ -981,10 +986,10 @@ namespace ho {
                     stencil_op = state_.stencil_dppass_op[face_idx];
 
                 if (state_.stencil_test_enabled) {
-                    const uint8_t write_mask = (uint8_t)state_.stencil_write_mask[face_idx];
+                    const uint8_t write_mask = static_cast<uint8_t>(state_.stencil_write_mask[face_idx]);
                     if (write_mask != 0) {
                         uint8_t result = stencil;
-                        const uint8_t ref = (uint8_t)state_.stencil_ref[face_idx];
+                        const uint8_t ref = static_cast<uint8_t>(state_.stencil_ref[face_idx]);
                         switch (stencil_op) {
                             case VG_KEEP:
                                 break;
@@ -1001,13 +1006,13 @@ namespace ho {
                                 result = (stencil > 0) ? (stencil - 1) : 0;
                                 break;
                             case VG_INVERT:
-                                result = (uint8_t)~stencil;
+                                result = static_cast<uint8_t>(~stencil);
                                 break;
                             case VG_INCR_WRAP:
-                                result = (uint8_t)((stencil + 1) & 0xFF);
+                                result = static_cast<uint8_t>((stencil + 1) & 0xFF);
                                 break;
                             case VG_DECR_WRAP:
-                                result = (uint8_t)((stencil - 1) & 0xFF);
+                                result = static_cast<uint8_t>((stencil - 1) & 0xFF);
                                 break;
                             default:
                                 // no op
@@ -1027,21 +1032,17 @@ namespace ho {
                 uint8_t bytes[4];
                 vg::EncodeDepthStencil(bytes, write_depth, stencil);
 
-                lock.Lock();
                 std::memcpy(pixel_addr, bytes, 4);
-                lock.Unlock();
 
             } else {
                 // Write depth only
                 if (state_.depth_test_enabled && depth_pass && state_.depth_write_enabled) {
-                    lock.Lock();
                     vg::CopyPixel(pixel_addr, reinterpret_cast<const uint8_t*>(&depth), VG_DEPTH_COMPONENT, VG_FLOAT,
                                   VG_DEPTH_COMPONENT, VG_FLOAT);
-                    lock.Unlock();
                 }
             }
         }
-
+        lock.Unlock();
         return (stencil_pass && depth_pass);
     }
 
@@ -1183,14 +1184,14 @@ namespace ho {
         }
     }
 
-    void VirtualGPU::WriteColor(real x, real y, const Color128& color, int slot) {
+    void VirtualGPU::WriteColor(real x, real y, const Color128& color, size_t slot) {
         FrameBuffer* fb = bound_draw_frame_buffer_;
         if (!fb) {
             return;
         }
 
         if (fb->draw_slot_to_color_attachment[slot] < 0 ||
-            fb->draw_slot_to_color_attachment[slot] >= VG_DRAW_BUFFER_SLOT_COUNT) {
+            fb->draw_slot_to_color_attachment[slot] >= DRAW_BUFFER_SLOT_COUNT) {
             return;
         }
         Attachment& attch = fb->color_attachments[fb->draw_slot_to_color_attachment[slot]];
@@ -1203,9 +1204,11 @@ namespace ho {
         const int px = static_cast<int>(math::Floor(x));
         const int py = static_cast<int>(math::Floor(y));
 
-        const size_t pixel_index = static_cast<size_t>(py) * attch.width + px;
+        const int pixel_offset = py * attch.width + px;
         uint8_t* base = attch.external_memory != nullptr ? attch.external_memory : attch.memory->data();
-        uint8_t* pixel_addr = base + attch.offset + pixel_index * vg::GetPixelSize(attch.format, attch.component_type);
+        uint8_t* pixel_addr =
+            base +
+            static_cast<size_t>(attch.offset + pixel_offset * vg::GetPixelSize(attch.format, attch.component_type));
         SpinLock& lock = GetColorLock(fb->draw_slot_to_color_attachment[slot], px, py);
 
         Color128 dst_color;
@@ -1213,36 +1216,40 @@ namespace ho {
         // read previous color
         lock.Lock();
         vg::DecodeColor(&dst_color, pixel_addr, attch.format, attch.component_type);
-        lock.Unlock();
 
         Color128 final_color = color;
 
         // blending
         if (dbs.blend_enabled) {
+            real src_factor;
+            real dst_factor;
+            real src_term;
+            real dst_term;
+
             // RGB
-            const real r_src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 0);
-            const real r_dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 0);
-            real src_term = color.r * r_src_factor;
-            real dst_term = dst_color.r * r_dst_factor;
+            src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 0);
+            dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 0);
+            src_term = color.r * src_factor;
+            dst_term = dst_color.r * dst_factor;
             final_color.r = ApplyBlendEquation(state_.blend_rgb_equation, src_term, dst_term);
 
-            const real g_src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 1);
-            const real g_dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 1);
-            src_term = color.g * g_src_factor;
-            dst_term = dst_color.g * g_dst_factor;
+            src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 1);
+            dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 1);
+            src_term = color.g * src_factor;
+            dst_term = dst_color.g * dst_factor;
             final_color.g = ApplyBlendEquation(state_.blend_rgb_equation, src_term, dst_term);
 
-            const real b_src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 2);
-            const real b_dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 2);
-            src_term = color.b * b_src_factor;
-            dst_term = dst_color.b * b_dst_factor;
+            src_factor = GetBlendFactor(state_.blend_src_rgb_factor, color, dst_color, 2);
+            dst_factor = GetBlendFactor(state_.blend_dst_rgb_factor, color, dst_color, 2);
+            src_term = color.b * src_factor;
+            dst_term = dst_color.b * dst_factor;
             final_color.b = ApplyBlendEquation(state_.blend_rgb_equation, src_term, dst_term);
 
             // Alpha
-            const real a_src_factor = GetBlendFactor(state_.blend_src_alpha_factor, color, dst_color, 3);
-            const real a_dst_factor = GetBlendFactor(state_.blend_dst_alpha_factor, color, dst_color, 3);
-            src_term = color.a * a_src_factor;
-            dst_term = dst_color.a * a_dst_factor;
+            src_factor = GetBlendFactor(state_.blend_src_alpha_factor, color, dst_color, 3);
+            dst_factor = GetBlendFactor(state_.blend_dst_alpha_factor, color, dst_color, 3);
+            src_term = color.a * src_factor;
+            dst_term = dst_color.a * dst_factor;
             final_color.a = ApplyBlendEquation(state_.blend_alpha_equation, src_term, dst_term);
         }
 
@@ -1253,7 +1260,6 @@ namespace ho {
         if (dbs.color_mask[2]) write_color.b = final_color.b;
         if (dbs.color_mask[3]) write_color.a = final_color.a;
 
-        lock.Lock();
         vg::EncodeColor(pixel_addr, write_color, attch.format, attch.component_type);
         lock.Unlock();
     }
@@ -1268,11 +1274,11 @@ namespace ho {
         poly.reserve(in->poly.size());
 
         for (Varying* v : in->poly) {
-            poly.push_back(*v);
+            poly.emplace_back(*v);
         }
 
         // Clipping
-        poly = vg.Clip(poly);
+        poly = std::move(vg.Clip(poly));
 
         if (poly.empty()) {
             delete in;
@@ -1291,14 +1297,14 @@ namespace ho {
         const VGenum pmode = vg.state_.polygon_mode;
 
         if (poly.size() == 1) {
-            frags = vg.Rasterize(poly[0]);
+            frags = std::move(vg.Rasterize(poly[0]));
         } else if (poly.size() == 2) {
-            frags = vg.Rasterize(poly[0], poly[1]);
+            frags = std::move(vg.Rasterize(poly[0], poly[1]));
         } else {
             switch (pmode) {
                 case VG_POINT:
                     for (const Varying& v : poly) {
-                        temp_frags = vg.Rasterize(v);
+                        temp_frags = std::move(vg.Rasterize(v));
                         frags.insert(frags.end(), std::make_move_iterator(temp_frags.begin()),
                                      std::make_move_iterator(temp_frags.end()));
                     }
@@ -1308,14 +1314,14 @@ namespace ho {
                     for (size_t i = 0; i < poly.size(); i++) {
                         const Varying& a = poly[i];
                         const Varying& b = poly[(i + 1) % poly.size()];
-                        temp_frags = vg.Rasterize(a, b);
+                        temp_frags = std::move(vg.Rasterize(a, b));
                         frags.insert(frags.end(), std::make_move_iterator(temp_frags.begin()),
                                      std::make_move_iterator(temp_frags.end()));
                     }
                     break;
                 case VG_FILL:
                     for (size_t i = 1; i + 1 < poly.size(); i++) {
-                        temp_frags = vg.Rasterize(poly[0], poly[i], poly[i + 1]);
+                        temp_frags = std::move(vg.Rasterize(poly[0], poly[i], poly[i + 1]));
                         frags.insert(frags.end(), std::make_move_iterator(temp_frags.begin()),
                                      std::make_move_iterator(temp_frags.end()));
                     }
@@ -1339,7 +1345,7 @@ namespace ho {
             if (!vg.TestDepthStencil(frag.screen_coord.x, frag.screen_coord.y, frag.depth, frag.is_front)) {
                 continue;
             }
-            for (int slot = 0; slot < VG_DRAW_BUFFER_SLOT_COUNT; slot++) {
+            for (size_t slot = 0; slot < static_cast<size_t>(DRAW_BUFFER_SLOT_COUNT); slot++) {
                 if (!outputs.written.test(slot)) {
                     continue;
                 }

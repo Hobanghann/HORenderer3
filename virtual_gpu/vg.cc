@@ -83,7 +83,7 @@ namespace ho {
     //     }
     //     VirtualGPU::TextureUnit& tu = vg.texture_units_[vg.active_texture_unit_];
     //     uint32_t slot = vg::GetTextureSlot(target);
-    //     if (slot == VG_INVALID_SLOT) {
+    //     if (slot == INVALID_SLOT) {
     //         vg.state_.error_state = VG_INVALID_ENUM;
     //         return;
     //     }
@@ -105,8 +105,8 @@ namespace ho {
             return;
         }
         VirtualGPU::TextureUnit& tu = vg.texture_units_[vg.active_texture_unit_];
-        int slot = vg::GetTextureSlot(target);
-        if (slot == VG_INVALID_SLOT) {
+        const size_t slot = vg::GetTextureSlot(target);
+        if (slot == INVALID_SLOT) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -117,6 +117,7 @@ namespace ho {
         }
 
         VirtualGPU::Sampler& ds = tu.bound_texture_targets[slot]->default_sampler;
+
         switch (pname) {
             case VG_TEXTURE_BORDER_COLOR:
                 ds.border_color = {params[0], params[1], params[2], params[3]};
@@ -131,8 +132,8 @@ namespace ho {
             return;
         }
         VirtualGPU::TextureUnit& tu = vg.texture_units_[vg.active_texture_unit_];
-        int slot = vg::GetTextureSlot(target);
-        if (slot == VG_INVALID_SLOT) {
+        const size_t slot = vg::GetTextureSlot(target);
+        if (slot == INVALID_SLOT) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -224,8 +225,8 @@ namespace ho {
             return;
         }
         VirtualGPU::TextureUnit& tu = vg.texture_units_[vg.active_texture_unit_];
-        int slot = vg::GetTextureSlot(target);
-        if (slot == VG_INVALID_SLOT) {
+        const size_t slot = vg::GetTextureSlot(target);
+        if (slot == INVALID_SLOT) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -287,9 +288,9 @@ namespace ho {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
-        int slot = vg::GetTextureSlot(target);
+        const size_t slot = vg::GetTextureSlot(target);
 
-        if (slot == VG_INVALID_SLOT) {
+        if (slot == INVALID_SLOT) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -307,7 +308,7 @@ namespace ho {
             vg.state_.error_state = VG_INVALID_OPERATION;
             return;
         }
-        tex->internal_format = internalformat;
+        tex->internal_format = static_cast<VGenum>(internalformat);
         switch (internalformat) {
             case VG_RED:
             case VG_RG:
@@ -329,9 +330,9 @@ namespace ho {
                 return;
         }
 
-        VirtualGPU::TextureLevel& tex_level = tex->mipmap[level];
+        VirtualGPU::TextureLevel& tex_level = tex->mipmap[static_cast<size_t>(level)];
         if (tex_level.memory == nullptr) {
-            vg.vram_.push_back(std::vector<uint8_t>());
+            vg.vram_.emplace_back(std::vector<uint8_t>());
             tex_level.memory = &vg.vram_.back();
         }
         tex_level.mipmap_level = level;
@@ -340,10 +341,10 @@ namespace ho {
         tex_level.depth = 1;
 
         const int src_pixel_size = vg::GetPixelSize(format, type);
-        const int dst_pixel_size = vg::GetPixelSize(internalformat, tex->component_type);
+        const int dst_pixel_size = vg::GetPixelSize(static_cast<VGenum>(internalformat), tex->component_type);
 
         tex_level.memory->clear();
-        tex_level.memory->resize(static_cast<size_t>(width) * dst_pixel_size);
+        tex_level.memory->resize(static_cast<size_t>(width) * static_cast<size_t>(dst_pixel_size));
 
         if (pixels == nullptr) {
             return;
@@ -399,8 +400,8 @@ namespace ho {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
-        int slot = vg::GetTextureSlot(target);
-        if (slot == VG_INVALID_SLOT) {
+        const size_t slot = vg::GetTextureSlot(target);
+        if (slot == INVALID_SLOT) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -419,7 +420,7 @@ namespace ho {
             return;
         }
 
-        tex->internal_format = internalformat;
+        tex->internal_format = static_cast<VGenum>(internalformat);
         switch (internalformat) {
             case VG_RED:
             case VG_RG:
@@ -441,9 +442,9 @@ namespace ho {
                 return;
         }
 
-        VirtualGPU::TextureLevel& tex_level = tex->mipmap[level];
+        VirtualGPU::TextureLevel& tex_level = tex->mipmap[static_cast<size_t>(level)];
         if (tex_level.memory == nullptr) {
-            vg.vram_.push_back(std::vector<uint8_t>());
+            vg.vram_.emplace_back(std::vector<uint8_t>());
             tex_level.memory = &vg.vram_.back();
         }
         tex_level.mipmap_level = level;
@@ -452,10 +453,11 @@ namespace ho {
         tex_level.depth = 1;
 
         const int src_pixel_size = vg::GetPixelSize(format, type);
-        const int dst_pixel_size = vg::GetPixelSize(internalformat, tex->component_type);
+        const int dst_pixel_size = vg::GetPixelSize(static_cast<VGenum>(internalformat), tex->component_type);
 
         tex_level.memory->clear();
-        tex_level.memory->resize(static_cast<size_t>(width) * height * dst_pixel_size);
+        tex_level.memory->resize(static_cast<size_t>(width) * static_cast<size_t>(height) *
+                                 static_cast<size_t>(dst_pixel_size));
 
         if (pixels == nullptr) {
             return;
@@ -485,7 +487,7 @@ namespace ho {
         }
 
         // reset all draw buffers
-        fb->draw_slot_to_color_attachment.fill(-1);
+        fb->draw_slot_to_color_attachment.fill(INVALID_SLOT);
 
         // default framebuffer
         if (fb->id == 0) {
@@ -514,7 +516,7 @@ namespace ho {
         }
 
         if (buf >= VG_COLOR_ATTACHMENT0 && buf <= VG_COLOR_ATTACHMENT31) {
-            fb->draw_slot_to_color_attachment[0] = static_cast<int>(buf - VG_COLOR_ATTACHMENT0);
+            fb->draw_slot_to_color_attachment[0] = static_cast<size_t>(buf - VG_COLOR_ATTACHMENT0);
             return;
         }
 
@@ -540,7 +542,7 @@ namespace ho {
 
         // Clear color
         if (is_color_cleared) {
-            for (int i = 0; i < VG_DRAW_BUFFER_SLOT_COUNT; ++i) {
+            for (size_t i = 0; i < VirtualGPU::DRAW_BUFFER_SLOT_COUNT; ++i) {
                 vg.ClearColorAttachment(i, vg.state_.clear_color);
             }
         }
@@ -601,7 +603,7 @@ namespace ho {
             return;
         }
 
-        for (int i = 0; i < VG_DRAW_BUFFER_SLOT_COUNT; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(VirtualGPU::DRAW_BUFFER_SLOT_COUNT); i++) {
             vg.state_.draw_buffer_states[i].color_mask[0] = static_cast<bool>(red);
             vg.state_.draw_buffer_states[i].color_mask[1] = static_cast<bool>(green);
             vg.state_.draw_buffer_states[i].color_mask[2] = static_cast<bool>(blue);
@@ -623,7 +625,7 @@ namespace ho {
 
         switch (cap) {
             case VG_BLEND:
-                for (int i = 0; i < VG_DRAW_BUFFER_SLOT_COUNT; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(VirtualGPU::DRAW_BUFFER_SLOT_COUNT); i++) {
                     vg.state_.draw_buffer_states[i].blend_enabled = false;
                 }
                 break;
@@ -659,7 +661,7 @@ namespace ho {
         }
         switch (cap) {
             case VG_BLEND:
-                for (int i = 0; i < VG_DRAW_BUFFER_SLOT_COUNT; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(VirtualGPU::DRAW_BUFFER_SLOT_COUNT); i++) {
                     vg.state_.draw_buffer_states[i].blend_enabled = true;
                 }
                 break;
@@ -800,7 +802,7 @@ namespace ho {
         if (fb->id == 0) {
             switch (src) {
                 case VG_NONE:
-                    fb->read_slot_to_color_attachment = -1;
+                    fb->read_slot_to_color_attachment = INVALID_SLOT;
                     return;
 
                 case VG_BACK:
@@ -820,12 +822,12 @@ namespace ho {
 
         // User FBO
         if (src == VG_NONE) {
-            fb->read_slot_to_color_attachment = -1;
+            fb->read_slot_to_color_attachment = INVALID_SLOT;
             return;
         }
 
         if (src >= VG_COLOR_ATTACHMENT0 && src <= VG_COLOR_ATTACHMENT31) {
-            fb->read_slot_to_color_attachment = static_cast<int>(src - VG_COLOR_ATTACHMENT0);
+            fb->read_slot_to_color_attachment = static_cast<size_t>(src - VG_COLOR_ATTACHMENT0);
             return;
         }
 
@@ -844,7 +846,7 @@ namespace ho {
 
         switch (cap) {
             case VG_BLEND:
-                for (int i = 0; i < VG_DRAW_BUFFER_SLOT_COUNT; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(VirtualGPU::DRAW_BUFFER_SLOT_COUNT); i++) {
                     if (!vg.state_.draw_buffer_states[i].blend_enabled) {
                         return VG_FALSE;
                     }
@@ -917,18 +919,19 @@ namespace ho {
             return;
         }
 
-        vg.using_program_->varying_buffer.resize(count);
+        vg.using_program_->varying_buffer.resize(static_cast<size_t>(count));
 
         // Vertex Processing
         std::vector<JobDeclaration> vs_jobs;
-        vs_jobs.reserve(count);
+        vs_jobs.reserve(static_cast<size_t>(count));
 
         const int BATCH_SIZE = 100;
 
         for (int i = first; i < first + count; i += BATCH_SIZE) {
             const int batch_end = math::Min(i + BATCH_SIZE - 1, first + count - 1);
             VirtualGPU::VSJobInput* input = new VirtualGPU::VSJobInput{
-                (VirtualGPU::VertexShader)vg.using_program_->vertex_shader->source, first, i, batch_end};
+                (VirtualGPU::VertexShader)vg.using_program_->vertex_shader->source, static_cast<size_t>(first),
+                static_cast<size_t>(i), static_cast<size_t>(batch_end)};
 
             JobDeclaration job;
             job.entry = VirtualGPU::VSJobEntry;
@@ -943,8 +946,8 @@ namespace ho {
         vs_jobs.clear();
 
         // Primitive Assembly & Kick After Vertex Processing Jobs
-        int gap = 0;
-        int v_count = 0;
+        size_t gap = 0;
+        size_t v_count = 0;
         switch (mode) {
             case VG_POINT:
                 gap = 1;
@@ -981,7 +984,7 @@ namespace ho {
 
             // Fetch base vertices
             for (size_t j = i; j < i + v_count; j++) {
-                poly.push_back(&vg.using_program_->varying_buffer[j]);
+                poly.emplace_back(&vg.using_program_->varying_buffer[j]);
             }
 
             // TRIANGLE_STRIP: flip winding order on odd triangles
@@ -1037,13 +1040,13 @@ namespace ho {
                 return;
         }
 
-        if (indices != nullptr && (reinterpret_cast<uintptr_t>(indices) + count * idx_size >
+        if (indices != nullptr && (reinterpret_cast<uintptr_t>(indices) + static_cast<size_t>(count) * idx_size >
                                    vg.bound_vertex_array_->element_buffer->memory->size())) {
             vg.state_.error_state = VG_INVALID_VALUE;
             return;
         }
 
-        vg.using_program_->varying_buffer.resize(vg.bound_vertex_array_->vertex_count);
+        vg.using_program_->varying_buffer.resize(static_cast<size_t>(vg.bound_vertex_array_->vertex_count));
 
         // Vertex Processing
         std::vector<JobDeclaration> vs_jobs;
@@ -1053,15 +1056,16 @@ namespace ho {
 
         for (int i = 0; i < vg.bound_vertex_array_->vertex_count; i += BATCH_SIZE) {
             const int batch_end = math::Min((i + BATCH_SIZE - 1), (vg.bound_vertex_array_->vertex_count - 1));
-            VirtualGPU::VSJobInput* input = new VirtualGPU::VSJobInput{
-                (VirtualGPU::VertexShader)vg.using_program_->vertex_shader->source, 0, i, batch_end};
+            VirtualGPU::VSJobInput* input =
+                new VirtualGPU::VSJobInput{(VirtualGPU::VertexShader)vg.using_program_->vertex_shader->source, 0,
+                                           static_cast<size_t>(i), static_cast<size_t>(batch_end)};
 
             JobDeclaration job;
             job.entry = VirtualGPU::VSJobEntry;
             job.input_data = input;
             job.input_size = sizeof(VirtualGPU::VSJobInput);
 
-            vs_jobs.push_back(job);
+            vs_jobs.emplace_back(job);
         }
 
         vg.job_system_.KickJobsAndWait(vs_jobs);
@@ -1069,8 +1073,8 @@ namespace ho {
         vs_jobs.clear();
 
         // Primitive Assembly & Kick After Vertex Processing Jobs
-        int gap = 0;
-        int v_count = 0;
+        size_t gap = 0;
+        size_t v_count = 0;
         switch (mode) {
             case VG_POINT:
                 gap = 1;
@@ -1102,29 +1106,30 @@ namespace ho {
 
         const uint8_t* base = ebo + offset;
 
-        auto FetchIndex = [&](int k) -> int {
+        auto FetchIndex = [&](int k) -> size_t {
             switch (type) {
                 case VG_UNSIGNED_BYTE:
-                    return static_cast<uint32_t>((reinterpret_cast<const uint8_t*>(base))[k]);
+                    return static_cast<size_t>((reinterpret_cast<const uint8_t*>(base))[k]);
                 case VG_UNSIGNED_SHORT:
-                    return static_cast<uint32_t>((reinterpret_cast<const uint16_t*>(base))[k]);
+                    return static_cast<size_t>((reinterpret_cast<const uint16_t*>(base))[k]);
                 case VG_UNSIGNED_INT:
-                    return (reinterpret_cast<const uint32_t*>(base))[k];
+                    return static_cast<size_t>((reinterpret_cast<const uint32_t*>(base))[k]);
+                default:
+                    return 0;
             }
-            return 0;
         };
 
         JobDeclaration job;
         job.entry = VirtualGPU::AfterVSJobEntry;
         job.input_size = sizeof(VirtualGPU::AfterVSJobInput);
 
-        for (int i = 0; i + v_count <= count; i += gap) {
+        for (size_t i = 0; i + v_count <= static_cast<size_t>(count); i += gap) {
             std::vector<VirtualGPU::Varying*> poly;
             poly.reserve(v_count);
 
-            for (int j = 0; j < v_count; j++) {
-                int idx = FetchIndex(i + j);
-                poly.push_back(&(vg.using_program_->varying_buffer[idx]));
+            for (size_t j = 0; j < v_count; j++) {
+                size_t idx = FetchIndex(i + j);
+                poly.emplace_back(&(vg.using_program_->varying_buffer[idx]));
             }
 
             // TRIANGLE_STRIP: flip winding order on odd triangles
@@ -1171,7 +1176,7 @@ namespace ho {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
-        int slot = vg::GetTextureSlot(target);
+        const size_t slot = vg::GetTextureSlot(target);
 
         VirtualGPU::TextureObject* tex = vg.texture_units_[vg.active_texture_unit_].bound_texture_targets[slot];
         if (!tex || tex->is_deleted) {
@@ -1204,7 +1209,7 @@ namespace ho {
                 return;
         }
 
-        VirtualGPU::TextureLevel& tex_level = tex->mipmap[level];
+        VirtualGPU::TextureLevel& tex_level = tex->mipmap[static_cast<size_t>(level)];
 
         if (!tex_level.memory) {
             vg.state_.error_state = VG_INVALID_OPERATION;
@@ -1216,11 +1221,11 @@ namespace ho {
             return;
         }
 
-        const size_t src_pixel_size = vg::GetPixelSize(format, type);
-        const size_t dst_pixel_size = vg::GetPixelSize(tex->internal_format, tex->component_type);
+        const size_t src_pixel_size = static_cast<size_t>(vg::GetPixelSize(format, type));
+        const size_t dst_pixel_size = static_cast<size_t>(vg::GetPixelSize(tex->internal_format, tex->component_type));
 
         const uint8_t* src = static_cast<const uint8_t*>(pixels);
-        uint8_t* dst = tex_level.memory->data() + xoffset * dst_pixel_size;
+        uint8_t* dst = tex_level.memory->data() + static_cast<size_t>(xoffset) * dst_pixel_size;
 
         for (int x = 0; x < width; x++) {
             vg::CopyPixel(dst, src, tex->internal_format, tex->component_type, format, type);
@@ -1249,7 +1254,7 @@ namespace ho {
             return;
         }
 
-        int slot = vg::GetTextureSlot(target);
+        const size_t slot = vg::GetTextureSlot(target);
         VirtualGPU::TextureObject* tex = vg.texture_units_[vg.active_texture_unit_].bound_texture_targets[slot];
 
         if (!tex || tex->is_deleted) {
@@ -1283,7 +1288,7 @@ namespace ho {
                 return;
         }
 
-        VirtualGPU::TextureLevel& tex_level = tex->mipmap[level];
+        VirtualGPU::TextureLevel& tex_level = tex->mipmap[static_cast<size_t>(level)];
 
         if (!tex_level.memory) {
             vg.state_.error_state = VG_INVALID_OPERATION;
@@ -1294,13 +1299,14 @@ namespace ho {
             return;
         }
 
-        const size_t src_pixel_size = vg::GetPixelSize(format, type);
-        const size_t dst_pixel_size = vg::GetPixelSize(tex->internal_format, tex->component_type);
+        const size_t src_pixel_size = static_cast<size_t>(vg::GetPixelSize(format, type));
+        const size_t dst_pixel_size = static_cast<size_t>(vg::GetPixelSize(tex->internal_format, tex->component_type));
 
         const uint8_t* src = static_cast<const uint8_t*>(pixels);
 
         for (int y = 0; y < height; y++) {
-            uint8_t* dst = tex_level.memory->data() + ((yoffset + y) * tex_level.width + xoffset) * dst_pixel_size;
+            uint8_t* dst = tex_level.memory->data() +
+                           static_cast<size_t>((yoffset + y) * tex_level.width + xoffset) * dst_pixel_size;
             for (int x = 0; x < width; x++) {
                 vg::CopyPixel(dst, src, tex->internal_format, tex->component_type, format, type);
                 src += src_pixel_size;
@@ -1314,8 +1320,8 @@ namespace ho {
             return;
         }
 
-        int slot = vg::GetTextureSlot(target);
-        if (slot == VG_INVALID_SLOT) {
+        const size_t slot = vg::GetTextureSlot(target);
+        if (slot == INVALID_SLOT) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -1483,7 +1489,7 @@ namespace ho {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
-        int slot = vg::GetTextureSlot(target);
+        const size_t slot = vg::GetTextureSlot(target);
 
         if (vg::IsProxyTexture(target)) {
             vg.proxy_texture_states_[slot].format = format;
@@ -1499,7 +1505,7 @@ namespace ho {
             return;
         }
 
-        tex->internal_format = internalformat;
+        tex->internal_format = static_cast<VGenum>(internalformat);
         switch (internalformat) {
             case VG_RED:
             case VG_RG:
@@ -1521,9 +1527,9 @@ namespace ho {
                 return;
         }
 
-        VirtualGPU::TextureLevel& tex_level = tex->mipmap[level];
+        VirtualGPU::TextureLevel& tex_level = tex->mipmap[static_cast<size_t>(level)];
         if (tex_level.memory == nullptr) {
-            vg.vram_.push_back(std::vector<uint8_t>());
+            vg.vram_.emplace_back(std::vector<uint8_t>());
             tex_level.memory = &vg.vram_.back();
         }
         tex_level.mipmap_level = level;
@@ -1531,13 +1537,11 @@ namespace ho {
         tex_level.height = height;
         tex_level.depth = depth;
 
-        const int channel_count = vg::GetChannelCount(format);
-        const size_t type_size = vg::GetTypeSize(type);
-        const size_t src_pixel_size = channel_count * type_size;
-        const size_t dst_pixel_size = vg::GetPixelSize(internalformat, tex->component_type);
+        const size_t src_pixel_size = static_cast<size_t>(vg::GetPixelSize(format, type));
+        const size_t dst_pixel_size = static_cast<size_t>(vg::GetPixelSize(tex->internal_format, tex->component_type));
 
         tex_level.memory->clear();
-        tex_level.memory->resize(width * height * depth * dst_pixel_size);
+        tex_level.memory->resize(static_cast<size_t>(width * height * depth) * dst_pixel_size);
 
         if (pixels == nullptr) {
             return;
@@ -1576,7 +1580,7 @@ namespace ho {
             return;
         }
 
-        int slot = vg::GetTextureSlot(target);
+        const size_t slot = vg::GetTextureSlot(target);
         VirtualGPU::TextureObject* tex = vg.texture_units_[vg.active_texture_unit_].bound_texture_targets[slot];
 
         if (!tex || tex->is_deleted) {
@@ -1629,10 +1633,9 @@ namespace ho {
 
         for (int z = 0; z < depth; z++) {
             uint8_t* z_dst = tex_level.memory->data() +
-                             (static_cast<size_t>(zoffset + z) * tex_level.width * tex_level.height) * dst_pixel_size;
+                             static_cast<size_t>(zoffset + z * tex_level.width * tex_level.height) * dst_pixel_size;
             for (int y = 0; y < height; y++) {
-                uint8_t* x_dst =
-                    z_dst + (static_cast<size_t>(yoffset + y) * tex_level.width + xoffset) * dst_pixel_size;
+                uint8_t* x_dst = z_dst + static_cast<size_t>(yoffset + y * tex_level.width + xoffset) * dst_pixel_size;
                 for (int x = 0; x < width; x++) {
                     vg::CopyPixel(x_dst, src, tex->internal_format, tex->component_type, format, type);
                     src += src_pixel_size;
@@ -1656,7 +1659,7 @@ namespace ho {
             return;
         }
 
-        vg.active_texture_unit_ = texture - VG_TEXTURE0;
+        vg.active_texture_unit_ = static_cast<size_t>(texture - VG_TEXTURE0);
     }
 
     //////////////////////////////////////////////////
@@ -1768,8 +1771,8 @@ namespace ho {
             return;
         }
 
-        const int slot = vg::GetBufferSlot(target);
-        if (slot == VG_INVALID_SLOT) {
+        const size_t slot = vg::GetBufferSlot(target);
+        if (slot == INVALID_SLOT) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -1804,7 +1807,7 @@ namespace ho {
         }
 
         if (!buf.memory) {
-            vg.vram_.push_back(std::vector<uint8_t>());
+            vg.vram_.emplace_back(std::vector<uint8_t>());
             buf.memory = &vg.vram_.back();
         }
 
@@ -1894,8 +1897,8 @@ namespace ho {
             return;
         }
 
-        const int slot = vg::GetBufferSlot(target);
-        if (slot == VG_INVALID_SLOT) {
+        const size_t slot = vg::GetBufferSlot(target);
+        if (slot == INVALID_SLOT) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -1949,8 +1952,8 @@ namespace ho {
             return;
         }
 
-        const int slot = vg::GetBufferSlot(target);
-        if (slot == VG_INVALID_SLOT) {
+        const size_t slot = vg::GetBufferSlot(target);
+        if (slot == INVALID_SLOT) {
             vg.state_.error_state = VG_INVALID_ENUM;
             return;
         }
@@ -2029,7 +2032,7 @@ namespace ho {
             return;
         }
 
-        if (n <= 0 || n > VG_DRAW_BUFFER_SLOT_COUNT) {
+        if (n <= 0 || n > VirtualGPU::DRAW_BUFFER_SLOT_COUNT) {
             vg.state_.error_state = VG_INVALID_VALUE;
             return;
         }
@@ -2045,7 +2048,7 @@ namespace ho {
 
         for (int i = 0; i < n; i++) {
             if (bufs[i] == VG_NONE) {
-                fb->draw_slot_to_color_attachment[i] = -1;
+                fb->draw_slot_to_color_attachment[i] = INVALID_SLOT;
             } else if (bufs[i] >= VG_COLOR_ATTACHMENT0 && bufs[i] <= VG_COLOR_ATTACHMENT31) {
                 fb->draw_slot_to_color_attachment[i] = static_cast<int>(bufs[i] - VG_COLOR_ATTACHMENT0);
             } else {
@@ -2054,8 +2057,8 @@ namespace ho {
             }
         }
 
-        for (int i = n; i < VG_DRAW_BUFFER_SLOT_COUNT; i++) {
-            fb->draw_slot_to_color_attachment[i] = -1;
+        for (int i = n; i < VirtualGPU::DRAW_BUFFER_SLOT_COUNT; i++) {
+            fb->draw_slot_to_color_attachment[i] = INVALID_SLOT;
         }
     }
 
@@ -2402,7 +2405,7 @@ namespace ho {
             auto inserted = prog.uniform_name_hash_to_location.insert({name_hash, location});
             lit = inserted.first;
         }
-        return lit->second;
+        return static_cast<VGint>(lit->second);
     }
     VGint vgGetUniformLocation(VGuint program, const VGchar* name) {
         return vgGetUniformLocation(program, fnv1a_32(name, strlen(name)));
@@ -2552,7 +2555,7 @@ namespace ho {
             // use location argument as name_hash
             auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
-                location = it->second;
+                location = static_cast<VGint>(it->second);
             } else {
                 VGint new_loc = static_cast<VGint>(vg.using_program_->uniforms.size());
                 vg.using_program_->uniforms.emplace_back(VirtualGPU::Uniform());
@@ -2587,7 +2590,7 @@ namespace ho {
             // use location argument as name_hash
             auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
-                location = it->second;
+                location = static_cast<VGint>(it->second);
             } else {
                 VGint new_loc = static_cast<VGint>(vg.using_program_->uniforms.size());
                 vg.using_program_->uniforms.emplace_back(VirtualGPU::Uniform());
@@ -2623,7 +2626,7 @@ namespace ho {
             // use location argument as name_hash
             auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
-                location = it->second;
+                location = static_cast<VGint>(it->second);
             } else {
                 VGint new_loc = static_cast<VGint>(vg.using_program_->uniforms.size());
                 vg.using_program_->uniforms.emplace_back(VirtualGPU::Uniform());
@@ -2659,7 +2662,7 @@ namespace ho {
             // use location argument as name_hash
             auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
-                location = it->second;
+                location = static_cast<VGint>(it->second);
             } else {
                 VGint new_loc = static_cast<VGint>(vg.using_program_->uniforms.size());
                 vg.using_program_->uniforms.emplace_back(VirtualGPU::Uniform());
@@ -2700,7 +2703,7 @@ namespace ho {
             // use location argument as name_hash
             auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
-                location = it->second;
+                location = static_cast<VGint>(it->second);
             } else {
                 VGint new_loc = static_cast<VGint>(vg.using_program_->uniforms.size());
                 vg.using_program_->uniforms.emplace_back(VirtualGPU::Uniform());
@@ -2739,7 +2742,7 @@ namespace ho {
             // use location argument as name_hash
             auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
-                location = it->second;
+                location = static_cast<VGint>(it->second);
             } else {
                 VGint new_loc = static_cast<VGint>(vg.using_program_->uniforms.size());
                 vg.using_program_->uniforms.emplace_back(VirtualGPU::Uniform());
@@ -2905,7 +2908,7 @@ namespace ho {
             // use location argument as name_hash
             auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
-                location = it->second;
+                location = static_cast<VGint>(it->second);
             } else {
                 VGint new_loc = static_cast<VGint>(vg.using_program_->uniforms.size());
                 vg.using_program_->uniforms.emplace_back(VirtualGPU::Uniform());
@@ -2927,7 +2930,7 @@ namespace ho {
             return;
         }
 
-        for (int i = 0; i < count; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(count); i++) {
             const VGfloat* src = value + i * 4;
             VGfloat* d = dst + i * 4;
 
@@ -2960,7 +2963,7 @@ namespace ho {
             // use location argument as name_hash
             auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
-                location = it->second;
+                location = static_cast<VGint>(it->second);
             } else {
                 VGint new_loc = static_cast<VGint>(vg.using_program_->uniforms.size());
                 vg.using_program_->uniforms.emplace_back(VirtualGPU::Uniform());
@@ -2982,7 +2985,7 @@ namespace ho {
             return;
         }
 
-        for (int i = 0; i < count; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(count); i++) {
             const VGfloat* s = value + i * 9;
             VGfloat* d = dst + i * 9;
 
@@ -3020,7 +3023,7 @@ namespace ho {
             // use location argument as name_hash
             auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
-                location = it->second;
+                location = static_cast<VGint>(it->second);
             } else {
                 VGint new_loc = static_cast<VGint>(vg.using_program_->uniforms.size());
                 vg.using_program_->uniforms.emplace_back(VirtualGPU::Uniform());
@@ -3042,7 +3045,7 @@ namespace ho {
             return;
         }
 
-        for (int i = 0; i < count; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(count); i++) {
             const VGfloat* s = value + i * 16;
             VGfloat* d = dst + i * 16;
 
@@ -3560,7 +3563,7 @@ namespace ho {
             return;
         }
 
-        int slot = vg::GetBufferSlot(VG_ARRAY_BUFFER);
+        const size_t slot = vg::GetBufferSlot(VG_ARRAY_BUFFER);
         VirtualGPU::BufferObject* buf = vg.bound_buffer_targets_[slot];
         if (!buf || buf->is_deleted) {
             vg.state_.error_state = VG_INVALID_OPERATION;
@@ -3584,7 +3587,8 @@ namespace ho {
 
         // For DrawElements call, vertex array must have vertex count to reserve varying buffer.
         int actual_stride = attr.stride == 0 ? attr.size * vg::GetTypeSize(type) : attr.stride;
-        int vertex_count = static_cast<int>(static_cast<float>(buf->memory->size()) / actual_stride);
+        int vertex_count =
+            static_cast<int>(static_cast<float>(buf->memory->size()) / static_cast<float>(actual_stride));
         // Engine policy : vertex count set minimum vertex count
         if (vertex_count < vg.bound_vertex_array_->vertex_count) {
             vg.bound_vertex_array_->vertex_count = vertex_count;
@@ -3777,7 +3781,7 @@ namespace ho {
             return;
         }
 
-        int slot = vg::GetBufferSlot(VG_ARRAY_BUFFER);
+        const size_t slot = vg::GetBufferSlot(VG_ARRAY_BUFFER);
         VirtualGPU::BufferObject* buf = vg.bound_buffer_targets_[slot];
         if (!buf || buf->is_deleted) {
             vg.state_.error_state = VG_INVALID_OPERATION;
@@ -3802,7 +3806,8 @@ namespace ho {
 
         // For DrawElements call, vertex array must have vertex count to reserve varying buffer.
         int actual_stride = attr.stride == 0 ? attr.size * vg::GetTypeSize(type) : attr.stride;
-        int vertex_count = static_cast<int>(static_cast<float>(buf->memory->size()) / actual_stride);
+        int vertex_count =
+            static_cast<int>(static_cast<float>(buf->memory->size()) / static_cast<float>(actual_stride));
         // Engine policy : vertex count set minimum vertex count
         if (vertex_count < vg.bound_vertex_array_->vertex_count) {
             vg.bound_vertex_array_->vertex_count = vertex_count;
@@ -3978,12 +3983,12 @@ namespace ho {
             return;
         }
 
-        if (color >= VG_DRAW_BUFFER_SLOT_COUNT) {
+        if (color >= VirtualGPU::DRAW_BUFFER_SLOT_COUNT) {
             vg.state_.error_state = VG_INVALID_VALUE;
             return;
         }
 
-        prog.fragout_name_hash_to_draw_buffer_slot[name_hash] = color;
+        prog.fragout_name_hash_to_draw_buffer_slot[name_hash] = static_cast<int>(color);
     }
 
     void vgBindFragDataLocation(VGuint program, VGuint color, const VGchar* name) {
@@ -4013,7 +4018,7 @@ namespace ho {
             return -1;
         }
 
-        return loc->second;
+        return static_cast<VGint>(loc->second);
     }
     VGint vgGetFragDataLocation(VGuint program, const VGchar* name) {
         return vgGetFragDataLocation(program, fnv1a_32(name, strlen(name)));
@@ -4273,7 +4278,7 @@ namespace ho {
         }
 
         if (!rbo.memory) {
-            vg.vram_.push_back(std::vector<uint8_t>());
+            vg.vram_.emplace_back(std::vector<uint8_t>());
             rbo.memory = &vg.vram_.back();
         }
 
@@ -4352,51 +4357,37 @@ namespace ho {
 
         switch (internalformat) {
             case VG_RED:
-                vg.bound_render_buffer_->width = width;
-                vg.bound_render_buffer_->height = height;
                 vg.bound_render_buffer_->component_type = VG_UNSIGNED_BYTE;
-                vg.bound_render_buffer_->format = internalformat;
                 vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 1);
                 break;
             case VG_RG:
-                vg.bound_render_buffer_->width = width;
-                vg.bound_render_buffer_->height = height;
                 vg.bound_render_buffer_->component_type = VG_UNSIGNED_BYTE;
-                vg.bound_render_buffer_->format = internalformat;
                 vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 2);
                 break;
             case VG_RGB:
-                vg.bound_render_buffer_->width = width;
-                vg.bound_render_buffer_->height = height;
                 vg.bound_render_buffer_->component_type = VG_UNSIGNED_BYTE;
-                vg.bound_render_buffer_->format = internalformat;
                 vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 3);
                 break;
             case VG_RGBA:
-                vg.bound_render_buffer_->width = width;
-                vg.bound_render_buffer_->height = height;
                 vg.bound_render_buffer_->component_type = VG_UNSIGNED_BYTE;
-                vg.bound_render_buffer_->format = internalformat;
                 vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 4);
                 break;
             case VG_DEPTH_COMPONENT:
-                vg.bound_render_buffer_->width = width;
-                vg.bound_render_buffer_->height = height;
                 vg.bound_render_buffer_->component_type = VG_FLOAT;
-                vg.bound_render_buffer_->format = internalformat;
                 vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 4);
                 break;
             case VG_DEPTH_STENCIL:
-                vg.bound_render_buffer_->width = width;
-                vg.bound_render_buffer_->height = height;
                 vg.bound_render_buffer_->component_type = VG_UNSIGNED_INT;
-                vg.bound_render_buffer_->format = internalformat;
                 vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 4);
                 break;
             default:
                 vg.state_.error_state = VG_INVALID_ENUM;
                 return;
         }
+
+        vg.bound_render_buffer_->width = width;
+        vg.bound_render_buffer_->height = height;
+        vg.bound_render_buffer_->format = internalformat;
     }
     VGboolean vgIsFramebuffer(VGuint framebuffer) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
@@ -4542,13 +4533,13 @@ namespace ho {
         int ref_height = -1;
 
         // Check color attachment
-        for (int slot = 0; slot < static_cast<int>(fb->draw_slot_to_color_attachment.size()); slot++) {
-            int att_index = fb->draw_slot_to_color_attachment[slot];
-            if (att_index == -1) {
+        for (size_t slot = 0; slot < static_cast<size_t>(VirtualGPU::DRAW_BUFFER_SLOT_COUNT); slot++) {
+            size_t att_index = fb->draw_slot_to_color_attachment[slot];
+            if (att_index == INVALID_SLOT) {
                 continue;
             }
 
-            if (att_index < 0 || att_index >= static_cast<int>(fb->color_attachments.size())) {
+            if (att_index >= static_cast<size_t>(VirtualGPU::COLOR_ATTACHMENT_COUNT)) {
                 return VG_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
             }
 
@@ -4577,8 +4568,6 @@ namespace ho {
             }
 
             if (!has_attachment) {
-                ref_width = ds.width;
-                ref_height = ds.height;
                 has_attachment = true;
             } else {
                 if (ds.width != ref_width || ds.height != ref_height) {
@@ -5178,7 +5167,7 @@ namespace ho {
             return;
         }
 
-        if (unit >= VG_TEXTURE_UNIT_COUNT) {
+        if (unit >= VirtualGPU::TEXTURE_UNIT_COUNT) {
             vg.state_.error_state = VG_INVALID_VALUE;
             return;
         }

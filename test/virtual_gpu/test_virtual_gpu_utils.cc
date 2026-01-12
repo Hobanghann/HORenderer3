@@ -31,7 +31,7 @@ TEST(VirtualGPUUtilsTest, GetBufferSlot) {
     EXPECT_EQ(GetBufferSlot(VG_TEXTURE_BUFFER), 2u);
     EXPECT_EQ(GetBufferSlot(VG_UNIFORM_BUFFER), 3u);
 
-    EXPECT_EQ(GetBufferSlot(0xdead), VG_INVALID_SLOT);
+    EXPECT_EQ(GetBufferSlot(0xdead), INVALID_SLOT);
 }
 
 TEST(VirtualGPUUtilsTest, GetTextureSlot) {
@@ -44,7 +44,7 @@ TEST(VirtualGPUUtilsTest, GetTextureSlot) {
     EXPECT_EQ(GetTextureSlot(VG_TEXTURE_3D), 2u);
     EXPECT_EQ(GetTextureSlot(VG_PROXY_TEXTURE_3D), 2u);
 
-    EXPECT_EQ(GetTextureSlot(0xdead), VG_INVALID_SLOT);
+    EXPECT_EQ(GetTextureSlot(0xdead), INVALID_SLOT);
 }
 
 TEST(VirtualGPUUtilsTest, IsProxyTexture) {

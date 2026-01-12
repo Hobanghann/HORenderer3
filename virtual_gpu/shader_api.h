@@ -95,7 +95,7 @@ namespace ho {
     // T can be  float, Vector2, Vector3, Vector4, uint8_t, int8_t, uint16_t,
     // int16_t,uint32_t,int32_t
     template <typename T>
-    ALWAYS_INLINE T FetchAttribute(VGuint location, VGint index = 0) {
+    ALWAYS_INLINE T FetchAttribute(VGuint location, size_t index = 0) {
         static uint8_t default_zero[16] = {0};
 
         VirtualGPU& vg = VirtualGPU::GetInstance();
@@ -187,7 +187,7 @@ namespace ho {
     // T can be  float, Vector2, Vector3, Vector4, Matrix2x2, Matrix3x3, Matrix4x4,
     // uint32_t, int32_t
     template <typename T>
-    ALWAYS_INLINE T FetchUniform(uint32_t name_hash, VGint index = 0) {
+    ALWAYS_INLINE T FetchUniform(uint32_t name_hash, size_t index = 0) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         assert(vg.using_program_);
         auto loc_it = vg.using_program_->uniform_name_hash_to_location.find(name_hash);
@@ -203,7 +203,7 @@ namespace ho {
     // T can be  float, Vector2, Vector3, Vector4, Matrix2x2, Matrix3x3, Matrix4x4,
     // uint32_t, int32_t
     template <typename T>
-    ALWAYS_INLINE T FetchUniformBlock(VGuint binding, VGint offset) {
+    ALWAYS_INLINE T FetchUniformBlock(VGuint binding, int offset) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         auto it = vg.uniform_buffer_bindings_.find(binding);
         assert(it != vg.uniform_buffer_bindings_.end());
