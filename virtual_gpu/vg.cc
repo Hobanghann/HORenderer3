@@ -2046,7 +2046,7 @@ namespace ho {
             return;
         }
 
-        for (size_t i = 0; i < n; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(n); i++) {
             if (bufs[i] == VG_NONE) {
                 fb->draw_slot_to_color_attachment[i] = INVALID_SLOT;
             } else if (bufs[i] >= VG_COLOR_ATTACHMENT0 && bufs[i] <= VG_COLOR_ATTACHMENT31) {
@@ -2057,7 +2057,7 @@ namespace ho {
             }
         }
 
-        for (int i = n; i < VirtualGPU::DRAW_BUFFER_SLOT_COUNT; i++) {
+        for (size_t i = static_cast<size_t>(n); i < static_cast<size_t>(VirtualGPU::DRAW_BUFFER_SLOT_COUNT); i++) {
             fb->draw_slot_to_color_attachment[i] = INVALID_SLOT;
         }
     }
@@ -2908,7 +2908,7 @@ namespace ho {
             return;
         }
 
-        if (location >= vg.using_program_->uniforms.size()) {
+        if (static_cast<size_t>(location) >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
             auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<uint32_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
@@ -2963,9 +2963,9 @@ namespace ho {
             return;
         }
 
-        if (location >= vg.using_program_->uniforms.size()) {
+        if (static_cast<size_t>(location) >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
-            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<size_t>(location));
+            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<uint32_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
                 location = static_cast<VGint>(it->second);
             } else {
@@ -2976,16 +2976,16 @@ namespace ho {
             }
         }
 
-        VirtualGPU::Uniform& u = vg.using_program_->uniforms[location];
+        VirtualGPU::Uniform& u = vg.using_program_->uniforms[static_cast<size_t>(location)];
         u.type = VG_FLOAT_MAT3;
         u.size = 9;
         u.count = count;
 
-        u.data.resize(sizeof(VGfloat) * 9 * count);
+        u.data.resize(sizeof(VGfloat) * 9 * static_cast<size_t>(count));
         VGfloat* dst = reinterpret_cast<VGfloat*>(u.data.data());
 
         if (transpose) {
-            std::memcpy(dst, value, sizeof(VGfloat) * 9 * count);
+            std::memcpy(dst, value, sizeof(VGfloat) * 9 * static_cast<size_t>(count));
             return;
         }
 
@@ -3023,9 +3023,9 @@ namespace ho {
             return;
         }
 
-        if (location >= vg.using_program_->uniforms.size()) {
+        if (static_cast<size_t>(location) >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
-            auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
+            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<uint32_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
                 location = static_cast<VGint>(it->second);
             } else {
@@ -3036,16 +3036,16 @@ namespace ho {
             }
         }
 
-        VirtualGPU::Uniform& u = vg.using_program_->uniforms[location];
+        VirtualGPU::Uniform& u = vg.using_program_->uniforms[static_cast<size_t>(location)];
         u.type = VG_FLOAT_MAT4;
         u.size = 16;
         u.count = count;
 
-        u.data.resize(sizeof(VGfloat) * 16 * count);
+        u.data.resize(sizeof(VGfloat) * 16 * static_cast<size_t>(count));
         VGfloat* dst = reinterpret_cast<VGfloat*>(u.data.data());
 
         if (!transpose) {
-            std::memcpy(dst, value, sizeof(VGfloat) * 16 * count);
+            std::memcpy(dst, value, sizeof(VGfloat) * 16 * static_cast<size_t>(count));
             return;
         }
 
@@ -3992,7 +3992,7 @@ namespace ho {
             return;
         }
 
-        prog.fragout_name_hash_to_draw_buffer_slot[name_hash] = static_cast<int>(color);
+        prog.fragout_name_hash_to_draw_buffer_slot[name_hash] = static_cast<size_t>(color);
     }
 
     void vgBindFragDataLocation(VGuint program, VGuint color, const VGchar* name) {
@@ -4103,7 +4103,7 @@ namespace ho {
 
         switch (buffer) {
             case VG_COLOR: {
-                if (drawbuffer < 0 || drawbuffer > VG_DRAW_BUFFER15 - VG_DRAW_BUFFER0) {
+                if (drawbuffer < 0 || drawbuffer > static_cast<int>(VG_DRAW_BUFFER15 - VG_DRAW_BUFFER0)) {
                     vg.state_.error_state = VG_INVALID_VALUE;
                     return;
                 }
@@ -4111,7 +4111,7 @@ namespace ho {
                 Color128 clear_color(static_cast<float>(value[0]), static_cast<float>(value[1]),
                                      static_cast<float>(value[2]), static_cast<float>(value[3]));
 
-                vg.ClearColorAttachment(drawbuffer, clear_color);
+                vg.ClearColorAttachment(static_cast<size_t>(drawbuffer), clear_color);
                 return;
             }
 
@@ -4146,7 +4146,7 @@ namespace ho {
             return;
         }
 
-        if (drawbuffer < 0 || drawbuffer > VG_DRAW_BUFFER15 - VG_DRAW_BUFFER0) {
+        if (drawbuffer < 0 || drawbuffer > static_cast<int>(VG_DRAW_BUFFER15 - VG_DRAW_BUFFER0)) {
             vg.state_.error_state = VG_INVALID_VALUE;
             return;
         }
@@ -4154,7 +4154,7 @@ namespace ho {
         Color128 clear_color(static_cast<float>(value[0]), static_cast<float>(value[1]), static_cast<float>(value[2]),
                              static_cast<float>(value[3]));
 
-        vg.ClearColorAttachment(drawbuffer, clear_color);
+        vg.ClearColorAttachment(static_cast<size_t>(drawbuffer), clear_color);
     }
 
     void vgClearBufferfv(VGenum buffer, VGint drawbuffer, const VGfloat* value) {
@@ -4176,13 +4176,13 @@ namespace ho {
 
         switch (buffer) {
             case VG_COLOR: {
-                if (drawbuffer < 0 || drawbuffer > (VG_DRAW_BUFFER15 - VG_DRAW_BUFFER0)) {
+                if (drawbuffer < 0 || drawbuffer > static_cast<int>(VG_DRAW_BUFFER15 - VG_DRAW_BUFFER0)) {
                     vg.state_.error_state = VG_INVALID_VALUE;
                     return;
                 }
 
                 Color128 clear_color(value[0], value[1], value[2], value[3]);
-                vg.ClearColorAttachment(drawbuffer, clear_color);
+                vg.ClearColorAttachment(static_cast<size_t>(drawbuffer), clear_color);
                 return;
             }
 
@@ -4359,30 +4359,32 @@ namespace ho {
             return;
         }
 
+        const size_t buf_size = static_cast<size_t>(width) * static_cast<size_t>(height);
+
         switch (internalformat) {
             case VG_RED:
                 vg.bound_render_buffer_->component_type = VG_UNSIGNED_BYTE;
-                vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 1);
+                vg.bound_render_buffer_->memory->resize(buf_size * 1);
                 break;
             case VG_RG:
                 vg.bound_render_buffer_->component_type = VG_UNSIGNED_BYTE;
-                vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 2);
+                vg.bound_render_buffer_->memory->resize(buf_size * 2);
                 break;
             case VG_RGB:
                 vg.bound_render_buffer_->component_type = VG_UNSIGNED_BYTE;
-                vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 3);
+                vg.bound_render_buffer_->memory->resize(buf_size * 3);
                 break;
             case VG_RGBA:
                 vg.bound_render_buffer_->component_type = VG_UNSIGNED_BYTE;
-                vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 4);
+                vg.bound_render_buffer_->memory->resize(buf_size * 4);
                 break;
             case VG_DEPTH_COMPONENT:
                 vg.bound_render_buffer_->component_type = VG_FLOAT;
-                vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 4);
+                vg.bound_render_buffer_->memory->resize(buf_size * 4);
                 break;
             case VG_DEPTH_STENCIL:
                 vg.bound_render_buffer_->component_type = VG_UNSIGNED_INT;
-                vg.bound_render_buffer_->memory->resize(static_cast<size_t>(width) * height * 4);
+                vg.bound_render_buffer_->memory->resize(buf_size * 4);
                 break;
             default:
                 vg.state_.error_state = VG_INVALID_ENUM;
@@ -4656,7 +4658,7 @@ namespace ho {
             return;
         }
 
-        VirtualGPU::TextureLevel& lvl = tex.mipmap[level];
+        VirtualGPU::TextureLevel& lvl = tex.mipmap[static_cast<size_t>(level)];
         if (!lvl.memory) {
             vg.state_.error_state = VG_INVALID_OPERATION;
             return;
@@ -4706,7 +4708,8 @@ namespace ho {
         }
 
         VirtualGPU::Attachment* attch =
-            is_depth ? &fb->depth_stencil_attachment : &fb->color_attachments[attachment - VG_COLOR_ATTACHMENT0];
+            is_depth ? &fb->depth_stencil_attachment
+                     : &fb->color_attachments[static_cast<size_t>(attachment - VG_COLOR_ATTACHMENT0)];
 
         if (attch->ref_id != 0) {
             ReleaseAttachment(attch->ref_id);
@@ -4740,7 +4743,7 @@ namespace ho {
             return;
         }
 
-        VirtualGPU::TextureLevel& lvl = tex.mipmap[level];
+        VirtualGPU::TextureLevel& lvl = tex.mipmap[static_cast<size_t>(level)];
         if (!lvl.memory) {
             vg.state_.error_state = VG_INVALID_OPERATION;
             return;
@@ -4823,7 +4826,7 @@ namespace ho {
             return;
         }
 
-        VirtualGPU::TextureLevel& lvl = tex.mipmap[level];
+        VirtualGPU::TextureLevel& lvl = tex.mipmap[static_cast<size_t>(level)];
 
         if (zoffset < 0 || zoffset >= lvl.depth) {
             vg.state_.error_state = VG_INVALID_VALUE;
@@ -4841,7 +4844,7 @@ namespace ho {
         tex.refcount++;
         attch->ref_id = texture;
         attch->memory = lvl.memory;
-        attch->offset = (VGsizei)(slice_size * zoffset);
+        attch->offset = (VGsizei)(slice_size * static_cast<size_t>(zoffset));
         attch->width = lvl.width;
         attch->height = lvl.height;
         attch->format = tex.internal_format;
@@ -5227,67 +5230,69 @@ namespace ho {
 
         VirtualGPU::Sampler& ds = it->second;
 
+        const VGenum eparam = static_cast<VGenum>(param);
+
         switch (pname) {
             case VG_TEXTURE_WRAP_S:
-                if (param == VG_CLAMP_TO_EDGE || param == VG_CLAMP_TO_BORDER || param == VG_MIRRORED_REPEAT ||
-                    param == VG_REPEAT)
+                if (eparam == VG_CLAMP_TO_EDGE || eparam == VG_CLAMP_TO_BORDER || eparam == VG_MIRRORED_REPEAT ||
+                    eparam == VG_REPEAT)
                     ds.wrap_s = param;
                 else
                     vg.state_.error_state = VG_INVALID_ENUM;
                 break;
 
             case VG_TEXTURE_WRAP_T:
-                if (param == VG_CLAMP_TO_EDGE || param == VG_CLAMP_TO_BORDER || param == VG_MIRRORED_REPEAT ||
-                    param == VG_REPEAT)
+                if (eparam == VG_CLAMP_TO_EDGE || eparam == VG_CLAMP_TO_BORDER || eparam == VG_MIRRORED_REPEAT ||
+                    eparam == VG_REPEAT)
                     ds.wrap_t = param;
                 else
                     vg.state_.error_state = VG_INVALID_ENUM;
                 break;
 
             case VG_TEXTURE_WRAP_R:
-                if (param == VG_CLAMP_TO_EDGE || param == VG_CLAMP_TO_BORDER || param == VG_MIRRORED_REPEAT ||
-                    param == VG_REPEAT)
+                if (eparam == VG_CLAMP_TO_EDGE || eparam == VG_CLAMP_TO_BORDER || eparam == VG_MIRRORED_REPEAT ||
+                    eparam == VG_REPEAT)
                     ds.wrap_r = param;
                 else
                     vg.state_.error_state = VG_INVALID_ENUM;
                 break;
 
             case VG_TEXTURE_MIN_FILTER:
-                if (param >= VG_NEAREST && param <= VG_LINEAR)
+                if (eparam >= VG_NEAREST && eparam <= VG_LINEAR)
                     ds.min_filter = param;
                 else
                     vg.state_.error_state = VG_INVALID_ENUM;
                 break;
 
             case VG_TEXTURE_MAG_FILTER:
-                if (param == VG_NEAREST || param == VG_LINEAR)
+                if (eparam == VG_NEAREST || eparam == VG_LINEAR)
                     ds.mag_filter = param;
                 else
                     vg.state_.error_state = VG_INVALID_ENUM;
                 break;
             case VG_TEXTURE_SWIZZLE_R:
-                if ((param >= VG_RED && param <= VG_ALPHA) || param == VG_ONE || param == VG_ZERO)
+                if ((eparam >= VG_RED && eparam <= VG_ALPHA) || eparam == VG_ONE || eparam == VG_ZERO)
                     ds.swizzle_r = param;
                 else
                     vg.state_.error_state = VG_INVALID_ENUM;
                 break;
 
             case VG_TEXTURE_SWIZZLE_G:
-                if ((param >= VG_RED && param <= VG_ALPHA) || param == VG_ONE || param == VG_ZERO)
+                if ((eparam >= VG_RED && eparam <= VG_ALPHA) || eparam == VG_ONE || eparam == VG_ZERO)
                     ds.swizzle_g = param;
                 else
                     vg.state_.error_state = VG_INVALID_ENUM;
                 break;
 
             case VG_TEXTURE_SWIZZLE_B:
-                if ((param >= VG_RED && param <= VG_ALPHA) || param == VG_ONE || param == VG_ZERO)
+                if ((eparam >= VG_RED && eparam <= VG_ALPHA) || eparam == VG_ONE || eparam == VG_ZERO)
                     ds.swizzle_b = param;
                 else
                     vg.state_.error_state = VG_INVALID_ENUM;
                 break;
 
             case VG_TEXTURE_SWIZZLE_A:
-                if ((param >= VG_RED && param <= VG_ALPHA) || param == VG_ONE || param == VG_ZERO)
+                if ((eparam >= VG_RED && eparam <= VG_ALPHA) || eparam == VG_ONE || eparam == VG_ZERO)
                     ds.swizzle_a = param;
                 else
                     vg.state_.error_state = VG_INVALID_ENUM;

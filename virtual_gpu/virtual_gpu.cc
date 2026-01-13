@@ -882,7 +882,7 @@ namespace ho {
             return false;
         }
 
-        const size_t pixel_index = static_cast<size_t>(py * attch.width + px);
+        const size_t pixel_index = static_cast<size_t>(py) * static_cast<size_t>(attch.width) + static_cast<size_t>(px);
         uint8_t* pixel_addr = attch.memory->data() + static_cast<size_t>(attch.offset) +
                               pixel_index * static_cast<size_t>(vg::GetPixelSize(attch.format, attch.component_type));
         SpinLock& lock = GetDepthLock(px, py);
