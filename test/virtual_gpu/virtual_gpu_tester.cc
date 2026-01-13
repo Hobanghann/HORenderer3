@@ -77,8 +77,8 @@ namespace ho {
         if (fb.draw_slot_to_color_attachment[0] != 0) {
             return false;
         }
-        for (size_t i = 1; i < fb.draw_slot_to_color_attachment.size(); ++i) {
-            if (fb.draw_slot_to_color_attachment[i] != -1) {
+        for (size_t i = 1; i < fb.draw_slot_to_color_attachment.size(); i++) {
+            if (fb.draw_slot_to_color_attachment[i] != INVALID_SLOT) {
                 return false;
             }
         }
@@ -418,17 +418,17 @@ namespace ho {
         v.Out(hash_f, val_f);
 
         // Vector2 (2 floats)
-        Vector2 val_v2(10.0f, 20.0f);
+        Vector2 val_v2(10.f, 20.f);
         uint32_t hash_v2 = 0x1002;
         v.Out(hash_v2, val_v2);
 
         // Vector3 (3 floats)
-        Vector3 val_v3(30.0f, 40.0f, 50.0f);
+        Vector3 val_v3(30.f, 40.f, 50.f);
         uint32_t hash_v3 = 0x1003;
         v.Out(hash_v3, val_v3);
 
         // Vector4 (4 floats)
-        Vector4 val_v4(60.0f, 70.0f, 80.0f, 90.0f);
+        Vector4 val_v4(60.f, 70.f, 80.f, 90.f);
         uint32_t hash_v4 = 0x1004;
         v.Out(hash_v4, val_v4);
 
@@ -551,51 +551,51 @@ namespace ho {
 
         VirtualGPU::Fragment frag;
 
-        frag.smooth_register[0] = 10.0f;
+        frag.smooth_register[0] = 10.f;
 
-        frag.smooth_register[1] = 20.0f;
-        frag.smooth_register[2] = 21.0f;
+        frag.smooth_register[1] = 20.f;
+        frag.smooth_register[2] = 21.f;
 
-        frag.smooth_register[3] = 30.0f;
-        frag.smooth_register[4] = 31.0f;
-        frag.smooth_register[5] = 32.0f;
+        frag.smooth_register[3] = 30.f;
+        frag.smooth_register[4] = 31.f;
+        frag.smooth_register[5] = 32.f;
 
-        frag.smooth_register[6] = 40.0f;
-        frag.smooth_register[7] = 41.0f;
-        frag.smooth_register[8] = 42.0f;
-        frag.smooth_register[9] = 43.0f;
+        frag.smooth_register[6] = 40.f;
+        frag.smooth_register[7] = 41.f;
+        frag.smooth_register[8] = 42.f;
+        frag.smooth_register[9] = 43.f;
 
-        frag.flat_register[0] = 100.0f;
+        frag.flat_register[0] = 100.f;
 
-        frag.flat_register[1] = 200.0f;
-        frag.flat_register[2] = 201.0f;
+        frag.flat_register[1] = 200.f;
+        frag.flat_register[2] = 201.f;
 
         // In() Check
         float val_f = frag.In<float>(0x1001);
-        if (!math::IsEqualApprox(val_f, 10.0f)) return false;
+        if (!math::IsEqualApprox(val_f, 10.f)) return false;
 
         Vector2 val_v2 = frag.In<Vector2>(0x1002);
-        if (!math::IsEqualApprox(val_v2.x, 20.0f)) return false;
-        if (!math::IsEqualApprox(val_v2.y, 21.0f)) return false;
+        if (!math::IsEqualApprox(val_v2.x, 20.f)) return false;
+        if (!math::IsEqualApprox(val_v2.y, 21.f)) return false;
 
         Vector3 val_v3 = frag.In<Vector3>(0x1003);
-        if (!math::IsEqualApprox(val_v3.x, 30.0f)) return false;
-        if (!math::IsEqualApprox(val_v3.y, 31.0f)) return false;
-        if (!math::IsEqualApprox(val_v3.z, 32.0f)) return false;
+        if (!math::IsEqualApprox(val_v3.x, 30.f)) return false;
+        if (!math::IsEqualApprox(val_v3.y, 31.f)) return false;
+        if (!math::IsEqualApprox(val_v3.z, 32.f)) return false;
 
         Vector4 val_v4 = frag.In<Vector4>(0x1004);
-        if (!math::IsEqualApprox(val_v4.x, 40.0f)) return false;
-        if (!math::IsEqualApprox(val_v4.y, 41.0f)) return false;
-        if (!math::IsEqualApprox(val_v4.z, 42.0f)) return false;
-        if (!math::IsEqualApprox(val_v4.w, 43.0f)) return false;
+        if (!math::IsEqualApprox(val_v4.x, 40.f)) return false;
+        if (!math::IsEqualApprox(val_v4.y, 41.f)) return false;
+        if (!math::IsEqualApprox(val_v4.z, 42.f)) return false;
+        if (!math::IsEqualApprox(val_v4.w, 43.f)) return false;
 
         // InFlat() Check
         float flat_f = frag.InFlat<float>(0x2001);
-        if (!math::IsEqualApprox(flat_f, 100.0f)) return false;
+        if (!math::IsEqualApprox(flat_f, 100.f)) return false;
 
         Vector2 flat_v2 = frag.InFlat<Vector2>(0x2002);
-        if (!math::IsEqualApprox(flat_v2.x, 200.0f)) return false;
-        if (!math::IsEqualApprox(flat_v2.y, 201.0f)) return false;
+        if (!math::IsEqualApprox(flat_v2.x, 200.f)) return false;
+        if (!math::IsEqualApprox(flat_v2.y, 201.f)) return false;
 
         return true;
     }
@@ -609,7 +609,7 @@ namespace ho {
 
         // Single Output Test (Single Slot)
         uint32_t slot0 = 0;
-        Color128 color0(0.1f, 0.2f, 0.3f, 1.0f);
+        Color128 color0(0.1f, 0.2f, 0.3f, 1.f);
 
         outputs.Out(slot0, color0);
 
@@ -619,11 +619,11 @@ namespace ho {
 
         //  Multiple Outputs Test (Random Slots)
         uint32_t slot2 = 2;
-        Color128 color2(1.0f, 0.0f, 0.0f, 1.0f);
+        Color128 color2(1.f, 0.f, 0.f, 1.f);
         outputs.Out(slot2, color2);
 
         uint32_t slot5 = 5;
-        Color128 color5(0.0f, 1.0f, 0.0f, 1.0f);
+        Color128 color5(0.f, 1.f, 0.f, 1.f);
         outputs.Out(slot5, color5);
 
         if (!outputs.written[slot2]) return false;
@@ -646,7 +646,7 @@ namespace ho {
         if (!outputs.values[last_slot].IsEqualApprox(color_last)) return false;
 
         // Overwrite Test
-        Color128 color0_new(0.9f, 0.9f, 0.9f, 1.0f);
+        Color128 color0_new(0.9f, 0.9f, 0.9f, 1.f);
         outputs.Out(slot0, color0_new);
 
         if (!outputs.values[slot0].IsEqualApprox(color0_new)) return false;
@@ -751,8 +751,8 @@ namespace ho {
 
         const uint8_t* pixels = static_cast<const uint8_t*>(color.external_memory);
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const int idx = (y * W + x) * 4;
 
                 if (pixels[idx + 0] != 255) return false;  // R
@@ -784,8 +784,8 @@ namespace ho {
 
         const uint8_t* pixels = static_cast<const uint8_t*>(color.external_memory);
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const int idx = (y * W + x) * 4;
 
                 const bool inside = (x >= 2 && x < 6 && y >= 2 && y < 6);
@@ -825,8 +825,8 @@ namespace ho {
 
         const uint8_t* pixels = static_cast<const uint8_t*>(color.external_memory);
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const int idx = (y * W + x) * 4;
 
                 const bool inside = (x >= 3 && x < 7 && y >= 3 && y < 7);
@@ -868,8 +868,8 @@ namespace ho {
 
         const uint8_t* pixels = static_cast<const uint8_t*>(color.external_memory);
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const int idx = (y * W + x) * 4;
 
                 // R
@@ -907,8 +907,8 @@ namespace ho {
 
         const float* pixels = reinterpret_cast<const float*>(depth.memory->data() + depth.offset);
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const int idx = y * W + x;
 
                 if (pixels[idx] != 0.25f) {
@@ -940,8 +940,8 @@ namespace ho {
 
         const float* pixels = reinterpret_cast<const float*>(depth.memory->data() + depth.offset);
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const int idx = y * W + x;
 
                 const bool inside = (x >= 2 && x < 6 && y >= 2 && y < 6);
@@ -979,8 +979,8 @@ namespace ho {
 
         const float* pixels = reinterpret_cast<const float*>(depth.memory->data() + depth.offset);
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const int idx = y * W + x;
 
                 const bool inside = (x >= 4 && x < 7 && y >= 4 && y < 7);
@@ -1016,15 +1016,15 @@ namespace ho {
         const uint8_t* mem = ds.memory->data() + ds.offset;
 
         float d = math::Clamp(kDepth, 0.f, 1.f);
-        uint32_t qd = static_cast<uint32_t>(d * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(d * 16777215.f);
 
         const uint8_t exp0 = kStencil;
         const uint8_t exp1 = (qd >> 0) & 0xFF;
         const uint8_t exp2 = (qd >> 8) & 0xFF;
         const uint8_t exp3 = (qd >> 16) & 0xFF;
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const uint8_t* p = mem + (y * W + x) * 4;
 
                 if (p[0] != exp0) return false;
@@ -1056,15 +1056,15 @@ namespace ho {
 
         const uint8_t* mem = ds.memory->data() + ds.offset;
 
-        uint32_t qd = static_cast<uint32_t>(math::Clamp(kDepth, 0.f, 1.f) * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(math::Clamp(kDepth, 0.f, 1.f) * 16777215.f);
 
         const uint8_t exp0 = kStencil;
         const uint8_t exp1 = (qd >> 0) & 0xFF;
         const uint8_t exp2 = (qd >> 8) & 0xFF;
         const uint8_t exp3 = (qd >> 16) & 0xFF;
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const bool inside = (x >= 2 && x < 6 && y >= 2 && y < 6);
 
                 const uint8_t* p = mem + (y * W + x) * 4;
@@ -1100,15 +1100,15 @@ namespace ho {
 
         const uint8_t* mem = ds.memory->data() + ds.offset;
 
-        uint32_t qd = static_cast<uint32_t>(math::Clamp(kDepth, 0.f, 1.f) * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(math::Clamp(kDepth, 0.f, 1.f) * 16777215.f);
 
         const uint8_t exp0 = kStencil;
         const uint8_t exp1 = (qd >> 0) & 0xFF;
         const uint8_t exp2 = (qd >> 8) & 0xFF;
         const uint8_t exp3 = (qd >> 16) & 0xFF;
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const bool inside = (x >= 3 && x < 5 && y >= 3 && y < 5);
 
                 const uint8_t* p = mem + (y * W + x) * 4;
@@ -1137,9 +1137,9 @@ namespace ho {
         auto& ds = gpu.bound_draw_frame_buffer_->depth_stencil_attachment;
         uint8_t* mem = ds.memory->data();
 
-        uint32_t old_qd = static_cast<uint32_t>(math::Clamp(kOldDepth, 0.f, 1.f) * 16777215.0f);
+        uint32_t old_qd = static_cast<uint32_t>(math::Clamp(kOldDepth, 0.f, 1.f) * 16777215.f);
 
-        for (int i = 0; i < W * H; ++i) {
+        for (int i = 0; i < W * H; i++) {
             uint8_t* p = mem + i * 4;
             p[0] = kOldStencil;
             p[1] = (old_qd >> 0) & 0xFF;
@@ -1149,10 +1149,10 @@ namespace ho {
 
         gpu.ClearDepthStencilAttachment(true, false, kNewDepth, 0);
 
-        uint32_t new_qd = static_cast<uint32_t>(math::Clamp(kNewDepth, 0.f, 1.f) * 16777215.0f);
+        uint32_t new_qd = static_cast<uint32_t>(math::Clamp(kNewDepth, 0.f, 1.f) * 16777215.f);
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const uint8_t* p = mem + (y * W + x) * 4;
 
                 if (p[1] != ((new_qd >> 0) & 0xFF)) return false;
@@ -1182,9 +1182,9 @@ namespace ho {
         auto& ds = gpu.bound_draw_frame_buffer_->depth_stencil_attachment;
         uint8_t* mem = ds.memory->data();
 
-        uint32_t qd = static_cast<uint32_t>(math::Clamp(kOldDepth, 0.f, 1.f) * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(math::Clamp(kOldDepth, 0.f, 1.f) * 16777215.f);
 
-        for (int i = 0; i < W * H; ++i) {
+        for (int i = 0; i < W * H; i++) {
             uint8_t* p = mem + i * 4;
             p[0] = kOldStencil;
             p[1] = (qd >> 0) & 0xFF;
@@ -1194,8 +1194,8 @@ namespace ho {
 
         gpu.ClearDepthStencilAttachment(false, true, 0.f, kNewStencil);
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const uint8_t* p = mem + (y * W + x) * 4;
 
                 if (p[1] != ((qd >> 0) & 0xFF)) return false;
@@ -1228,9 +1228,9 @@ namespace ho {
         auto& ds = gpu.bound_draw_frame_buffer_->depth_stencil_attachment;
         uint8_t* mem = ds.memory->data();
 
-        uint32_t qd = static_cast<uint32_t>(math::Clamp(kDepth, 0.f, 1.f) * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(math::Clamp(kDepth, 0.f, 1.f) * 16777215.f);
 
-        for (int i = 0; i < W * H; ++i) {
+        for (int i = 0; i < W * H; i++) {
             uint8_t* p = mem + i * 4;
             p[0] = kOldStencil;
             p[1] = (qd >> 0) & 0xFF;
@@ -1242,8 +1242,8 @@ namespace ho {
 
         const uint8_t expected_stencil = (kOldStencil & ~kMask) | (kNewStencil & kMask);
 
-        for (int y = 0; y < H; ++y) {
-            for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) {
                 const uint8_t* p = mem + (y * W + x) * 4;
 
                 if (p[1] != ((qd >> 0) & 0xFF)) return false;
@@ -1436,8 +1436,8 @@ namespace ho {
             return false;
         }
 
-        Vector4 a(1.0f, 0.f, 0.f, 1.f);
-        Vector4 b(1.0f, 1.f, 0.f, 1.f);
+        Vector4 a(1.f, 0.f, 0.f, 1.f);
+        Vector4 b(1.f, 1.f, 0.f, 1.f);
 
         Vector2 bc = gpu.GetClipBarycentric(a, b, VirtualGPU::VG_PLANE_POS_RIGHT);
 
@@ -1454,7 +1454,7 @@ namespace ho {
         }
 
         Vector4 a(1.5f, 0.f, 0.f, 1.f);
-        Vector4 b(2.0f, 0.f, 0.f, 1.f);
+        Vector4 b(2.f, 0.f, 0.f, 1.f);
 
         Vector2 bc = gpu.GetClipBarycentric(a, b, VirtualGPU::VG_PLANE_POS_RIGHT);
 
@@ -1472,8 +1472,8 @@ namespace ho {
         }
 
         VirtualGPU::Varying v1, v2;
-        PopulateVarying(v1, 0.0f, 100.0f);
-        PopulateVarying(v2, 100.0f, 200.0f);
+        PopulateVarying(v1, 0.f, 100.f);
+        PopulateVarying(v2, 100.f, 200.f);
 
         Vector2 bc(1.f, 0.f);
         VirtualGPU::Varying out = gpu.LerpVarying(v1, v2, bc);
@@ -1481,12 +1481,12 @@ namespace ho {
         if (out.vg_Position != v1.vg_Position) return false;
 
         if (out.used_smooth_register_size != v1.used_smooth_register_size) return false;
-        for (int i = 0; i < out.used_smooth_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(out.used_smooth_register_size); i++) {
             if (!math::IsEqualApprox(out.smooth_register[i], v1.smooth_register[i])) return false;
         }
 
         if (out.used_flat_register_size != v1.used_flat_register_size) return false;
-        for (int i = 0; i < out.used_flat_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(out.used_flat_register_size); i++) {
             if (!math::IsEqualApprox(out.flat_register[i], v2.flat_register[i])) return false;
         }
 
@@ -1500,19 +1500,19 @@ namespace ho {
         }
 
         VirtualGPU::Varying v1, v2;
-        PopulateVarying(v1, 0.0f, 100.0f);
-        PopulateVarying(v2, 100.0f, 200.0f);
+        PopulateVarying(v1, 0.f, 100.f);
+        PopulateVarying(v2, 100.f, 200.f);
 
         Vector2 bc(0.f, 1.f);
         VirtualGPU::Varying out = gpu.LerpVarying(v1, v2, bc);
 
         if (out.vg_Position != v2.vg_Position) return false;
 
-        for (int i = 0; i < out.used_smooth_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(out.used_smooth_register_size); i++) {
             if (!math::IsEqualApprox(out.smooth_register[i], v2.smooth_register[i])) return false;
         }
 
-        for (int i = 0; i < out.used_flat_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(out.used_flat_register_size); i++) {
             if (!math::IsEqualApprox(out.flat_register[i], v2.flat_register[i])) return false;
         }
 
@@ -1526,23 +1526,23 @@ namespace ho {
         }
 
         VirtualGPU::Varying v1, v2;
-        PopulateVarying(v1, 0.0f, 100.0f);
-        PopulateVarying(v2, 10.0f, 200.0f);
+        PopulateVarying(v1, 0.f, 100.f);
+        PopulateVarying(v2, 10.f, 200.f);
 
         Vector2 bc(0.5f, 0.5f);
         VirtualGPU::Varying out = gpu.LerpVarying(v1, v2, bc);
 
-        if (!math::IsEqualApprox(out.vg_Position.x, 5.0f, 1e-5f)) return false;
-        if (!math::IsEqualApprox(out.vg_Position.y, 5.0f, 1e-5f)) return false;
-        if (!math::IsEqualApprox(out.vg_Position.z, 5.0f, 1e-5f)) return false;
-        if (!math::IsEqualApprox(out.vg_Position.w, 1.0f, 1e-5f)) return false;
+        if (!math::IsEqualApprox(out.vg_Position.x, 5.f, 1e-5f)) return false;
+        if (!math::IsEqualApprox(out.vg_Position.y, 5.f, 1e-5f)) return false;
+        if (!math::IsEqualApprox(out.vg_Position.z, 5.f, 1e-5f)) return false;
+        if (!math::IsEqualApprox(out.vg_Position.w, 1.f, 1e-5f)) return false;
 
-        for (int i = 0; i < out.used_smooth_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(out.used_smooth_register_size); i++) {
             float expected = (v1.smooth_register[i] + v2.smooth_register[i]) * 0.5f;
             if (!math::IsEqualApprox(out.smooth_register[i], expected, 1e-5f)) return false;
         }
 
-        for (int i = 0; i < out.used_flat_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(out.used_flat_register_size); i++) {
             if (math::IsEqualApprox(out.flat_register[i], v1.flat_register[i], 1e-5f)) return false;
             if (!math::IsEqualApprox(out.flat_register[i], v2.flat_register[i], 1e-5f)) return false;
         }
@@ -2122,25 +2122,25 @@ namespace ho {
         if (!InitFreshGPU()) return false;
 
         VirtualGPU::Varying v0;  // inside
-        v0.vg_Position = Vector4(0.5f, 0.0f, 0.0f, 1.0f);
+        v0.vg_Position = Vector4(0.5f, 0.f, 0.f, 1.f);
         v0.used_smooth_register_size = 1;
-        v0.smooth_register[0] = 0.0f;
+        v0.smooth_register[0] = 0.f;
         v0.used_flat_register_size = 1;
-        v0.flat_register[0] = 10.0f;
+        v0.flat_register[0] = 10.f;
 
         VirtualGPU::Varying v1;  // outside
-        v1.vg_Position = Vector4(1.5f, 0.0f, 0.0f, 1.0f);
+        v1.vg_Position = Vector4(1.5f, 0.f, 0.f, 1.f);
         v1.used_smooth_register_size = 1;
-        v1.smooth_register[0] = 1.0f;
+        v1.smooth_register[0] = 1.f;
         v1.used_flat_register_size = 1;
-        v1.flat_register[0] = 10.0f;
+        v1.flat_register[0] = 10.f;
 
         VirtualGPU::Varying v2;  // inside
-        v2.vg_Position = Vector4(0.2f, 0.0f, 0.0f, 1.0f);
+        v2.vg_Position = Vector4(0.2f, 0.f, 0.f, 1.f);
         v2.used_smooth_register_size = 1;
-        v2.smooth_register[0] = 0.0f;
+        v2.smooth_register[0] = 0.f;
         v2.used_flat_register_size = 1;
-        v2.flat_register[0] = 10.0f;
+        v2.flat_register[0] = 10.f;
 
         std::vector<VirtualGPU::Varying> poly;
         poly.push_back(v0);
@@ -2159,9 +2159,9 @@ namespace ho {
         bool target_intersection_found = false;
 
         for (const auto& v : out) {
-            if (math::IsEqualApprox(v.vg_Position.x, 1.0f, 1e-4f)) {
+            if (math::IsEqualApprox(v.vg_Position.x, 1.f, 1e-4f)) {
                 if (math::IsEqualApprox(v.smooth_register[0], 0.5f, 1e-4f)) {
-                    if (!math::IsEqualApprox(v.flat_register[0], 10.0f)) return false;
+                    if (!math::IsEqualApprox(v.flat_register[0], 10.f)) return false;
 
                     target_intersection_found = true;
                 }
@@ -2896,10 +2896,10 @@ namespace ho {
         gpu.state_.depth_test_enabled = true;
         gpu.state_.depth_write_enabled = true;
 
-        bool ok = gpu.TestDepthStencil(2.0f, 0.0f, 0.1f, true);
+        bool ok = gpu.TestDepthStencil(2.f, 0.f, 0.1f, true);
         if (ok) return false;
 
-        float out_depth = 0.0f;
+        float out_depth = 0.f;
         std::memcpy(&out_depth, mem.data(), 4);
 
         return out_depth == 0.7f;
@@ -2930,7 +2930,7 @@ namespace ho {
         gpu.state_.depth_test_enabled = true;
         gpu.state_.depth_write_enabled = true;
 
-        bool ok = gpu.TestDepthStencil(2.0f, 0.0f, 0.1f, true);
+        bool ok = gpu.TestDepthStencil(2.f, 0.f, 0.1f, true);
 
         return ok == true;
     }
@@ -2964,13 +2964,13 @@ namespace ho {
         gpu.state_.depth_test_enabled = false;
         gpu.state_.depth_write_enabled = false;
 
-        bool ok1 = gpu.TestDepthStencil(0.0f, 0.0f, 0.2f, true);
+        bool ok1 = gpu.TestDepthStencil(0.f, 0.f, 0.2f, true);
         if (!ok1) return false;
 
-        bool ok2 = gpu.TestDepthStencil(0.0f, 0.0f, 0.8f, true);
+        bool ok2 = gpu.TestDepthStencil(0.f, 0.f, 0.8f, true);
         if (!ok2) return false;
 
-        float out_depth = 0.0f;
+        float out_depth = 0.f;
         std::memcpy(&out_depth, mem.data(), 4);
 
         return out_depth == 0.6f;
@@ -3005,13 +3005,13 @@ namespace ho {
         gpu.state_.depth_test_enabled = false;
         gpu.state_.depth_write_enabled = true;
 
-        bool ok1 = gpu.TestDepthStencil(0.0f, 0.0f, 0.2f, true);
+        bool ok1 = gpu.TestDepthStencil(0.f, 0.f, 0.2f, true);
         if (!ok1) return false;
 
-        bool ok2 = gpu.TestDepthStencil(0.0f, 0.0f, 0.8f, true);
+        bool ok2 = gpu.TestDepthStencil(0.f, 0.f, 0.8f, true);
         if (!ok2) return false;
 
-        float out_depth = 0.0f;
+        float out_depth = 0.f;
         std::memcpy(&out_depth, mem.data(), 4);
 
         return out_depth == 0.6f;
@@ -3046,13 +3046,13 @@ namespace ho {
         gpu.state_.depth_test_enabled = true;
         gpu.state_.depth_write_enabled = false;
 
-        bool ok1 = gpu.TestDepthStencil(0.0f, 0.0f, 0.2f, true);
+        bool ok1 = gpu.TestDepthStencil(0.f, 0.f, 0.2f, true);
         if (!ok1) return false;
 
-        bool ok2 = gpu.TestDepthStencil(0.0f, 0.0f, 0.8f, true);
+        bool ok2 = gpu.TestDepthStencil(0.f, 0.f, 0.8f, true);
         if (ok2) return false;
 
-        float out_depth = 0.0f;
+        float out_depth = 0.f;
         std::memcpy(&out_depth, mem.data(), 4);
 
         return out_depth == 0.6f;
@@ -3087,13 +3087,13 @@ namespace ho {
         gpu.state_.depth_test_enabled = true;
         gpu.state_.depth_write_enabled = true;
 
-        bool ok1 = gpu.TestDepthStencil(0.0f, 0.0f, 0.2f, true);
+        bool ok1 = gpu.TestDepthStencil(0.f, 0.f, 0.2f, true);
         if (!ok1) return false;
 
-        bool ok2 = gpu.TestDepthStencil(0.0f, 0.0f, 0.8f, true);
+        bool ok2 = gpu.TestDepthStencil(0.f, 0.f, 0.8f, true);
         if (ok2) return false;
 
-        float out_depth = 0.0f;
+        float out_depth = 0.f;
         std::memcpy(&out_depth, mem.data(), 4);
 
         return out_depth == 0.2f;
@@ -3192,7 +3192,7 @@ namespace ho {
         const float init_depth = 0.25f;
         const uint8_t init_stencil = 0x33;
 
-        uint32_t qd = static_cast<uint32_t>(init_depth * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(init_depth * 16777215.f);
         p[0] = init_stencil;
         p[1] = uint8_t((qd >> 0) & 0xFF);
         p[2] = uint8_t((qd >> 8) & 0xFF);
@@ -3207,7 +3207,7 @@ namespace ho {
 
         uint8_t out_stencil = p[0];
         uint32_t out_qd = (uint32_t(p[1]) << 0) | (uint32_t(p[2]) << 8) | (uint32_t(p[3]) << 16);
-        float out_depth = float(out_qd) / 16777215.0f;
+        float out_depth = float(out_qd) / 16777215.f;
 
         if (std::fabs(out_depth - init_depth) > 1e-6f) return false;
         if (out_stencil != init_stencil) return false;
@@ -3246,7 +3246,7 @@ namespace ho {
         const float init_depth = 0.8f;
         const uint8_t init_stencil = 0x11;
 
-        uint32_t qd = static_cast<uint32_t>(init_depth * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(init_depth * 16777215.f);
         p[0] = init_stencil;
         p[1] = uint8_t((qd >> 0) & 0xFF);
         p[2] = uint8_t((qd >> 8) & 0xFF);
@@ -3267,7 +3267,7 @@ namespace ho {
 
         uint8_t out_stencil = p[0];
         uint32_t out_qd = (uint32_t(p[1]) << 0) | (uint32_t(p[2]) << 8) | (uint32_t(p[3]) << 16);
-        float out_depth = float(out_qd) / 16777215.0f;
+        float out_depth = float(out_qd) / 16777215.f;
 
         if (std::fabs(out_depth - 0.2f) > 1e-6f) return false;
         if (out_stencil != init_stencil) return false;
@@ -3306,7 +3306,7 @@ namespace ho {
         const float old_depth = 0.2f;
         const uint8_t old_stencil = 0x55;
 
-        uint32_t qd = static_cast<uint32_t>(old_depth * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(old_depth * 16777215.f);
         p[0] = old_stencil;
         p[1] = uint8_t((qd >> 0) & 0xFF);
         p[2] = uint8_t((qd >> 8) & 0xFF);
@@ -3321,7 +3321,7 @@ namespace ho {
 
         uint8_t out_stencil = p[0];
         uint32_t out_qd = (uint32_t(p[1]) << 0) | (uint32_t(p[2]) << 8) | (uint32_t(p[3]) << 16);
-        float out_depth = float(out_qd) / 16777215.0f;
+        float out_depth = float(out_qd) / 16777215.f;
 
         if (std::fabs(out_depth - old_depth) > 1e-6f) return false;
         if (out_stencil != old_stencil) return false;
@@ -3360,7 +3360,7 @@ namespace ho {
         const float old_depth = 0.8f;
         const uint8_t old_stencil = 0x55;
 
-        uint32_t qd = static_cast<uint32_t>(old_depth * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(old_depth * 16777215.f);
         p[0] = old_stencil;
         p[1] = uint8_t((qd >> 0) & 0xFF);
         p[2] = uint8_t((qd >> 8) & 0xFF);
@@ -3380,7 +3380,7 @@ namespace ho {
 
         uint8_t out_stencil = p[0];
         uint32_t out_qd = (uint32_t(p[1]) << 0) | (uint32_t(p[2]) << 8) | (uint32_t(p[3]) << 16);
-        float out_depth = float(out_qd) / 16777215.0f;
+        float out_depth = float(out_qd) / 16777215.f;
 
         if (std::fabs(out_depth - old_depth) > 1e-6f) return false;
         if (out_stencil != old_stencil) return false;
@@ -3419,7 +3419,7 @@ namespace ho {
         const float old_depth = 0.2f;
         const uint8_t old_stencil = 0x10;
 
-        uint32_t qd = static_cast<uint32_t>(old_depth * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(old_depth * 16777215.f);
         p[0] = old_stencil;
         p[1] = uint8_t((qd >> 0) & 0xFF);
         p[2] = uint8_t((qd >> 8) & 0xFF);
@@ -3440,7 +3440,7 @@ namespace ho {
 
         uint8_t out_stencil = p[0];
         uint32_t out_qd = (uint32_t(p[1]) << 0) | (uint32_t(p[2]) << 8) | (uint32_t(p[3]) << 16);
-        float out_depth = float(out_qd) / 16777215.0f;
+        float out_depth = float(out_qd) / 16777215.f;
 
         if (std::fabs(out_depth - old_depth) > 1e-6f) return false;
         if (out_stencil != uint8_t(0xAB)) return false;
@@ -3479,7 +3479,7 @@ namespace ho {
         const float old_depth = 0.8f;
         const uint8_t old_stencil = 0x01;
 
-        uint32_t qd = static_cast<uint32_t>(old_depth * 16777215.0f);
+        uint32_t qd = static_cast<uint32_t>(old_depth * 16777215.f);
         p[0] = old_stencil;
         p[1] = uint8_t((qd >> 0) & 0xFF);
         p[2] = uint8_t((qd >> 8) & 0xFF);
@@ -3502,7 +3502,7 @@ namespace ho {
 
         uint8_t out_stencil = p[0];
         uint32_t out_qd = (uint32_t(p[1]) << 0) | (uint32_t(p[2]) << 8) | (uint32_t(p[3]) << 16);
-        float out_depth = float(out_qd) / 16777215.0f;
+        float out_depth = float(out_qd) / 16777215.f;
 
         if (std::fabs(out_depth - in_depth) > 1e-6f) return false;
         if (out_stencil != uint8_t(0x5A)) return false;
@@ -3519,7 +3519,7 @@ namespace ho {
         Color128 src(0.2f, 0.4f, 0.6f, 0.8f);
         Color128 dst(0.9f, 0.7f, 0.5f, 0.3f);
 
-        for (uint32_t c = 0; c < 4; ++c) {
+        for (int c = 0; c < 4; c++) {
             if (gpu.GetBlendFactor(VG_ZERO, src, dst, c) != 0.0_r) return false;
             if (gpu.GetBlendFactor(VG_ONE, src, dst, c) != 1.0_r) return false;
         }
@@ -3575,19 +3575,19 @@ namespace ho {
         Color128 src(0.2f, 0.3f, 0.4f, 0.6f);
         Color128 dst(0.7f, 0.6f, 0.5f, 0.8f);
 
-        for (uint32_t c = 0; c < 4; ++c) {
+        for (int c = 0; c < 4; c++) {
             if (!math::IsEqualApprox(gpu.GetBlendFactor(VG_SRC_ALPHA, src, dst, c), 0.6_r)) return false;
         }
 
-        for (uint32_t c = 0; c < 4; ++c) {
+        for (int c = 0; c < 4; c++) {
             if (!math::IsEqualApprox(gpu.GetBlendFactor(VG_ONE_MINUS_SRC_ALPHA, src, dst, c), 0.4_r)) return false;
         }
 
-        for (uint32_t c = 0; c < 4; ++c) {
+        for (int c = 0; c < 4; c++) {
             if (!math::IsEqualApprox(gpu.GetBlendFactor(VG_DST_ALPHA, src, dst, c), 0.8_r)) return false;
         }
 
-        for (uint32_t c = 0; c < 4; ++c) {
+        for (int c = 0; c < 4; c++) {
             if (!math::IsEqualApprox(gpu.GetBlendFactor(VG_ONE_MINUS_DST_ALPHA, src, dst, c), 0.2_r)) return false;
         }
 
@@ -3627,12 +3627,12 @@ namespace ho {
                                  1.0_r - gpu.state_.blend_constant.a))
             return false;
 
-        for (uint32_t c = 0; c < 4; ++c) {
+        for (int c = 0; c < 4; c++) {
             if (!math::IsEqualApprox(gpu.GetBlendFactor(VG_CONSTANT_ALPHA, src, dst, c), gpu.state_.blend_constant.a))
                 return false;
         }
 
-        for (uint32_t c = 0; c < 4; ++c) {
+        for (int c = 0; c < 4; c++) {
             if (!math::IsEqualApprox(gpu.GetBlendFactor(VG_ONE_MINUS_CONSTANT_ALPHA, src, dst, c),
                                      1.0_r - gpu.state_.blend_constant.a))
                 return false;
@@ -3653,7 +3653,7 @@ namespace ho {
         real expected_rgb = math::Min(0.7_r, 1.0_r - 0.3_r);
 
         // RGB
-        for (uint32_t c = 0; c < 3; ++c) {
+        for (int c = 0; c < 3; c++) {
             if (!math::IsEqualApprox(gpu.GetBlendFactor(VG_SRC_ALPHA_SATURATE, src, dst, c), expected_rgb))
                 return false;
         }
@@ -4001,7 +4001,7 @@ namespace ho {
         fb.depth_stencil_attachment = depth;
         gpu.bound_draw_frame_buffer_ = &fb;
 
-        float old_depth = 1.0f;
+        float old_depth = 1.f;
         std::memcpy(depth_mem.data(), &old_depth, 4);
 
         gpu.state_.scissor_test_enabled = false;
@@ -4014,14 +4014,14 @@ namespace ho {
 
         v.used_smooth_register_size = 6;
         v.smooth_register[0] = 123.4f;
-        v.smooth_register[1] = 10.0f;
-        v.smooth_register[2] = 20.0f;
-        v.smooth_register[3] = 0.0f;
-        v.smooth_register[4] = 1.0f;
-        v.smooth_register[5] = 0.0f;
+        v.smooth_register[1] = 10.f;
+        v.smooth_register[2] = 20.f;
+        v.smooth_register[3] = 0.f;
+        v.smooth_register[4] = 1.f;
+        v.smooth_register[5] = 0.f;
 
         v.used_flat_register_size = 1;
-        v.flat_register[0] = 999.0f;
+        v.flat_register[0] = 999.f;
 
         auto out = gpu.Rasterize(v);
 
@@ -4034,12 +4034,12 @@ namespace ho {
         if (!math::IsEqualApprox(frag.depth, 0.5_r)) return false;
 
         if (frag.used_smooth_register_size != v.used_smooth_register_size) return false;
-        for (int i = 0; i < v.used_smooth_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(v.used_smooth_register_size); i++) {
             if (!math::IsEqualApprox(frag.smooth_register[i], v.smooth_register[i])) return false;
         }
 
         if (frag.used_flat_register_size != v.used_flat_register_size) return false;
-        for (int i = 0; i < v.used_flat_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(v.used_flat_register_size); i++) {
             if (!math::IsEqualApprox(frag.flat_register[i], v.flat_register[i])) return false;
         }
 
@@ -4162,11 +4162,10 @@ namespace ho {
         v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
         v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        const std::vector<float> v0_data = {1.0f, 2.0f, 3.0f, -2.0f, 4.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-                                            0.0f, 0.0f, 1.0f, 1.0f,  0.1f,  0.2f, 0.3f, 0.4f, 10.f,
-                                            20.f, 30.f, 40.f, 5.f,   250.f, 60.f, 255.f};
-        const std::vector<float> v1_data = {11.0f, 7.0f,  5.0f, 6.0f,  9.0f, -3.0f, 1.0f, 0.0f, 1.0f,
-                                            1.0f,  0.0f,  0.0f, 1.0f,  0.9f, 0.7f,  0.8f, 0.1f, 200.f,
+        const std::vector<float> v0_data = {1.f,  2.f,  3.f,  -2.f, 4.f,  1.f,  0.f,  0.f,  1.f, 0.f,   0.f,  1.f,  1.f,
+                                            0.1f, 0.2f, 0.3f, 0.4f, 10.f, 20.f, 30.f, 40.f, 5.f, 250.f, 60.f, 255.f};
+        const std::vector<float> v1_data = {11.f,  7.f,   5.f,  6.f,   9.f,  -3.f,  1.f,  0.f,  1.f,
+                                            1.f,   0.f,   0.f,  1.f,   0.9f, 0.7f,  0.8f, 0.1f, 200.f,
                                             150.f, 100.f, 80.f, 220.f, 10.f, 180.f, 128.f};
 
         v0.used_smooth_register_size = static_cast<int>(v0_data.size());
@@ -4176,10 +4175,10 @@ namespace ho {
         std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
         v0.used_flat_register_size = 1;
-        v0.flat_register[0] = 100.0f;
+        v0.flat_register[0] = 100.f;
 
         v1.used_flat_register_size = 1;
-        v1.flat_register[0] = 200.0f;
+        v1.flat_register[0] = 200.f;
 
         gpu.state_.scissor_test_enabled = false;
         gpu.state_.depth_test_enabled = false;
@@ -4187,22 +4186,22 @@ namespace ho {
         auto out = gpu.Rasterize(v0, v1);
         if (out.size() < 10u) return false;
 
-        const int x0 = (int)math::Floor(v0.viewport_coord.x);
-        const int y0 = (int)math::Floor(v0.viewport_coord.y);
-        const int x1 = (int)math::Floor(v1.viewport_coord.x);
-        const int y1 = (int)math::Floor(v1.viewport_coord.y);
+        const int x0 = static_cast<int>(math::Floor(v0.viewport_coord.x));
+        const int y0 = static_cast<int>(math::Floor(v0.viewport_coord.y));
+        const int x1 = static_cast<int>(math::Floor(v1.viewport_coord.x));
+        const int y1 = static_cast<int>(math::Floor(v1.viewport_coord.y));
 
-        const real min_sx = (real)math::Min(x0, x1) + 0.5_r;
-        const real max_sx = (real)math::Max(x0, x1) + 0.5_r;
-        const real min_sy = (real)math::Min(y0, y1) + 0.5_r;
-        const real max_sy = (real)math::Max(y0, y1) + 0.5_r;
+        const real min_sx = static_cast<real>(math::Min(x0, x1)) + 0.5_r;
+        const real max_sx = static_cast<real>(math::Max(x0, x1)) + 0.5_r;
+        const real min_sy = static_cast<real>(math::Min(y0, y1)) + 0.5_r;
+        const real max_sy = static_cast<real>(math::Max(y0, y1)) + 0.5_r;
 
         const real min_depth = math::Min(v0.viewport_coord.z, v1.viewport_coord.z);
         const real max_depth = math::Max(v0.viewport_coord.z, v1.viewport_coord.z);
 
-        std::vector<float> smooth_min(v0.used_smooth_register_size);
-        std::vector<float> smooth_max(v0.used_smooth_register_size);
-        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
+        std::vector<float> smooth_min(static_cast<size_t>(v0.used_smooth_register_size));
+        std::vector<float> smooth_max(static_cast<size_t>(v0.used_smooth_register_size));
+        for (size_t i = 0; i < static_cast<size_t>(v0.used_smooth_register_size); i++) {
             smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
             smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
         }
@@ -4215,7 +4214,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (int i = 0; i < f.used_smooth_register_size; ++i) {
+            for (size_t i = 0; i < static_cast<size_t>(f.used_smooth_register_size); i++) {
                 float val = f.smooth_register[i];
                 if (val < smooth_min[i] - eps || val > smooth_max[i] + eps) return false;
             }
@@ -4242,25 +4241,24 @@ namespace ho {
         v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
         v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        const std::vector<float> v0_data = {2.0f, 0.0f,  1.0f,  -1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 1.0f,
-                                            0.0f, 1.0f,  0.0f,  1.0f,  0.2f, 0.1f, 0.9f, 0.2f, 0.f,
-                                            10.f, 200.f, 255.f, 60.f,  70.f, 80.f, 90.f};
+        const std::vector<float> v0_data = {2.f,  0.f,  1.f,  -1.f, 2.f, 3.f,  0.f,   1.f,   1.f,  0.f,  1.f,  0.f, 1.f,
+                                            0.2f, 0.1f, 0.9f, 0.2f, 0.f, 10.f, 200.f, 255.f, 60.f, 70.f, 80.f, 90.f};
 
-        const std::vector<float> v1_data = {5.0f, 9.0f, 7.0f, 4.0f, 8.0f,  -2.0f, 0.0f, 0.0f, 1.0f,
-                                            0.0f, 0.0f, 1.0f, 1.0f, 0.4f,  0.9f,  0.1f, 0.8f, 255.f,
-                                            40.f, 20.f, 10.f, 10.f, 200.f, 30.f,  250.f};
+        const std::vector<float> v1_data = {5.f,  9.f,  7.f,  4.f,  8.f,   -2.f, 0.f,  0.f,  1.f,
+                                            0.f,  0.f,  1.f,  1.f,  0.4f,  0.9f, 0.1f, 0.8f, 255.f,
+                                            40.f, 20.f, 10.f, 10.f, 200.f, 30.f, 250.f};
 
-        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        v0.used_smooth_register_size = static_cast<int>(v0_data.size());
         std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        v1.used_smooth_register_size = static_cast<int>(v1_data.size());
         std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
         v0.used_flat_register_size = 1;
-        v0.flat_register[0] = 100.0f;
+        v0.flat_register[0] = 100.f;
 
         v1.used_flat_register_size = 1;
-        v1.flat_register[0] = 200.0f;
+        v1.flat_register[0] = 200.f;
 
         gpu.state_.scissor_test_enabled = false;
         gpu.state_.depth_test_enabled = false;
@@ -4268,23 +4266,23 @@ namespace ho {
         auto out = gpu.Rasterize(v0, v1);
         if (out.size() < 10u) return false;
 
-        const int x0 = (int)math::Floor(v0.viewport_coord.x);
-        const int y0 = (int)math::Floor(v0.viewport_coord.y);
-        const int x1 = (int)math::Floor(v1.viewport_coord.x);
-        const int y1 = (int)math::Floor(v1.viewport_coord.y);
+        const int x0 = static_cast<int>(math::Floor(v0.viewport_coord.x));
+        const int y0 = static_cast<int>(math::Floor(v0.viewport_coord.y));
+        const int x1 = static_cast<int>(math::Floor(v1.viewport_coord.x));
+        const int y1 = static_cast<int>(math::Floor(v1.viewport_coord.y));
 
-        const real min_sx = (real)math::Min(x0, x1) + 0.5_r;
-        const real max_sx = (real)math::Max(x0, x1) + 0.5_r;
-        const real min_sy = (real)math::Min(y0, y1) + 0.5_r;
-        const real max_sy = (real)math::Max(y0, y1) + 0.5_r;
+        const real min_sx = static_cast<real>(math::Min(x0, x1)) + 0.5_r;
+        const real max_sx = static_cast<real>(math::Max(x0, x1)) + 0.5_r;
+        const real min_sy = static_cast<real>(math::Min(y0, y1)) + 0.5_r;
+        const real max_sy = static_cast<real>(math::Max(y0, y1)) + 0.5_r;
 
         const real min_depth = math::Min(v0.viewport_coord.z, v1.viewport_coord.z);
         const real max_depth = math::Max(v0.viewport_coord.z, v1.viewport_coord.z);
 
-        std::vector<float> smooth_min(v0.used_smooth_register_size);
-        std::vector<float> smooth_max(v0.used_smooth_register_size);
+        std::vector<float> smooth_min(static_cast<size_t>(v0.used_smooth_register_size));
+        std::vector<float> smooth_max(static_cast<size_t>(v0.used_smooth_register_size));
 
-        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(v0.used_smooth_register_size); i++) {
             smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
             smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
         }
@@ -4297,7 +4295,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (int i = 0; i < f.used_smooth_register_size; ++i) {
+            for (size_t i = 0; i < static_cast<size_t>(f.used_smooth_register_size); i++) {
                 float val = f.smooth_register[i];
                 float mn = smooth_min[i];
                 float mx = smooth_max[i];
@@ -4327,25 +4325,23 @@ namespace ho {
         v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
         v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        const std::vector<float> v0_data = {2.0f, 0.0f, 0.0f,  1.0f,  -2.0f, 3.0f, 0.0f, 0.0f, 1.0f,
-                                            1.0f, 0.0f, 0.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, 0.f,
-                                            0.f,  0.f,  255.f, 255.f, 0.f,   0.f,  255.f};
+        const std::vector<float> v0_data = {2.f, 0.f, 0.f, 1.f, -2.f, 3.f, 0.f, 0.f,   1.f,   1.f, 0.f, 0.f,  1.f,
+                                            0.f, 0.f, 1.f, 0.f, 0.f,  0.f, 0.f, 255.f, 255.f, 0.f, 0.f, 255.f};
 
-        const std::vector<float> v1_data = {2.0f,  10.0f, 4.0f,  1.0f, 5.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-                                            0.0f,  1.0f,  0.0f,  1.0f, 0.0f, 1.0f,  1.0f, 1.0f, 255.f,
-                                            255.f, 255.f, 255.f, 0.f,  0.f,  255.f, 255.f};
+        const std::vector<float> v1_data = {2.f, 10.f, 4.f, 1.f, 5.f,   -1.f,  0.f,   1.f,   1.f, 0.f, 1.f,   0.f,  1.f,
+                                            0.f, 1.f,  1.f, 1.f, 255.f, 255.f, 255.f, 255.f, 0.f, 0.f, 255.f, 255.f};
 
-        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        v0.used_smooth_register_size = static_cast<int>(v0_data.size());
         std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        v1.used_smooth_register_size = static_cast<int>(v1_data.size());
         std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
         v0.used_flat_register_size = 1;
-        v0.flat_register[0] = 100.0f;
+        v0.flat_register[0] = 100.f;
 
         v1.used_flat_register_size = 1;
-        v1.flat_register[0] = 200.0f;
+        v1.flat_register[0] = 200.f;
 
         gpu.state_.scissor_test_enabled = false;
         gpu.state_.depth_test_enabled = false;
@@ -4353,23 +4349,23 @@ namespace ho {
         auto out = gpu.Rasterize(v0, v1);
         if (out.size() < 10u) return false;
 
-        const int x0 = (int)math::Floor(v0.viewport_coord.x);
-        const int y0 = (int)math::Floor(v0.viewport_coord.y);
-        const int x1 = (int)math::Floor(v1.viewport_coord.x);
-        const int y1 = (int)math::Floor(v1.viewport_coord.y);
+        const int x0 = static_cast<int>(math::Floor(v0.viewport_coord.x));
+        const int y0 = static_cast<int>(math::Floor(v0.viewport_coord.y));
+        const int x1 = static_cast<int>(math::Floor(v1.viewport_coord.x));
+        const int y1 = static_cast<int>(math::Floor(v1.viewport_coord.y));
 
-        const real min_sx = (real)math::Min(x0, x1) + 0.5_r;
-        const real max_sx = (real)math::Max(x0, x1) + 0.5_r;
-        const real min_sy = (real)math::Min(y0, y1) + 0.5_r;
-        const real max_sy = (real)math::Max(y0, y1) + 0.5_r;
+        const real min_sx = static_cast<real>(math::Min(x0, x1)) + 0.5_r;
+        const real max_sx = static_cast<real>(math::Max(x0, x1)) + 0.5_r;
+        const real min_sy = static_cast<real>(math::Min(y0, y1)) + 0.5_r;
+        const real max_sy = static_cast<real>(math::Max(y0, y1)) + 0.5_r;
 
         const real min_depth = math::Min(v0.viewport_coord.z, v1.viewport_coord.z);
         const real max_depth = math::Max(v0.viewport_coord.z, v1.viewport_coord.z);
 
-        std::vector<float> smooth_min(v0.used_smooth_register_size);
-        std::vector<float> smooth_max(v0.used_smooth_register_size);
+        std::vector<float> smooth_min(static_cast<size_t>(v0.used_smooth_register_size));
+        std::vector<float> smooth_max(static_cast<size_t>(v0.used_smooth_register_size));
 
-        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(v0.used_smooth_register_size); i++) {
             smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
             smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
         }
@@ -4382,7 +4378,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (int i = 0; i < f.used_smooth_register_size; ++i) {
+            for (size_t i = 0; i < static_cast<size_t>(f.used_smooth_register_size); i++) {
                 float val = f.smooth_register[i];
                 float mn = smooth_min[i];
                 float mx = smooth_max[i];
@@ -4411,25 +4407,24 @@ namespace ho {
         v0.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
         v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        const std::vector<float> v0_data = {-3.0f, 5.0f, 2.0f, 0.0f, 3.0f,  1.0f, 1.0f, 0.0f, 1.0f,
-                                            0.0f,  0.0f, 1.0f, 1.0f, 0.0f,  0.3f, 0.7f, 0.2f, 5.f,
-                                            10.f,  15.f, 20.f, 0.f,  255.f, 0.f,  100.f};
+        const std::vector<float> v0_data = {-3.f, 5.f,  2.f,  0.f,  3.f, 1.f,  1.f,  0.f,  1.f, 0.f,   0.f, 1.f,  1.f,
+                                            0.f,  0.3f, 0.7f, 0.2f, 5.f, 10.f, 15.f, 20.f, 0.f, 255.f, 0.f, 100.f};
 
-        const std::vector<float> v1_data = {9.0f, 5.0f,  -4.0f, 6.0f,  -1.0f, 8.0f,  0.0f, 0.0f, 1.0f,
-                                            1.0f, 0.0f,  0.0f,  1.0f,  1.0f,  0.3f,  0.2f, 0.9f, 200.f,
-                                            10.f, 250.f, 220.f, 255.f, 0.f,   255.f, 200.f};
+        const std::vector<float> v1_data = {9.f,  5.f,   -4.f,  6.f,   -1.f, 8.f,   0.f,  0.f,  1.f,
+                                            1.f,  0.f,   0.f,   1.f,   1.f,  0.3f,  0.2f, 0.9f, 200.f,
+                                            10.f, 250.f, 220.f, 255.f, 0.f,  255.f, 200.f};
 
-        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        v0.used_smooth_register_size = static_cast<int>(v0_data.size());
         std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        v1.used_smooth_register_size = static_cast<int>(v1_data.size());
         std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
         v0.used_flat_register_size = 1;
-        v0.flat_register[0] = 100.0f;
+        v0.flat_register[0] = 100.f;
 
         v1.used_flat_register_size = 1;
-        v1.flat_register[0] = 200.0f;
+        v1.flat_register[0] = 200.f;
 
         gpu.state_.scissor_test_enabled = false;
         gpu.state_.depth_test_enabled = false;
@@ -4451,10 +4446,10 @@ namespace ho {
         const real min_depth = math::Min(v0.viewport_coord.z, v1.viewport_coord.z);
         const real max_depth = math::Max(v0.viewport_coord.z, v1.viewport_coord.z);
 
-        std::vector<float> smooth_min(v0.used_smooth_register_size);
-        std::vector<float> smooth_max(v0.used_smooth_register_size);
+        std::vector<float> smooth_min(static_cast<size_t>(v0.used_smooth_register_size));
+        std::vector<float> smooth_max(static_cast<size_t>(v0.used_smooth_register_size));
 
-        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(v0.used_smooth_register_size); i++) {
             smooth_min[i] = math::Min(v0.smooth_register[i], v1.smooth_register[i]);
             smooth_max[i] = math::Max(v0.smooth_register[i], v1.smooth_register[i]);
         }
@@ -4467,7 +4462,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (int i = 0; i < f.used_smooth_register_size; ++i) {
+            for (size_t i = 0; i < static_cast<size_t>(f.used_smooth_register_size); i++) {
                 float val = f.smooth_register[i];
                 float mn = smooth_min[i];
                 float mx = smooth_max[i];
@@ -4603,31 +4598,31 @@ namespace ho {
         v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
         v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        const std::vector<float> v0_data = {-5.0f, 2.0f, 1.0f, 0.0f, 1.0f,  2.0f, 0.7071f, 0.0f, 0.7071f,
-                                            1.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.8f,    0.1f, 10.f,
-                                            20.f,  30.f, 40.f, 0.f,  255.f, 0.f,  100.f};
-        const std::vector<float> v1_data = {8.0f, -3.0f, -4.0f, 3.0f,  -2.0f, 6.0f,  0.0f, 0.7071f, 0.7071f,
-                                            0.0f, 1.0f,  0.0f,  1.0f,  1.0f,  0.2f,  0.2f, 0.9f,    200.f,
-                                            10.f, 250.f, 220.f, 255.f, 0.f,   255.f, 200.f};
-        const std::vector<float> v2_data = {1.0f,  6.0f, 3.0f,  -1.0f, 4.0f, 1.0f,  0.1961f, 0.098f, 0.9805f,
-                                            0.0f,  0.0f, 1.0f,  1.0f,  0.3f, 1.0f,  0.5f,    0.4f,   100.f,
-                                            150.f, 50.f, 180.f, 50.f,  50.f, 200.f, 150.f};
+        const std::vector<float> v0_data = {-5.f, 2.f,  1.f,  0.f, 1.f,   2.f, 0.7071f, 0.f,  0.7071f,
+                                            1.f,  0.f,  0.f,  1.f, 0.f,   0.f, 0.8f,    0.1f, 10.f,
+                                            20.f, 30.f, 40.f, 0.f, 255.f, 0.f, 100.f};
+        const std::vector<float> v1_data = {8.f,  -3.f,  -4.f,  3.f,   -2.f, 6.f,   0.f,  0.7071f, 0.7071f,
+                                            0.f,  1.f,   0.f,   1.f,   1.f,  0.2f,  0.2f, 0.9f,    200.f,
+                                            10.f, 250.f, 220.f, 255.f, 0.f,  255.f, 200.f};
+        const std::vector<float> v2_data = {1.f,   6.f,  3.f,   -1.f, 4.f,  1.f,   0.1961f, 0.098f, 0.9805f,
+                                            0.f,   0.f,  1.f,   1.f,  0.3f, 1.f,   0.5f,    0.4f,   100.f,
+                                            150.f, 50.f, 180.f, 50.f, 50.f, 200.f, 150.f};
 
-        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        v0.used_smooth_register_size = static_cast<int>(v0_data.size());
         std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        v1.used_smooth_register_size = static_cast<int>(v1_data.size());
         std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
-        v2.used_smooth_register_size = (uint32_t)v2_data.size();
+        v2.used_smooth_register_size = static_cast<int>(v2_data.size());
         std::copy(v2_data.begin(), v2_data.end(), v2.smooth_register.begin());
 
         v0.used_flat_register_size = 1;
-        v0.flat_register[0] = 100.0f;
+        v0.flat_register[0] = 100.f;
         v1.used_flat_register_size = 1;
-        v1.flat_register[0] = 200.0f;
+        v1.flat_register[0] = 200.f;
         v2.used_flat_register_size = 1;
-        v2.flat_register[0] = 300.0f;
+        v2.flat_register[0] = 300.f;
 
         gpu.state_.front_face = VG_CCW;
         gpu.state_.cull_enabled = true;
@@ -4653,10 +4648,10 @@ namespace ho {
         const real min_depth = math::Min(v0.viewport_coord.z, math::Min(v1.viewport_coord.z, v2.viewport_coord.z));
         const real max_depth = math::Max(v0.viewport_coord.z, math::Max(v1.viewport_coord.z, v2.viewport_coord.z));
 
-        std::vector<float> smooth_min(v0.used_smooth_register_size);
-        std::vector<float> smooth_max(v0.used_smooth_register_size);
+        std::vector<float> smooth_min(static_cast<size_t>(v0.used_smooth_register_size));
+        std::vector<float> smooth_max(static_cast<size_t>(v0.used_smooth_register_size));
 
-        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(v0.used_smooth_register_size); i++) {
             smooth_min[i] = math::Min(v0.smooth_register[i], math::Min(v1.smooth_register[i], v2.smooth_register[i]));
             smooth_max[i] = math::Max(v0.smooth_register[i], math::Max(v1.smooth_register[i], v2.smooth_register[i]));
         }
@@ -4669,7 +4664,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (int i = 0; i < f.used_smooth_register_size; ++i) {
+            for (size_t i = 0; i < static_cast<size_t>(f.used_smooth_register_size); i++) {
                 float val = f.smooth_register[i];
                 if (val < smooth_min[i] - eps || val > smooth_max[i] + eps) return false;
             }
@@ -4763,31 +4758,31 @@ namespace ho {
         v1.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
         v2.vg_Position = Vector4(0.0_r, 0.0_r, 0.0_r, 1.0_r);
 
-        const std::vector<float> v0_data = {-5.0f, 2.0f, 1.0f, 0.0f, 1.0f,  2.0f, 0.7071f, 0.0f, 0.7071f,
-                                            1.0f,  0.0f, 0.0f, 1.0f, 0.0f,  0.0f, 0.8f,    0.1f, 10.f,
-                                            20.f,  30.f, 40.f, 0.f,  255.f, 0.f,  100.f};
-        const std::vector<float> v1_data = {1.0f,  6.0f, 3.0f,  -1.0f, 4.0f, 1.0f,  0.0f, 0.7071f, 0.7071f,
-                                            0.0f,  1.0f, 0.0f,  1.0f,  0.3f, 1.0f,  0.5f, 0.4f,    100.f,
-                                            150.f, 50.f, 180.f, 50.f,  50.f, 200.f, 150.f};
-        const std::vector<float> v2_data = {8.0f, -3.0f, -4.0f, 3.0f,  -2.0f, 6.0f,  0.0f, 0.0f, 1.0f,
-                                            0.0f, 0.0f,  1.0f,  1.0f,  1.0f,  0.2f,  0.2f, 0.9f, 200.f,
-                                            10.f, 250.f, 220.f, 255.f, 0.f,   255.f, 200.f};
+        const std::vector<float> v0_data = {-5.f, 2.f,  1.f,  0.f, 1.f,   2.f, 0.7071f, 0.f,  0.7071f,
+                                            1.f,  0.f,  0.f,  1.f, 0.f,   0.f, 0.8f,    0.1f, 10.f,
+                                            20.f, 30.f, 40.f, 0.f, 255.f, 0.f, 100.f};
+        const std::vector<float> v1_data = {1.f,   6.f,  3.f,   -1.f, 4.f,  1.f,   0.f,  0.7071f, 0.7071f,
+                                            0.f,   1.f,  0.f,   1.f,  0.3f, 1.f,   0.5f, 0.4f,    100.f,
+                                            150.f, 50.f, 180.f, 50.f, 50.f, 200.f, 150.f};
+        const std::vector<float> v2_data = {8.f,  -3.f,  -4.f,  3.f,   -2.f, 6.f,   0.f,  0.f,  1.f,
+                                            0.f,  0.f,   1.f,   1.f,   1.f,  0.2f,  0.2f, 0.9f, 200.f,
+                                            10.f, 250.f, 220.f, 255.f, 0.f,  255.f, 200.f};
 
-        v0.used_smooth_register_size = (uint32_t)v0_data.size();
+        v0.used_smooth_register_size = static_cast<int>(v0_data.size());
         std::copy(v0_data.begin(), v0_data.end(), v0.smooth_register.begin());
 
-        v1.used_smooth_register_size = (uint32_t)v1_data.size();
+        v1.used_smooth_register_size = static_cast<int>(v1_data.size());
         std::copy(v1_data.begin(), v1_data.end(), v1.smooth_register.begin());
 
-        v2.used_smooth_register_size = (uint32_t)v2_data.size();
+        v2.used_smooth_register_size = static_cast<int>(v2_data.size());
         std::copy(v2_data.begin(), v2_data.end(), v2.smooth_register.begin());
 
         v0.used_flat_register_size = 1;
-        v0.flat_register[0] = 100.0f;
+        v0.flat_register[0] = 100.f;
         v1.used_flat_register_size = 1;
-        v1.flat_register[0] = 200.0f;
+        v1.flat_register[0] = 200.f;
         v2.used_flat_register_size = 1;
-        v2.flat_register[0] = 300.0f;
+        v2.flat_register[0] = 300.f;
 
         gpu.state_.front_face = VG_CW;
         gpu.state_.cull_enabled = true;
@@ -4798,25 +4793,25 @@ namespace ho {
         auto out = gpu.Rasterize(v0, v1, v2);
         if (out.size() < 20u) return false;
 
-        const int x0 = (int)math::Floor(v0.viewport_coord.x);
-        const int y0 = (int)math::Floor(v0.viewport_coord.y);
-        const int x1 = (int)math::Floor(v1.viewport_coord.x);
-        const int y1 = (int)math::Floor(v1.viewport_coord.y);
-        const int x2 = (int)math::Floor(v2.viewport_coord.x);
-        const int y2 = (int)math::Floor(v2.viewport_coord.y);
+        const int x0 = static_cast<int>(math::Floor(v0.viewport_coord.x));
+        const int y0 = static_cast<int>(math::Floor(v0.viewport_coord.y));
+        const int x1 = static_cast<int>(math::Floor(v1.viewport_coord.x));
+        const int y1 = static_cast<int>(math::Floor(v1.viewport_coord.y));
+        const int x2 = static_cast<int>(math::Floor(v2.viewport_coord.x));
+        const int y2 = static_cast<int>(math::Floor(v2.viewport_coord.y));
 
-        const real min_sx = (real)(math::Min(x0, math::Min(x1, x2))) + 0.5_r;
-        const real max_sx = (real)(math::Max(x0, math::Max(x1, x2))) + 0.5_r;
-        const real min_sy = (real)(math::Min(y0, math::Min(y1, y2))) + 0.5_r;
-        const real max_sy = (real)(math::Max(y0, math::Max(y1, y2))) + 0.5_r;
+        const real min_sx = static_cast<real>((math::Min(x0, math::Min(x1, x2)))) + 0.5_r;
+        const real max_sx = static_cast<real>((math::Max(x0, math::Max(x1, x2)))) + 0.5_r;
+        const real min_sy = static_cast<real>((math::Min(y0, math::Min(y1, y2)))) + 0.5_r;
+        const real max_sy = static_cast<real>((math::Max(y0, math::Max(y1, y2)))) + 0.5_r;
 
         const real min_depth = math::Min(v0.viewport_coord.z, math::Min(v1.viewport_coord.z, v2.viewport_coord.z));
         const real max_depth = math::Max(v0.viewport_coord.z, math::Max(v1.viewport_coord.z, v2.viewport_coord.z));
 
-        std::vector<float> smooth_min(v0.used_smooth_register_size);
-        std::vector<float> smooth_max(v0.used_smooth_register_size);
+        std::vector<float> smooth_min(static_cast<size_t>(v0.used_smooth_register_size));
+        std::vector<float> smooth_max(static_cast<size_t>(v0.used_smooth_register_size));
 
-        for (int i = 0; i < v0.used_smooth_register_size; ++i) {
+        for (size_t i = 0; i < static_cast<size_t>(v0.used_smooth_register_size); i++) {
             smooth_min[i] = math::Min(v0.smooth_register[i], math::Min(v1.smooth_register[i], v2.smooth_register[i]));
             smooth_max[i] = math::Max(v0.smooth_register[i], math::Max(v1.smooth_register[i], v2.smooth_register[i]));
         }
@@ -4829,7 +4824,7 @@ namespace ho {
             if (f.depth < min_depth - eps || f.depth > max_depth + eps) return false;
 
             if (f.used_smooth_register_size != v0.used_smooth_register_size) return false;
-            for (int i = 0; i < f.used_smooth_register_size; ++i) {
+            for (size_t i = 0; i < static_cast<size_t>(f.used_smooth_register_size); i++) {
                 float val = f.smooth_register[i];
                 if (val < smooth_min[i] - eps || val > smooth_max[i] + eps) return false;
             }

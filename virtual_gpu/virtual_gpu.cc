@@ -561,7 +561,7 @@ namespace ho {
                 frag.depth = static_cast<real>(depth);
 
                 frag.used_smooth_register_size = v1.used_smooth_register_size;
-                for (size_t i = 0; i < frag.used_smooth_register_size; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(frag.used_smooth_register_size); i++) {
                     frag.smooth_register[i] = smooth_register_pw[i] * w;  // NOLINT
                 }
 
@@ -593,14 +593,14 @@ namespace ho {
             if (step_x) {
                 inv_w += inv_w_dx;
                 depth += depth_dx;
-                for (size_t i = 0; i < v1.used_smooth_register_size; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(v1.used_smooth_register_size); i++) {
                     smooth_register_pw[i] += smooth_register_pw_dx[i];
                 }
             }
             if (step_y) {
                 inv_w += inv_w_dy;
                 depth += depth_dy;
-                for (size_t i = 0; i < v1.used_smooth_register_size; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(v1.used_smooth_register_size); i++) {
                     smooth_register_pw[i] += smooth_register_pw_dy[i];
                 }
             }

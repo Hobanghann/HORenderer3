@@ -68,7 +68,7 @@ namespace ho {
                 Program* prog = VirtualGPU::GetInstance().using_program_;
                 size_t reg_index = 0xFFFFFFFF;
 
-                for (size_t i = 0; i < prog->smooth_varying_count; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(prog->smooth_varying_count); i++) {
                     if (prog->smooth_varying_name_hashes[i] == name_hash) {
                         assert(prog->smooth_varying_descs[i].size == sizeof(T) / sizeof(float));
                         reg_index = prog->smooth_varying_descs[i].register_index;
@@ -78,14 +78,14 @@ namespace ho {
                 }
 
                 if (reg_index == 0xFFFFFFFF) {
-                    reg_index = used_smooth_register_size;
-                    size_t var_index = prog->smooth_varying_count++;
+                    reg_index = static_cast<size_t>(used_smooth_register_size);
+                    size_t var_index = static_cast<size_t>(prog->smooth_varying_count++);
 
                     prog->smooth_varying_name_hashes[var_index] = name_hash;
                     prog->smooth_varying_descs[var_index].size = sizeof(T) / sizeof(float);
                     prog->smooth_varying_descs[var_index].register_index = reg_index;
 
-                    used_smooth_register_size += prog->smooth_varying_descs[var_index].size;
+                    used_smooth_register_size += static_cast<size_t>(prog->smooth_varying_descs[var_index].size);
                     assert(used_smooth_register_size <= SMOOTH_REGISTER_SIZE);
                 }
                 *(T*)(&smooth_register[reg_index]) = v;
@@ -99,7 +99,7 @@ namespace ho {
                 Program* prog = VirtualGPU::GetInstance().using_program_;
                 size_t reg_index = 0xFFFFFFFF;
 
-                for (size_t i = 0; i < prog->flat_varying_count; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(prog->flat_varying_count); i++) {
                     if (prog->flat_varying_name_hashes[i] == name_hash) {
                         assert(prog->flat_varying_descs[i].size == sizeof(T) / sizeof(float));
                         reg_index = prog->flat_varying_descs[i].register_index;
@@ -109,8 +109,8 @@ namespace ho {
                 }
 
                 if (reg_index == 0xFFFFFFFF) {
-                    reg_index = used_flat_register_size;
-                    size_t var_index = prog->flat_varying_count++;
+                    reg_index = static_cast<size_t>(used_flat_register_size);
+                    size_t var_index = static_cast<size_t>(prog->flat_varying_count++);
 
                     prog->flat_varying_name_hashes[var_index] = name_hash;
                     prog->flat_varying_descs[var_index].size = sizeof(T) / sizeof(float);
@@ -142,7 +142,7 @@ namespace ho {
                 Program* prog = VirtualGPU::GetInstance().using_program_;
                 size_t reg_index = 0xFFFFFFFF;
 
-                for (size_t i = 0; i < prog->smooth_varying_count; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(prog->smooth_varying_count); i++) {
                     if (prog->smooth_varying_name_hashes[i] == name_hash) {
                         assert(prog->smooth_varying_descs[i].size == sizeof(T) / sizeof(float));
                         reg_index = prog->smooth_varying_descs[i].register_index;
@@ -161,7 +161,7 @@ namespace ho {
                 Program* prog = VirtualGPU::GetInstance().using_program_;
                 size_t reg_index = 0xFFFFFFFF;
 
-                for (size_t i = 0; i < prog->flat_varying_count; i++) {
+                for (size_t i = 0; i < static_cast<size_t>(prog->flat_varying_count); i++) {
                     if (prog->flat_varying_name_hashes[i] == name_hash) {
                         assert(prog->flat_varying_descs[i].size == sizeof(T) / sizeof(float));
                         reg_index = prog->flat_varying_descs[i].register_index;
@@ -188,7 +188,7 @@ namespace ho {
             friend VirtualGPU;
             friend VirtualGPUTester;
 
-            // Out(loc, color); is same as 'layout(location = 0) out vec4 outColor; outColor = color;' in glsl
+            // Out(loc, color); is same as 'layout(location = loc) out vec4 outColor; outColor = color;' in glsl
             void Out(size_t location, const Color128& out) {
                 assert(location < DRAW_BUFFER_SLOT_COUNT);
                 written[location] = true;
@@ -848,7 +848,7 @@ namespace ho {
         friend Uniform* vgUniform4t(VGint location, T v0, T v1, T v2, T v3);
         template <typename T>
         friend Uniform* vgUniform1tv(VGint location, VGsizei count, const T* value);
-        template <typename T, int N>
+        template <typename T, size_t N>
         friend Uniform* vgUniformNtv(VGint location, VGsizei count, const T* value);
         friend void vgUniform1f(VGint location, VGfloat v0);
         friend void vgUniform2f(VGint location, VGfloat v0, VGfloat v1);

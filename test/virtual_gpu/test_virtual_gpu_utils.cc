@@ -130,60 +130,60 @@ TEST(VirtualGPUUtilsTest, HalfFloatRoundtrip) {
 static float QuantizeAndRecover(float value, VGenum dst_type) {
     switch (dst_type) {
         case VG_UNSIGNED_BYTE: {
-            value = math::Clamp(value, 0.0f, 1.0f);
-            uint8_t q = static_cast<uint8_t>(value * 255.0f + 0.5f);
-            return q / 255.0f;
+            value = math::Clamp(value, 0.f, 1.f);
+            uint8_t q = static_cast<uint8_t>(value * 255.f + 0.5f);
+            return q / 255.f;
         }
 
         case VG_BYTE: {
-            value = math::Clamp(value, -1.0f, 1.0f);
+            value = math::Clamp(value, -1.f, 1.f);
             int8_t q;
-            if (value == -1.0f) {
+            if (value == -1.f) {
                 q = -128;
             } else {
-                float t = value * 127.0f;
-                t += (t >= 0.0f) ? 0.5f : -0.5f;
+                float t = value * 127.f;
+                t += (t >= 0.f) ? 0.5f : -0.5f;
                 q = static_cast<int8_t>(t);
             }
-            return q / 127.0f;
+            return q / 127.f;
         }
 
         case VG_UNSIGNED_SHORT: {
-            value = math::Clamp(value, 0.0f, 1.0f);
-            uint16_t q = static_cast<uint16_t>(value * 65535.0f + 0.5f);
-            return q / 65535.0f;
+            value = math::Clamp(value, 0.f, 1.f);
+            uint16_t q = static_cast<uint16_t>(value * 65535.f + 0.5f);
+            return q / 65535.f;
         }
 
         case VG_SHORT: {
-            value = math::Clamp(value, -1.0f, 1.0f);
+            value = math::Clamp(value, -1.f, 1.f);
             int16_t q;
-            if (value == -1.0f) {
+            if (value == -1.f) {
                 q = -32768;
             } else {
-                float t = value * 32767.0f;
-                t += (t >= 0.0f) ? 0.5f : -0.5f;
+                float t = value * 32767.f;
+                t += (t >= 0.f) ? 0.5f : -0.5f;
                 q = static_cast<int16_t>(t);
             }
-            return q / 32767.0f;
+            return q / 32767.f;
         }
 
         case VG_UNSIGNED_INT: {
-            value = math::Clamp(value, 0.0f, 1.0f);
-            uint32_t q = static_cast<uint32_t>(value * 4294967295.0f + 0.5f);
-            return q / 4294967295.0f;
+            value = math::Clamp(value, 0.f, 1.f);
+            uint32_t q = static_cast<uint32_t>(value * 4294967295.f + 0.5f);
+            return static_cast<float>(q) / 4294967295.f;
         }
 
         case VG_INT: {
-            value = math::Clamp(value, -1.0f, 1.0f);
+            value = math::Clamp(value, -1.f, 1.f);
             int32_t q;
-            if (value == -1.0f) {
+            if (value == -1.f) {
                 q = std::numeric_limits<int32_t>::min();
             } else {
-                float t = value * 2147483647.0f;
-                t += (t >= 0.0f) ? 0.5f : -0.5f;
+                float t = value * 2147483647.f;
+                t += (t >= 0.f) ? 0.5f : -0.5f;
                 q = static_cast<int32_t>(t);
             }
-            return q / 2147483647.0f;
+            return static_cast<float>(q) / 2147483647.f;
         }
 
         case VG_FLOAT:
@@ -194,7 +194,7 @@ static float QuantizeAndRecover(float value, VGenum dst_type) {
 
         default:
             assert(false);
-            return 0.0f;
+            return 0.f;
     }
 }
 
@@ -210,16 +210,16 @@ TEST(VirtualGPUUtilsTest, CopyPixelColor) {
         for (VGenum src_format : kColorFormats) {
             for (VGenum dst_type : kTypes) {
                 for (VGenum src_type : kTypes) {
-                    const uint32_t src_channels = GetChannelCount(src_format);
-                    const uint32_t dst_channels = GetChannelCount(dst_format);
-                    const uint32_t src_stride = GetTypeSize(src_type);
-                    const uint32_t dst_stride = GetTypeSize(dst_type);
+                    const size_t src_channels = static_cast<size_t>(GetChannelCount(src_format));
+                    const size_t dst_channels = static_cast<size_t>(GetChannelCount(dst_format));
+                    const size_t src_stride = static_cast<size_t>(GetTypeSize(src_type));
+                    const size_t dst_stride = static_cast<size_t>(GetTypeSize(dst_type));
 
                     std::vector<uint8_t> src(src_channels * src_stride);
                     std::vector<uint8_t> dst(dst_channels * dst_stride, 0);
 
-                    for (uint32_t c = 0; c < src_channels; ++c) {
-                        uint32_t idx = c;
+                    for (size_t c = 0; c < src_channels; ++c) {
+                        size_t idx = c;
                         if ((src_format == VG_BGR || src_format == VG_BGRA)) {
                             if (c == 0)
                                 idx = 2;
@@ -232,36 +232,36 @@ TEST(VirtualGPUUtilsTest, CopyPixelColor) {
 
                         switch (src_type) {
                             case VG_UNSIGNED_BYTE:
-                                p[0] = (uint8_t)(val * 255.0 + 0.5);
+                                p[0] = static_cast<uint8_t>(val * 255.0 + 0.5);
                                 break;
                             case VG_BYTE:
-                                *(int8_t*)p = (int8_t)(val * 127.0 + 0.5);
+                                *reinterpret_cast<int8_t*>(p) = static_cast<int8_t>(val * 127.0 + 0.5);
                                 break;
                             case VG_UNSIGNED_SHORT:
-                                *(uint16_t*)p = (uint16_t)(val * 65535.0 + 0.5);
+                                *reinterpret_cast<uint16_t*>(p) = static_cast<uint16_t>(val * 65535.0 + 0.5);
                                 break;
                             case VG_SHORT:
-                                *(int16_t*)p = (int16_t)(val * 32767.0 + 0.5);
+                                *reinterpret_cast<int16_t*>(p) = static_cast<int16_t>(val * 32767.0 + 0.5);
                                 break;
                             case VG_UNSIGNED_INT:
-                                *(uint32_t*)p = (uint32_t)(val * 4294967295.0 + 0.5);
+                                *reinterpret_cast<uint32_t*>(p) = static_cast<uint32_t>(val * 4294967295.0 + 0.5);
                                 break;
                             case VG_INT:
-                                *(int32_t*)p = (int32_t)(val * 2147483647.0 + 0.5);
+                                *reinterpret_cast<int32_t*>(p) = static_cast<int32_t>(val * 2147483647.0 + 0.5);
                                 break;
                             case VG_FLOAT:
-                                *(float*)p = (float)val;
+                                *reinterpret_cast<float*>(p) = static_cast<float>(val);
                                 break;
                             case VG_HALF_FLOAT:
-                                *(uint16_t*)p = FloatToHalf((float)val);
+                                *reinterpret_cast<uint16_t*>(p) = FloatToHalf(static_cast<float>(val));
                                 break;
                         }
                     }
 
                     CopyPixel(dst.data(), src.data(), dst_format, dst_type, src_format, src_type);
 
-                    for (uint32_t c = 0; c < dst_channels; ++c) {
-                        uint32_t idx = c;
+                    for (size_t c = 0; c < dst_channels; ++c) {
+                        size_t idx = c;
                         if ((dst_format == VG_BGR || dst_format == VG_BGRA)) {
                             if (c == 0)
                                 idx = 2;
@@ -270,50 +270,50 @@ TEST(VirtualGPUUtilsTest, CopyPixelColor) {
                         }
 
                         uint8_t* p = dst.data() + idx * dst_stride;
-                        float actual = 0.0f;
+                        float actual = 0.f;
 
                         switch (dst_type) {
                             case VG_UNSIGNED_BYTE:
-                                actual = p[0] / 255.0f;
+                                actual = p[0] / 255.f;
                                 break;
                             case VG_BYTE:
-                                actual = *(int8_t*)p / 127.0f;
+                                actual = static_cast<float>(*reinterpret_cast<int8_t*>(p)) / 127.f;
                                 break;
                             case VG_UNSIGNED_SHORT:
-                                actual = *(uint16_t*)p / 65535.0f;
+                                actual = static_cast<float>(*reinterpret_cast<uint16_t*>(p)) / 65535.f;
                                 break;
                             case VG_SHORT:
-                                actual = *(int16_t*)p / 32767.0f;
+                                actual = static_cast<float>(*reinterpret_cast<int16_t*>(p)) / 32767.f;
                                 break;
                             case VG_UNSIGNED_INT:
-                                actual = *(uint32_t*)p / 4294967295.0f;
+                                actual = static_cast<float>(*reinterpret_cast<uint32_t*>(p)) / 4294967295.f;
                                 break;
                             case VG_INT:
-                                actual = *(int32_t*)p / 2147483647.0f;
+                                actual = static_cast<float>(*reinterpret_cast<int32_t*>(p)) / 2147483647.f;
                                 break;
                             case VG_FLOAT:
-                                actual = *(float*)p;
+                                actual = *reinterpret_cast<float*>(p);
                                 break;
                             case VG_HALF_FLOAT:
-                                actual = HalfToFloat(*(uint16_t*)p);
+                                actual = HalfToFloat(*reinterpret_cast<uint16_t*>(p));
                                 break;
                         }
 
-                        float expected = 0.0f;
+                        float expected = 0.f;
                         if (c < src_channels) {
                             expected = kValues[c];
                             if (src_type == VG_UNSIGNED_BYTE)
-                                expected = (int)(expected * 255.0 + 0.5) / 255.0f;
+                                expected = ((expected * 255.f + 0.5f) / 255.f);
                             else if (src_type == VG_BYTE)
-                                expected = (int)(expected * 127.0 + 0.5) / 127.0f;
+                                expected = ((expected * 127.f + 0.5f) / 127.f);
                         } else {
-                            expected = (c == 3) ? 1.0f : 0.0f;
+                            expected = (c == 3) ? 1.f : 0.f;
                         }
 
                         if (dst_type == VG_UNSIGNED_BYTE)
-                            expected = (int)(expected * 255.0 + 0.5) / 255.0f;
+                            expected = ((expected * 255.f + 0.5f) / 255.f);
                         else if (dst_type == VG_BYTE)
-                            expected = (int)(expected * 127.0 + 0.5) / 127.0f;
+                            expected = ((expected * 127.f + 0.5f) / 127.f);
 
                         EXPECT_NEAR(actual, expected, 0.02f)
                             << "Fail: " << dst_format << "/" << src_format << " type: " << dst_type << "/" << src_type
@@ -361,8 +361,8 @@ TEST(VirtualGPUUtilsTest, EncodeDecodeColor) {
 
     for (VGenum format : kColorFormats) {
         for (VGenum type : kTypes) {
-            const uint32_t channels = GetChannelCount(format);
-            const uint32_t stride = GetTypeSize(type);
+            const size_t channels = static_cast<size_t>(GetChannelCount(format));
+            const size_t stride = static_cast<size_t>(GetTypeSize(type));
 
             std::vector<uint8_t> buffer(channels * stride, 0xCD);
 
@@ -374,14 +374,14 @@ TEST(VirtualGPUUtilsTest, EncodeDecodeColor) {
 
             expected.r = QuantizeAndRecover(src_color.r, type);
 
-            expected.g = (channels >= 2) ? QuantizeAndRecover(src_color.g, type) : 0.0f;
+            expected.g = (channels >= 2) ? QuantizeAndRecover(src_color.g, type) : 0.f;
 
-            expected.b = (channels >= 3) ? QuantizeAndRecover(src_color.b, type) : 0.0f;
+            expected.b = (channels >= 3) ? QuantizeAndRecover(src_color.b, type) : 0.f;
 
             if (channels == 4) {
                 expected.a = QuantizeAndRecover(src_color.a, type);
             } else {
-                expected.a = 1.0f;
+                expected.a = 1.f;
             }
 
             EXPECT_NEAR(decoded.r, expected.r, 1e-6f) << "R mismatch: format=" << format << " type=" << type;

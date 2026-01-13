@@ -2555,9 +2555,9 @@ namespace ho {
             return nullptr;
         }
 
-        if (location >= vg.using_program_->uniforms.size()) {
+        if (static_cast<size_t>(location) >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
-            auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
+            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<uint32_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
                 location = static_cast<VGint>(it->second);
             } else {
@@ -2568,7 +2568,7 @@ namespace ho {
             }
         }
 
-        VirtualGPU::Uniform& u = vg.using_program_->uniforms[location];
+        VirtualGPU::Uniform& u = vg.using_program_->uniforms[static_cast<size_t>(location)];
         u.data.resize(sizeof(T));
         std::memcpy(u.data.data(), &v0, sizeof(T));
         return &u;
@@ -2590,9 +2590,9 @@ namespace ho {
             return nullptr;
         }
 
-        if (location >= vg.using_program_->uniforms.size()) {
+        if (static_cast<size_t>(location) >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
-            auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
+            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<uint32_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
                 location = static_cast<VGint>(it->second);
             } else {
@@ -2603,7 +2603,7 @@ namespace ho {
             }
         }
 
-        VirtualGPU::Uniform& u = vg.using_program_->uniforms[location];
+        VirtualGPU::Uniform& u = vg.using_program_->uniforms[static_cast<size_t>(location)];
         const T tmp[2] = {v0, v1};
         u.data.resize(sizeof(tmp));
         std::memcpy(u.data.data(), tmp, sizeof(tmp));
@@ -2626,9 +2626,9 @@ namespace ho {
             return nullptr;
         }
 
-        if (location >= vg.using_program_->uniforms.size()) {
+        if (static_cast<size_t>(location) >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
-            auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
+            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<uint32_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
                 location = static_cast<VGint>(it->second);
             } else {
@@ -2639,7 +2639,7 @@ namespace ho {
             }
         }
 
-        VirtualGPU::Uniform& u = vg.using_program_->uniforms[location];
+        VirtualGPU::Uniform& u = vg.using_program_->uniforms[static_cast<size_t>(location)];
         const T tmp[3] = {v0, v1, v2};
         u.data.resize(sizeof(tmp));
         std::memcpy(u.data.data(), tmp, sizeof(tmp));
@@ -2662,9 +2662,9 @@ namespace ho {
             return nullptr;
         }
 
-        if (location >= vg.using_program_->uniforms.size()) {
+        if (static_cast<size_t>(location) >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
-            auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
+            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<uint32_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
                 location = static_cast<VGint>(it->second);
             } else {
@@ -2675,7 +2675,7 @@ namespace ho {
             }
         }
 
-        VirtualGPU::Uniform& u = vg.using_program_->uniforms[location];
+        VirtualGPU::Uniform& u = vg.using_program_->uniforms[static_cast<size_t>(location)];
         const T tmp[4] = {v0, v1, v2, v3};
         u.data.resize(sizeof(tmp));
         std::memcpy(u.data.data(), tmp, sizeof(tmp));
@@ -2703,9 +2703,9 @@ namespace ho {
             return nullptr;
         }
 
-        if (location >= vg.using_program_->uniforms.size()) {
+        if (static_cast<size_t>(location) >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
-            auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
+            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<uint32_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
                 location = static_cast<VGint>(it->second);
             } else {
@@ -2716,13 +2716,13 @@ namespace ho {
             }
         }
 
-        VirtualGPU::Uniform& u = vg.using_program_->uniforms[location];
-        u.data.resize(sizeof(T) * count);
-        std::memcpy(u.data.data(), value, sizeof(T) * count);
+        VirtualGPU::Uniform& u = vg.using_program_->uniforms[static_cast<size_t>(location)];
+        u.data.resize(sizeof(T) * static_cast<size_t>(count));
+        std::memcpy(u.data.data(), value, sizeof(T) * static_cast<size_t>(count));
         return &u;
     }
 
-    template <typename T, int N>
+    template <typename T, size_t N>
     VirtualGPU::Uniform* vgUniformNtv(VGint location, VGsizei count, const T* value) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         if (vg.state_.error_state != VG_NO_ERROR) {
@@ -2742,9 +2742,9 @@ namespace ho {
             return nullptr;
         }
 
-        if (location >= vg.using_program_->uniforms.size()) {
+        if (static_cast<size_t>(location) >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
-            auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
+            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<uint32_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
                 location = static_cast<VGint>(it->second);
             } else {
@@ -2755,9 +2755,9 @@ namespace ho {
             }
         }
 
-        VirtualGPU::Uniform& u = vg.using_program_->uniforms[location];
-        u.data.resize(count * sizeof(T) * N);
-        std::memcpy(u.data.data(), value, count * sizeof(T) * N);
+        VirtualGPU::Uniform& u = vg.using_program_->uniforms[static_cast<size_t>(location)];
+        u.data.resize(static_cast<size_t>(count) * sizeof(T) * N);
+        std::memcpy(u.data.data(), value, static_cast<size_t>(count) * sizeof(T) * N);
         return &u;
     }
 
@@ -3635,7 +3635,7 @@ namespace ho {
             return;
         }
 
-        vg.state_.draw_buffer_states[index].blend_enabled = true;
+        vg.state_.draw_buffer_states[static_cast<size_t>(index)].blend_enabled = true;
     }
     void vgDisablei(VGenum target, VGuint index) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
@@ -3653,7 +3653,7 @@ namespace ho {
             return;
         }
 
-        vg.state_.draw_buffer_states[index].blend_enabled = false;
+        vg.state_.draw_buffer_states[static_cast<size_t>(index)].blend_enabled = false;
     }
     VGboolean vgIsEnabledi(VGenum target, VGuint index) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
@@ -3671,7 +3671,7 @@ namespace ho {
             return static_cast<VGboolean>(VG_FALSE);
         }
 
-        return vg.state_.draw_buffer_states[index].blend_enabled;
+        return vg.state_.draw_buffer_states[static_cast<size_t>(index)].blend_enabled;
     }
     void vgBindBufferRange(VGenum target, VGuint index, VGuint buffer, VGintptr offset, VGsizeiptr size) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
@@ -4331,7 +4331,7 @@ namespace ho {
         if (!renderbuffers) {
             return;
         }
-        for (int i = 0; i < n; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(n); i++) {
             vg.base_id_++;
             vg.render_buffer_pool_.insert({vg.base_id_, VirtualGPU::RenderBuffer()});
             vg.render_buffer_pool_[vg.base_id_].id = vg.base_id_;
@@ -4497,7 +4497,7 @@ namespace ho {
         if (!framebuffers) {
             return;
         }
-        for (int i = 0; i < n; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(n); i++) {
             vg.base_id_++;
             vg.frame_buffer_pool_.insert({vg.base_id_, VirtualGPU::FrameBuffer()});
             vg.frame_buffer_pool_[vg.base_id_].id = vg.base_id_;
