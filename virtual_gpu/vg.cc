@@ -1106,7 +1106,7 @@ namespace ho {
 
         const uint8_t* base = ebo + offset;
 
-        auto FetchIndex = [&](int k) -> size_t {
+        auto FetchIndex = [&](size_t k) -> size_t {
             switch (type) {
                 case VG_UNSIGNED_BYTE:
                     return static_cast<size_t>((reinterpret_cast<const uint8_t*>(base))[k]);

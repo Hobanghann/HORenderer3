@@ -796,7 +796,7 @@ namespace ho {
                 depth += depth_dx;
 
                 for (size_t i = 0; i < static_cast<size_t>(v3.used_smooth_register_size); i++) {
-                    smooth_register[i] += smooth_register_dx[i];
+                    smooth_register[i] += smooth_register_dx[i];  // NOLINT
                 }
             }
 
@@ -808,7 +808,7 @@ namespace ho {
             inv_w_row += inv_w_dy;
 
             for (size_t i = 0; i < static_cast<size_t>(v3.used_smooth_register_size); i++) {
-                smooth_register_row[i] += smooth_register_dy[i];
+                smooth_register_row[i] += smooth_register_dy[i];  // NOLINT
             }
         }
 
