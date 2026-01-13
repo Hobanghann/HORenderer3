@@ -1050,7 +1050,7 @@ namespace ho {
 
         // Vertex Processing
         std::vector<JobDeclaration> vs_jobs;
-        vs_jobs.reserve(vg.bound_vertex_array_->vertex_count);
+        vs_jobs.reserve(static_cast<size_t>(vg.bound_vertex_array_->vertex_count));
 
         const int BATCH_SIZE = 100;
 
@@ -1614,7 +1614,7 @@ namespace ho {
                 return;
         }
 
-        VirtualGPU::TextureLevel& tex_level = tex->mipmap[level];
+        VirtualGPU::TextureLevel& tex_level = tex->mipmap[static_cast<size_t>(level)];
 
         if (!tex_level.memory) {
             vg.state_.error_state = VG_INVALID_OPERATION;
@@ -1626,8 +1626,8 @@ namespace ho {
             return;
         }
 
-        const size_t src_pixel_size = vg::GetPixelSize(format, type);
-        const size_t dst_pixel_size = vg::GetPixelSize(tex->internal_format, tex->component_type);
+        const size_t src_pixel_size = static_cast<size_t>(vg::GetPixelSize(format, type));
+        const size_t dst_pixel_size = static_cast<size_t>(vg::GetPixelSize(tex->internal_format, tex->component_type));
 
         const uint8_t* src = static_cast<const uint8_t*>(pixels);
 
@@ -1991,7 +1991,7 @@ namespace ho {
             return;
         }
 
-        if (static_cast<size_t>(offset + size) > buffer->memory->size()) {
+        if (static_cast<size_t>(static_cast<VGsizeiptr>(offset) + size) > buffer->memory->size()) {
             vg.state_.error_state = VG_INVALID_VALUE;
             return;
         }
@@ -2046,11 +2046,11 @@ namespace ho {
             return;
         }
 
-        for (int i = 0; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
             if (bufs[i] == VG_NONE) {
                 fb->draw_slot_to_color_attachment[i] = INVALID_SLOT;
             } else if (bufs[i] >= VG_COLOR_ATTACHMENT0 && bufs[i] <= VG_COLOR_ATTACHMENT31) {
-                fb->draw_slot_to_color_attachment[i] = static_cast<int>(bufs[i] - VG_COLOR_ATTACHMENT0);
+                fb->draw_slot_to_color_attachment[i] = static_cast<size_t>(bufs[i] - VG_COLOR_ATTACHMENT0);
             } else {
                 vg.state_.error_state = VG_INVALID_ENUM;
                 return;
@@ -2219,8 +2219,12 @@ namespace ho {
         prog.link_status = VG_FALSE;
     }
 
-    void vgBindAttribLocation(VGuint program, VGuint index, const VGchar* name) { program, index, name; }  // no op
-    void vgCompileShader(VGuint shader) { shader; }                                                        // no op
+    void vgBindAttribLocation(VGuint program, VGuint index, const VGchar* name) {
+        (void)program;
+        (void)index;
+        (void)name;
+    }  // no op
+    void vgCompileShader(VGuint shader) { (void)shader; }  // no op
     VGuint vgCreateProgram(void) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         if (vg.state_.error_state != VG_NO_ERROR) {
@@ -2906,7 +2910,7 @@ namespace ho {
 
         if (location >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
-            auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
+            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<uint32_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
                 location = static_cast<VGint>(it->second);
             } else {
@@ -2917,16 +2921,16 @@ namespace ho {
             }
         }
 
-        VirtualGPU::Uniform& u = vg.using_program_->uniforms[location];
+        VirtualGPU::Uniform& u = vg.using_program_->uniforms[static_cast<size_t>(location)];
         u.type = VG_FLOAT_MAT2;
         u.size = 4;
         u.count = count;
 
-        u.data.resize(sizeof(VGfloat) * 4 * count);
+        u.data.resize(sizeof(VGfloat) * 4 * static_cast<size_t>(count));
         VGfloat* dst = reinterpret_cast<VGfloat*>(u.data.data());
 
         if (transpose) {
-            std::memcpy(dst, value, sizeof(VGfloat) * 4 * count);
+            std::memcpy(dst, value, sizeof(VGfloat) * 4 * static_cast<size_t>(count));
             return;
         }
 
@@ -2961,7 +2965,7 @@ namespace ho {
 
         if (location >= vg.using_program_->uniforms.size()) {
             // use location argument as name_hash
-            auto it = vg.using_program_->uniform_name_hash_to_location.find(location);
+            auto it = vg.using_program_->uniform_name_hash_to_location.find(static_cast<size_t>(location));
             if (it != vg.using_program_->uniform_name_hash_to_location.end()) {
                 location = static_cast<VGint>(it->second);
             } else {

@@ -561,7 +561,7 @@ namespace ho {
                 frag.depth = static_cast<real>(depth);
 
                 frag.used_smooth_register_size = v1.used_smooth_register_size;
-                for (int i = 0; i < frag.used_smooth_register_size; i++) {
+                for (size_t i = 0; i < frag.used_smooth_register_size; i++) {
                     frag.smooth_register[i] = smooth_register_pw[i] * w;  // NOLINT
                 }
 
@@ -593,14 +593,14 @@ namespace ho {
             if (step_x) {
                 inv_w += inv_w_dx;
                 depth += depth_dx;
-                for (int i = 0; i < v1.used_smooth_register_size; i++) {
+                for (size_t i = 0; i < v1.used_smooth_register_size; i++) {
                     smooth_register_pw[i] += smooth_register_pw_dx[i];
                 }
             }
             if (step_y) {
                 inv_w += inv_w_dy;
                 depth += depth_dy;
-                for (int i = 0; i < v1.used_smooth_register_size; i++) {
+                for (size_t i = 0; i < v1.used_smooth_register_size; i++) {
                     smooth_register_pw[i] += smooth_register_pw_dy[i];
                 }
             }
@@ -740,7 +740,7 @@ namespace ho {
         const int y_min = static_cast<int>(math::Ceil(b.min.y - 0.5_r));
         const int y_max = static_cast<int>(math::Floor(b.max.y - 0.5_r)) + 1;
 
-        out.reserve((x_max - x_min) * (y_max - y_min) / 2);
+        out.reserve(static_cast<size_t>((x_max - x_min) * (y_max - y_min) / 2));
         // Raster loop
         for (int y = y_min; y < y_max; ++y) {
             real f12_ev = f12_row;
@@ -882,9 +882,9 @@ namespace ho {
             return false;
         }
 
-        const size_t pixel_index = static_cast<size_t>(py) * attch.width + px;
-        uint8_t* pixel_addr =
-            attch.memory->data() + attch.offset + pixel_index * vg::GetPixelSize(attch.format, attch.component_type);
+        const size_t pixel_index = static_cast<size_t>(py * attch.width + px);
+        uint8_t* pixel_addr = attch.memory->data() + static_cast<size_t>(attch.offset) +
+                              pixel_index * static_cast<size_t>(vg::GetPixelSize(attch.format, attch.component_type));
         SpinLock& lock = GetDepthLock(px, py);
 
         real old_depth = 0.0_r;
@@ -1278,7 +1278,7 @@ namespace ho {
         }
 
         // Clipping
-        poly = std::move(vg.Clip(poly));
+        poly = vg.Clip(poly);
 
         if (poly.empty()) {
             delete in;
@@ -1297,14 +1297,14 @@ namespace ho {
         const VGenum pmode = vg.state_.polygon_mode;
 
         if (poly.size() == 1) {
-            frags = std::move(vg.Rasterize(poly[0]));
+            frags = vg.Rasterize(poly[0]);
         } else if (poly.size() == 2) {
-            frags = std::move(vg.Rasterize(poly[0], poly[1]));
+            frags = vg.Rasterize(poly[0], poly[1]);
         } else {
             switch (pmode) {
                 case VG_POINT:
                     for (const Varying& v : poly) {
-                        temp_frags = std::move(vg.Rasterize(v));
+                        temp_frags = vg.Rasterize(v);
                         frags.insert(frags.end(), std::make_move_iterator(temp_frags.begin()),
                                      std::make_move_iterator(temp_frags.end()));
                     }
@@ -1314,14 +1314,14 @@ namespace ho {
                     for (size_t i = 0; i < poly.size(); i++) {
                         const Varying& a = poly[i];
                         const Varying& b = poly[(i + 1) % poly.size()];
-                        temp_frags = std::move(vg.Rasterize(a, b));
+                        temp_frags = vg.Rasterize(a, b);
                         frags.insert(frags.end(), std::make_move_iterator(temp_frags.begin()),
                                      std::make_move_iterator(temp_frags.end()));
                     }
                     break;
                 case VG_FILL:
                     for (size_t i = 1; i + 1 < poly.size(); i++) {
-                        temp_frags = std::move(vg.Rasterize(poly[0], poly[i], poly[i + 1]));
+                        temp_frags = vg.Rasterize(poly[0], poly[i], poly[i + 1]);
                         frags.insert(frags.end(), std::make_move_iterator(temp_frags.begin()),
                                      std::make_move_iterator(temp_frags.end()));
                     }
