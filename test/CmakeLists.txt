@@ -9,6 +9,7 @@ set(GTEST_NAME googletest)
 FetchContent_Declare(${GTEST_NAME}
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG v1.14.0
+  SYSTEM
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
@@ -22,10 +23,6 @@ message ("#### Downloading " ${GTEST_NAME} " finished. ####")
 foreach(tgt gmock gmock_main gtest gtest_main)
     if (TARGET ${tgt})
         set_target_properties(${tgt} PROPERTIES FOLDER "Test/gtest")
-        target_include_directories(${tgt} SYSTEM INTERFACE 
-            "${googletest_SOURCE_DIR}/googletest/include"
-            "${googletest_SOURCE_DIR}/googlemock/include"
-        )
     endif()
 endforeach()
 
