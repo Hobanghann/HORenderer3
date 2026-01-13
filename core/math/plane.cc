@@ -20,9 +20,9 @@ namespace ho {
             nearest.z = aabb.max_edges.z;
             farthest.z = aabb.min_edges.z;
         }
-        if (normal.Dot(nearest) - d > math::EPSILON_POINT_ON_PLANE) {
+        if (normal.Dot(nearest) + d > math::EPSILON_POINT_ON_PLANE) {
             return math::OUTSIDE;
-        } else if (normal.Dot(farthest) - d > math::EPSILON_POINT_ON_PLANE) {
+        } else if (normal.Dot(farthest) + d > math::EPSILON_POINT_ON_PLANE) {
             return math::INTERSECT;
         } else {
             return math::INSIDE;
@@ -30,7 +30,7 @@ namespace ho {
     }
 
     math::Side Plane::GetSide(const Sphere& sphere) const {
-        real res = normal.Dot(sphere.center) - d;
+        real res = normal.Dot(sphere.center) + d;
         if (res > math::EPSILON_POINT_ON_PLANE) {
             if (res >= sphere.radius) {
                 return math::OUTSIDE;

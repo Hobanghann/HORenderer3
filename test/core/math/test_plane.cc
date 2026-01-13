@@ -27,7 +27,7 @@ TEST(PlaneTest, Constructors) {
     Vector3 point(0.0_r, 5.0_r, 0.0_r);
     Plane p2(normal, point);
     EXPECT_TRUE(p2.normal.IsEqualApprox(Vector3(0.0_r, 1.0_r, 0.0_r)));
-    EXPECT_NEAR(p2.d, 5.0_r, math::EPSILON_CMP);
+    EXPECT_NEAR(p2.d, -5.0_r, math::EPSILON_CMP);
 
     Vector3 v1(0.0_r, 0.0_r, 0.0_r);
     Vector3 v2(1.0_r, 0.0_r, 0.0_r);

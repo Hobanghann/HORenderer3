@@ -9,6 +9,7 @@ set(GTEST_NAME googletest)
 FetchContent_Declare(${GTEST_NAME}
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG v1.14.0
+  SYSTEM
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
@@ -30,5 +31,6 @@ endforeach()
 ################################################################################
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/resource)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/virtual_gpu)
 
 message("\n######## Processing test finished. ########\n")

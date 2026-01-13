@@ -9,7 +9,7 @@
 
 using namespace ho;
 
-static void AddInt(void* data, uint32_t size) {
+static void AddInt(void* data, int size) {
     EXPECT_EQ(size, sizeof(int));
     int* p = reinterpret_cast<int*>(data);
     (*p)++;

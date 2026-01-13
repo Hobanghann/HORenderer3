@@ -161,6 +161,9 @@ namespace ho {
     constexpr bool Vector2::IsNotEqualApprox(const Vector2& rhs) const { return !IsEqualApprox(rhs); }
 
     constexpr Vector2 operator*(real scalar, const Vector2& vector) { return vector * scalar; }
+    constexpr Vector2 operator/(real scalar, const Vector2& vector) {
+        return Vector2(scalar / vector.x, scalar / vector.y);
+    }
 
     constexpr real Vector2::Dot(const Vector2& rhs) const { return x * rhs.x + y * rhs.y; }
 

@@ -192,10 +192,9 @@ TEST(Color128Test, UnderOperation) {
 }
 
 TEST(Color128Test, sRGBToLinearAndLinearTosRGB) {
-    // 1Round-trip test for middle values
     Color128 srgb(0.5f, 0.5f, 0.5f, 1.0f);
-    Color128 linear = srgb.sRGBToLinear();
-    Color128 reconv = linear.LinearTosRGB();
+    Color128 linear = srgb.sRGBToLinear();    // Expect 0.5 * 0.5 = 0.25
+    Color128 reconv = linear.LinearTosRGB();  // Expect sqrt(0.25) = 0.5
 
     // Round-trip must approximately equal original
     EXPECT_NEAR(srgb.r, reconv.r, math::EPSILON_CMP);
@@ -203,30 +202,25 @@ TEST(Color128Test, sRGBToLinearAndLinearTosRGB) {
     EXPECT_NEAR(srgb.b, reconv.b, math::EPSILON_CMP);
     EXPECT_NEAR(srgb.a, reconv.a, math::EPSILON_CMP);
 
-    // Check the small-value branch (< 0.04045)
-    Color128 small(0.02f, 0.03f, 0.04f, 1.0f);
+    Color128 small(0.2f, 0.4f, 0.8f, 1.0f);
     Color128 small_lin = small.sRGBToLinear();
-    EXPECT_NEAR(small_lin.r, 0.02f / 12.92f, math::EPSILON_CMP);
-    EXPECT_NEAR(small_lin.g, 0.03f / 12.92f, math::EPSILON_CMP);
-    EXPECT_NEAR(small_lin.b, 0.04f / 12.92f, math::EPSILON_CMP);
 
-    Color128 small_back = small_lin.LinearTosRGB();
-    EXPECT_NEAR(small_back.r, small.r, math::EPSILON_CMP);
-    EXPECT_NEAR(small_back.g, small.g, math::EPSILON_CMP);
-    EXPECT_NEAR(small_back.b, small.b, math::EPSILON_CMP);
+    // 0.2 * 0.2 = 0.04
+    EXPECT_NEAR(small_lin.r, 0.2f * 0.2f, math::EPSILON_CMP);
+    // 0.4 * 0.4 = 0.16
+    EXPECT_NEAR(small_lin.g, 0.4f * 0.4f, math::EPSILON_CMP);
+    // 0.8 * 0.8 = 0.64
+    EXPECT_NEAR(small_lin.b, 0.8f * 0.8f, math::EPSILON_CMP);
 
-    // Check the high-value branch (> 0.04045)
-    Color128 high(0.8f, 0.9f, 1.0f, 1.0f);
-    Color128 high_lin = high.sRGBToLinear();
+    Color128 input_lin(0.04f, 0.16f, 0.64f, 1.0f);
+    Color128 output_srgb = input_lin.LinearTosRGB();
 
-    EXPECT_TRUE(high_lin.r > 0.5f);
-    EXPECT_TRUE(high_lin.g > 0.6f);
-    EXPECT_TRUE(high_lin.b > 0.7f);
-
-    Color128 high_back = high_lin.LinearTosRGB();
-    EXPECT_NEAR(high_back.r, high.r, math::EPSILON_CMP);
-    EXPECT_NEAR(high_back.g, high.g, math::EPSILON_CMP);
-    EXPECT_NEAR(high_back.b, high.b, math::EPSILON_CMP);
+    // sqrt(0.04) = 0.2
+    EXPECT_NEAR(output_srgb.r, 0.2f, math::EPSILON_CMP);
+    // sqrt(0.16) = 0.4
+    EXPECT_NEAR(output_srgb.g, 0.4f, math::EPSILON_CMP);
+    // sqrt(0.64) = 0.8
+    EXPECT_NEAR(output_srgb.b, 0.8f, math::EPSILON_CMP);
 }
 
 TEST(Color128Test, ToVector3Conversion) {

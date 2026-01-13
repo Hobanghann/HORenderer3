@@ -6,7 +6,7 @@
 
 namespace ho {
 
-    Sphere Sphere::ConstructCentroidFromPositions(const std::vector<Vector3>& positions) {
+    Sphere Sphere::FromPositionsCentroid(const std::vector<Vector3>& positions) {
         if (positions.empty()) {
             return Sphere();
         }
@@ -59,7 +59,7 @@ namespace ho {
     //
     // This process is repeated until all vertices are contained within the sphere.
 
-    Sphere Sphere::ConstructRitterFromPositions(const std::vector<Vector3>& positions) {
+    Sphere Sphere::FromPositionsRitter(const std::vector<Vector3>& positions) {
         if (positions.empty()) {
             return Sphere();
         }

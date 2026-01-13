@@ -8,8 +8,8 @@
 namespace ho {
     struct Mesh;
     struct Sphere {
-        static Sphere ConstructCentroidFromPositions(const std::vector<Vector3>& positions);
-        static Sphere ConstructRitterFromPositions(const std::vector<Vector3>& positions);
+        static Sphere FromPositionsCentroid(const std::vector<Vector3>& positions);
+        static Sphere FromPositionsRitter(const std::vector<Vector3>& positions);
 
         static Sphere Merge(const Sphere& lhs, const Sphere& rhs);
 

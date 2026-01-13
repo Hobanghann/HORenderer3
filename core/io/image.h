@@ -24,7 +24,13 @@ namespace ho {
             IMAGE_FORMAT_ABGR8,  // ABGR channel order, sometimes used in OpenGL
         };
 
-        ALWAYS_INLINE Image() : path_(std::string()) {}
+        ALWAYS_INLINE Image()
+            : path_(std::string()),
+              name_(std::string()),
+              format_(IMAGE_FORMAT_RGB8),
+              width_(0),
+              height_(0),
+              bitmap_(std::vector<uint8_t>()) {}
         Image(const Image& img) = default;
         ALWAYS_INLINE Image(const Path& path, const std::string& name, Format format, std::uint32_t width,
                             std::uint32_t height, const std::uint8_t* bitmap);

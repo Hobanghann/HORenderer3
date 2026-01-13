@@ -14,10 +14,10 @@ namespace ho {
 
     // A single job to be executed by the JobSystem
     struct JobDeclaration {
-        using Entry = void (*)(void* input, uint32_t size);
-        Entry entry;                                            // job function pointer
-        void* input_data;                                       // input payload
-        uint32_t input_size;                                    // size of input payload
+        using Entry = void (*)(void* input, int size);
+        Entry entry = nullptr;                                  // job function pointer
+        void* input_data = nullptr;                             // input payload
+        int input_size = 0;                                     // size of input payload
         std::shared_ptr<AtomicNumeric<std::uint32_t>> counter;  // completion counter
     };
 
@@ -129,7 +129,7 @@ namespace ho {
         }
 
         // Job synchronization
-        void WaitForCounter(std::shared_ptr<AtomicNumeric<std::uint32_t>> counter) {
+        void WaitForCounter(std::shared_ptr<AtomicNumeric<std::uint32_t>>& counter) {
             int spin_count = 100;
             while (counter->Get() > 0 && spin_count) {
                 if (counter->Get() == 0) return;

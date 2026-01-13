@@ -18,24 +18,13 @@ namespace ho {
         *this *= inv_max;
     }
 
-    // Conversion linear to srgb quaternion as listed in
-    // https://en.wikipedia.org/wiki/SRGB#The_sRGbtransferfunction
-    Color128 Color128::sRGBToLinear() const {
-        return Color128(r < 0.04045f ? r * (1.0f / 12.92f)
-                                     : math::Pow(static_cast<float>((r + 0.055f) * (1.0f / (1.f + 0.055f))), 2.4f),
-                        g < 0.04045f ? g * (1.0f / 12.92f)
-                                     : math::Pow(static_cast<float>((g + 0.055f) * (1.0f / (1.f + 0.055f))), 2.4f),
-                        b < 0.04045f ? b * (1.0f / 12.92f)
-                                     : math::Pow(static_cast<float>((b + 0.055f) * (1.0f / (1.f + 0.055f))), 2.4f),
-                        a);
-    }
-    // Conversion srgb to linear quaternion as listed in
-    // https://en.wikipedia.org/wiki/SRGB#The_sRGbtransferfunction
-    Color128 Color128::LinearTosRGB() const {
-        return Color128(r < 0.0031308f ? 12.92f * r : (1.0f + 0.055f) * math::Pow(r, 1.0f / 2.4f) - 0.055f,
-                        g < 0.0031308f ? 12.92f * g : (1.0f + 0.055f) * math::Pow(g, 1.0f / 2.4f) - 0.055f,
-                        b < 0.0031308f ? 12.92f * b : (1.0f + 0.055f) * math::Pow(b, 1.0f / 2.4f) - 0.055f, a);
-    }
+    // Approximation using Gamma 2.0 (squaring) for performance.
+    // This is significantly faster than the standard IEC 61966-2-1 formula (pow 2.4).
+    Color128 Color128::sRGBToLinear() const { return Color128(r * r, g * g, b * b, a); }
+
+    // Approximation using Gamma 2.0 (square root) for performance.
+    // 'sqrt' is much cheaper than the standard 'pow(x, 1.0/2.2)' operation.
+    Color128 Color128::LinearTosRGB() const { return Color128(math::Sqrt(r), math::Sqrt(g), math::Sqrt(b), a); }
 
     Vector3 Color128::ToVector3() const {
         return Vector3(static_cast<real>(r) * 2.0_r - 1.0_r, static_cast<real>(g) * 2.0_r - 1.0_r,

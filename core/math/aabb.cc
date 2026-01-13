@@ -7,7 +7,7 @@
 
 namespace ho {
 
-    AABB AABB::ConstructFromPositions(const std::vector<Vector3>& positions) {
+    AABB AABB::FromPositions(const std::vector<Vector3>& positions) {
         if (positions.size() == 0) {
             return AABB();
         }

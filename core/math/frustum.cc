@@ -96,62 +96,82 @@ namespace ho {
         }
         return math::INSIDE;
     }
+
     math::Side Frustum::GetSide(const Vector3& p1, const Vector3& p2) const {
-        int num_outside = 0;
-        if (GetSide(p1) == math::OUTSIDE) {
-            num_outside++;
+        bool is_fully_inside = true;
+
+        for (const Plane& plane : planes) {
+            math::Side s1 = plane.GetSide(p1);
+            math::Side s2 = plane.GetSide(p2);
+
+            if (s1 == math::OUTSIDE && s2 == math::OUTSIDE) {
+                return math::OUTSIDE;
+            }
+
+            if (s1 != math::INSIDE || s2 != math::INSIDE) {
+                is_fully_inside = false;
+            }
         }
-        if (GetSide(p2) == math::OUTSIDE) {
-            num_outside++;
-        }
-        if (num_outside == 2) {
-            return math::OUTSIDE;
-        }
-        if (num_outside == 0) {
+
+        if (is_fully_inside) {
             return math::INSIDE;
         }
+
         return math::INTERSECT;
     }
+
     math::Side Frustum::GetSide(const Vector3& p1, const Vector3& p2, const Vector3& p3) const {
-        int num_outside = 0;
-        if (GetSide(p1) == math::OUTSIDE) {
-            num_outside++;
+        bool is_fully_inside = true;
+
+        for (const Plane& plane : planes) {
+            math::Side s1 = plane.GetSide(p1);
+            math::Side s2 = plane.GetSide(p2);
+            math::Side s3 = plane.GetSide(p3);
+
+            if (s1 == math::OUTSIDE && s2 == math::OUTSIDE && s3 == math::OUTSIDE) {
+                return math::OUTSIDE;
+            }
+
+            if (s1 != math::INSIDE || s2 != math::INSIDE || s3 != math::INSIDE) {
+                is_fully_inside = false;
+            }
         }
-        if (GetSide(p2) == math::OUTSIDE) {
-            num_outside++;
-        }
-        if (GetSide(p3) == math::OUTSIDE) {
-            num_outside++;
-        }
-        if (num_outside == 3) {
-            return math::OUTSIDE;
-        }
-        if (num_outside == 0) {
+
+        if (is_fully_inside) {
             return math::INSIDE;
         }
+
         return math::INTERSECT;
     }
     math::Side Frustum::GetSide(const AABB& aabb) const {
+        bool is_intersecting = false;
         for (const Plane& plane : planes) {
             math::Side side = plane.GetSide(aabb);
             if (side == math::OUTSIDE) {
                 return math::OUTSIDE;
             }
             if (side == math::INTERSECT) {
-                return math::INTERSECT;
+                is_intersecting = true;
             }
+        }
+        if (is_intersecting) {
+            return math::INTERSECT;
         }
         return math::INSIDE;
     }
     math::Side Frustum::GetSide(const Sphere& sphere) const {
+        bool is_intersecting = false;
         for (const Plane& plane : planes) {
             math::Side side = plane.GetSide(sphere);
             if (side == math::OUTSIDE) {
                 return math::OUTSIDE;
             }
             if (side == math::INTERSECT) {
-                return math::INTERSECT;
+                is_intersecting = true;
             }
+        }
+        if (is_intersecting) {
+            return math::INTERSECT;
         }
         return math::INSIDE;
     }

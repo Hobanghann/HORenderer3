@@ -113,7 +113,6 @@ namespace ho {
             }
 
             Quaternion adj_q2 = q2;
-            real alpha = barycentric.x, beta = barycentric.y;
 
             if (cos < 0.f) {
                 cos = -cos;
@@ -121,8 +120,8 @@ namespace ho {
             }
             const real angle = math::Acos(cos);
             const real inv_sin = 1.0_r / math::Sin(angle);
-            alpha = math::Sin(barycentric.x * angle) * inv_sin;
-            beta = math::Sin(barycentric.y * angle) * inv_sin;
+            const real alpha = math::Sin(barycentric.x * angle) * inv_sin;
+            const real beta = math::Sin(barycentric.y * angle) * inv_sin;
             return alpha * q1 + beta * adj_q2;
         }
 
@@ -133,7 +132,6 @@ namespace ho {
             }
 
             Quaternion adj_q2 = q2;
-            real alpha = barycentric.x, beta = barycentric.y;
 
             if (cos > 0.0_r) {
                 cos = -cos;
@@ -141,8 +139,8 @@ namespace ho {
             }
             const real angle = math::Acos(cos);
             const real inv_sin = 1.f / math::Sin(angle);
-            alpha = math::Sin(barycentric.x * angle) * inv_sin;
-            beta = math::Sin(barycentric.y * angle) * inv_sin;
+            const real alpha = math::Sin(barycentric.x * angle) * inv_sin;
+            const real beta = math::Sin(barycentric.y * angle) * inv_sin;
             return alpha * q1 + beta * adj_q2;
         }
 
