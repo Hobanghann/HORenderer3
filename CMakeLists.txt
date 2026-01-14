@@ -41,7 +41,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             warning_flags
             INTERFACE
             -Werror -Wall -Wextra
-            -Wconversion -Wsign-conversion
+            -Wconversion -Wsign-conversion -Wold-style-cast
             -Wshadow -Wundef
             -Wunreachable-code
             -Wstrict-aliasing
@@ -56,6 +56,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             -Wtautological-compare
             -Wno-c++98-compat
             -Wno-c++98-compat-pedantic
+            -Wno-unused-parameter
             -Wno-gnu-anonymous-struct    # allow anonymous struct/union
             -Wno-double-promotion       # allow float to double promotion
         )
@@ -76,20 +77,24 @@ endif ()
 ##########################################################
 # Set module's Name
 ##########################################################
-set(PLATFORMS_NAME platforms)
 set(THIRD_PARTY_NAME lib)
 set(CORE_NAME core)
 set(RESOURCE_NAME resource)
 set(VIRTUAL_GPU_NAME virtual_gpu)
+set(RENDERER_NAME renderer)
+set(SAMPLES_NAME samples)
+set(PLATFORMS_NAME platforms)
 
 ##########################################################
 # Process modules
 ##########################################################
-#add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/platforms)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/resource)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/virtual_gpu)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/renderer)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/samples)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/platforms)
 
 ##########################################################
 # Process tests
