@@ -16,8 +16,8 @@ namespace ho {
         // optional: set flip
         // stbi_set_flip_vertically_on_load(true);
 
-        std::uint8_t* stbi_bitmap = (std::uint8_t*)(stbi_load(path.ResolvedAssetPath().ToString().c_str(), &width,
-                                                              &height, &num_color_channels, 0));
+        std::uint8_t* stbi_bitmap = reinterpret_cast<std::uint8_t*>(
+            stbi_load(path.ResolvedAssetPath().ToString().c_str(), &width, &height, &num_color_channels, 0));
 
         if (stbi_bitmap == nullptr) {
             return nullptr;
@@ -99,7 +99,8 @@ namespace ho {
             for (int y = 0; y < height; ++y) {
                 for (int x = 0; x < width; ++x) {
                     const aiTexel& texel = aitex->pcData[y * width + x];
-                    size_t idx = static_cast<size_t>((y * width + x) * num_channels);
+                    size_t idx = (static_cast<size_t>(y) * static_cast<size_t>(width) + static_cast<size_t>(x)) *
+                                 static_cast<size_t>(num_channels);
                     decoded[idx + 0] = texel.r;
                     decoded[idx + 1] = texel.g;
                     decoded[idx + 2] = texel.b;

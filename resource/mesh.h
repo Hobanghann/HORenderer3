@@ -138,7 +138,7 @@ namespace ho {
             if (!sub_meshes.empty()) {
                 // Merge all submesh AABBs to form mesh AABB
                 aabb = sub_meshes[0].aabb;
-                for (size_t i = 1; i < sub_meshes.size(); ++i) {
+                for (size_t i = 1; i < sub_meshes.size(); i++) {
                     aabb = AABB::Merge(aabb, sub_meshes[i].aabb);
                 }
 

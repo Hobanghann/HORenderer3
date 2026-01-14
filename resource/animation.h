@@ -168,8 +168,8 @@ namespace ho {
         real duration;
         std::vector<SkeletalTrack> skeletal_tracks;
         std::vector<MorphTargetTrack> morph_target_tracks;
-        std::unordered_map<size_t, uint32_t> bone_index_to_skeletal_track;
-        std::unordered_map<size_t, uint32_t> bone_index_to_morph_target_track;
+        std::unordered_map<size_t, size_t> bone_index_to_skeletal_track;
+        std::unordered_map<size_t, size_t> bone_index_to_morph_target_track;
     };
 
 }  // namespace ho

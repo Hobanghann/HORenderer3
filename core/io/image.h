@@ -117,7 +117,7 @@ namespace ho {
 
     Color32 Image::GetColor32(int x, int y) const {
         assert(x < width_ && y < height_);
-        std::size_t idx = static_cast<size_t>(y * width_ + x);
+        std::size_t idx = static_cast<size_t>(y) * static_cast<size_t>(width_) + static_cast<size_t>(x);
 
         const std::uint8_t* px = bitmap_.data() + idx * static_cast<size_t>(GetPixelBytes(format_));
         switch (format_) {
