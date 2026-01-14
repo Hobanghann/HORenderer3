@@ -81,8 +81,9 @@ endif()
 
 target_link_libraries(
   ${MAIN_PROJECT_NAME}
-  PUBLIC
+  PRIVATE
   warning_flags
+  PUBLIC  
   ${THIRD_PARTY_NAME}
   ${CORE_NAME}
   ${RESOURCE_NAME}

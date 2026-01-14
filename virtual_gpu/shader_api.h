@@ -214,7 +214,7 @@ namespace ho {
         return dst;
     }
 
-    ALWAYS_INLINE VGfloat ApplyWrap(VGenum wrap_mode, VGfloat coord) {
+    ALWAYS_INLINE VGfloat ApplyWrap(VGenum wrap_mode, real coord) {
         real t = 0.0_r;
         real frac = 0.0_r;
         switch (wrap_mode) {
@@ -426,7 +426,7 @@ namespace ho {
         VirtualGPU::Sampler* sam = unit.bound_sampler == nullptr ? &tex->default_sampler : unit.bound_sampler;
 
         // 1) wrap
-        VGfloat wrap_u = ApplyWrap(sam->wrap_s, u);
+        VGfloat wrap_u = ApplyWrap(static_cast<VGenum>(sam->wrap_s), u);
         if (wrap_u < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -467,7 +467,7 @@ namespace ho {
         VirtualGPU::Sampler* sam = unit.bound_sampler ? unit.bound_sampler : &tex->default_sampler;
 
         // 1) wrap
-        VGfloat wrap_u = ApplyWrap(sam->wrap_s, tex_coord.x);
+        VGfloat wrap_u = ApplyWrap(static_cast<VGenum>(sam->wrap_s), tex_coord.x);
         if (wrap_u < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -478,7 +478,7 @@ namespace ho {
             }
         }
 
-        VGfloat wrap_v = ApplyWrap(sam->wrap_t, tex_coord.y);
+        VGfloat wrap_v = ApplyWrap(static_cast<VGenum>(sam->wrap_t), tex_coord.y);
         if (wrap_v < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -519,7 +519,7 @@ namespace ho {
         VirtualGPU::Sampler* sam = unit.bound_sampler ? unit.bound_sampler : &tex->default_sampler;
 
         // 1) wrap
-        VGfloat wrap_u = ApplyWrap(sam->wrap_s, tex_coord.x);
+        VGfloat wrap_u = ApplyWrap(static_cast<VGenum>(sam->wrap_s), tex_coord.x);
         if (wrap_u < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -530,7 +530,7 @@ namespace ho {
             }
         }
 
-        VGfloat wrap_v = ApplyWrap(sam->wrap_t, tex_coord.y);
+        VGfloat wrap_v = ApplyWrap(static_cast<VGenum>(sam->wrap_t), tex_coord.y);
         if (wrap_v < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -541,7 +541,7 @@ namespace ho {
             }
         }
 
-        VGfloat wrap_w = ApplyWrap(sam->wrap_r, tex_coord.z);
+        VGfloat wrap_w = ApplyWrap(static_cast<VGenum>(sam->wrap_r), tex_coord.z);
         if (wrap_w < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();

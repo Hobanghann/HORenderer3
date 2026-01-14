@@ -11,7 +11,7 @@
 #include "resource/mesh.h"
 #include "resource/skeleton.h"
 #include "resource/skin.h"
-#include "virtual_gpu/virtual_gpu.h"
+#include "virtual_gpu/vg.h"
 
 namespace ho {
     bool BlinnPhongRenderer::Initialize() {
@@ -35,8 +35,9 @@ namespace ho {
 
         // Set Object
         real scale = 3.0_r;
-        object_.modeling_transform = Transform3D(
-            Basis3D(scale * Vector3::UNIT_X, scale * Vector3::UNIT_Y, scale * Vector3::UNIT_Z), Vector3(0.f, -3.f, 0.f));
+        object_.modeling_transform =
+            Transform3D(Basis3D(scale * Vector3::UNIT_X, scale * Vector3::UNIT_Y, scale * Vector3::UNIT_Z),
+                        Vector3(0.f, -3.f, 0.f));
 
         // Load Resource for object
         ResourceLoader::Model model =

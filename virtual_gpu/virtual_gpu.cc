@@ -204,8 +204,8 @@ namespace ho {
 
         Attachment& attch = fb->depth_stencil_attachment;
 
-        const int w = (int)attch.width;
-        const int h = (int)attch.height;
+        const int w = static_cast<int>(attch.width);
+        const int h = static_cast<int>(attch.height);
 
         // Calculate viewport, scissor intersection
 
@@ -490,10 +490,10 @@ namespace ho {
 
         std::vector<Fragment> out;
 
-        const int x0 = (int)math::Floor(v1.viewport_coord.x);
-        const int y0 = (int)math::Floor(v1.viewport_coord.y);
-        const int x1 = (int)math::Floor(v2.viewport_coord.x);
-        const int y1 = (int)math::Floor(v2.viewport_coord.y);
+        const int x0 = static_cast<int>(math::Floor(v1.viewport_coord.x));
+        const int y0 = static_cast<int>(math::Floor(v1.viewport_coord.y));
+        const int x1 = static_cast<int>(math::Floor(v2.viewport_coord.x));
+        const int y1 = static_cast<int>(math::Floor(v2.viewport_coord.y));
 
         const int dx = math::Abs(x1 - x0);
         const int dy = math::Abs(y1 - y0);
