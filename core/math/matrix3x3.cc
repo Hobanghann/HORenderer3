@@ -108,8 +108,9 @@ namespace ho {
     std::string Matrix3x3::ToString() const {
         char res[300];
         std::snprintf(res, sizeof(res), "| %.3f , %.3f , %.3f |\n| %.3f , %.3f , %.3f |\n| %.3f , %.3f , %.3f |",
-                      (float)row0.x, (float)row0.y, (float)row0.z, (float)row1.x, (float)row1.y, (float)row1.z,
-                      (float)row2.x, (float)row2.y, (float)row2.z);
+                      static_cast<float>(row0.x), static_cast<float>(row0.y), static_cast<float>(row0.z),
+                      static_cast<float>(row1.x), static_cast<float>(row1.y), static_cast<float>(row1.z),
+                      static_cast<float>(row2.x), static_cast<float>(row2.y), static_cast<float>(row2.z));
 
         return res;
     }

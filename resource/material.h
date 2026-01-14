@@ -34,7 +34,7 @@ namespace ho {
 
         // textures
         std::array<ResourceID, TextureType::TEXTURE_TYPE_LAST> textures = {ResourceID()};
-        std::array<uint32_t, TextureType::TEXTURE_TYPE_LAST> uv_channels = {0};
+        std::array<int, TextureType::TEXTURE_TYPE_LAST> uv_channels = {0};
     };
 
 }  // namespace ho

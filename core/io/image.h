@@ -32,8 +32,8 @@ namespace ho {
               height_(0),
               bitmap_(std::vector<uint8_t>()) {}
         Image(const Image& img) = default;
-        ALWAYS_INLINE Image(const Path& path, const std::string& name, Format format, std::uint32_t width,
-                            std::uint32_t height, const std::uint8_t* bitmap);
+        ALWAYS_INLINE Image(const Path& path, const std::string& name, Format format, int width, int height,
+                            const std::uint8_t* bitmap);
 
         ALWAYS_INLINE Image(Image&& other) noexcept
             : path_(std::move(other.path_)),
@@ -60,11 +60,11 @@ namespace ho {
         ALWAYS_INLINE const Path& path() const;
         ALWAYS_INLINE const std::string& name() const;
         ALWAYS_INLINE Format format() const;
-        ALWAYS_INLINE std::uint32_t width() const;
-        ALWAYS_INLINE std::uint32_t height() const;
+        ALWAYS_INLINE int width() const;
+        ALWAYS_INLINE int height() const;
 
-        ALWAYS_INLINE Color32 GetColor32(std::uint32_t x, std::uint32_t y) const;
-        ALWAYS_INLINE Color128 GetColor128(std::uint32_t x, std::uint32_t y) const;
+        ALWAYS_INLINE Color32 GetColor32(int x, int y) const;
+        ALWAYS_INLINE Color128 GetColor128(int x, int y) const;
 
         ALWAYS_INLINE const uint8_t* GetBitmap() const;
 
@@ -72,12 +72,12 @@ namespace ho {
         Path path_;
         std::string name_;
         Format format_;
-        std::uint32_t width_;
-        std::uint32_t height_;
+        int width_;
+        int height_;
         std::vector<uint8_t> bitmap_;
     };
 
-    ALWAYS_INLINE uint32_t GetPixelBytes(Image::Format format) {
+    ALWAYS_INLINE int GetPixelBytes(Image::Format format) {
         switch (format) {
             case Image::Format::IMAGE_FORMAT_R8:
                 return 1;
@@ -100,7 +100,7 @@ namespace ho {
         }
     }
 
-    Image::Image(const Path& path, const std::string& name, Format format, std::uint32_t width, std::uint32_t height,
+    Image::Image(const Path& path, const std::string& name, Format format, int width, int height,
                  const std::uint8_t* bitmap)
         : path_(path),
           name_(name),
@@ -112,14 +112,14 @@ namespace ho {
     const Path& Image::path() const { return path_; }
     const std::string& Image::name() const { return name_; }
     Image::Format Image::format() const { return format_; }
-    std::uint32_t Image::width() const { return width_; }
-    std::uint32_t Image::height() const { return height_; }
+    int Image::width() const { return width_; }
+    int Image::height() const { return height_; }
 
-    Color32 Image::GetColor32(std::uint32_t x, std::uint32_t y) const {
+    Color32 Image::GetColor32(int x, int y) const {
         assert(x < width_ && y < height_);
-        std::size_t idx = (y * width_ + x);
+        std::size_t idx = static_cast<size_t>(y * width_ + x);
 
-        const std::uint8_t* px = bitmap_.data() + idx * GetPixelBytes(format_);
+        const std::uint8_t* px = bitmap_.data() + idx * static_cast<size_t>(GetPixelBytes(format_));
         switch (format_) {
             case Image::Format::IMAGE_FORMAT_R8:
                 return Color32(px[0], px[0], px[0], 255);
@@ -142,7 +142,7 @@ namespace ho {
         }
     }
 
-    Color128 Image::GetColor128(std::uint32_t x, std::uint32_t y) const { return Color128(GetColor32(x, y)); }
+    Color128 Image::GetColor128(int x, int y) const { return Color128(GetColor32(x, y)); }
     const uint8_t* Image::GetBitmap() const { return bitmap_.data(); }
 
 }  // namespace ho

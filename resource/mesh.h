@@ -30,7 +30,7 @@ namespace ho {
         };
 
         struct BoneWeight {
-            std::uint32_t bone_index;
+            size_t bone_index;
             real weight;
         };
 
@@ -83,7 +83,7 @@ namespace ho {
                     aabb = AABB::FromPositions(positions);
                     sphere = Sphere::FromPositionsRitter(positions);
                 }
-                for (uint32_t i = 0; i < morph_targets.size(); i++) {
+                for (size_t i = 0; i < morph_targets.size(); i++) {
                     morph_name_to_index[morph_targets[i].name] = i;
                 }
             }
@@ -101,12 +101,12 @@ namespace ho {
                 assert(it != morph_name_to_index.end());
                 return morph_targets[it->second];
             }
-            ALWAYS_INLINE uint32_t GetMorphTargetIndex(const std::string& p_name) const {
+            ALWAYS_INLINE size_t GetMorphTargetIndex(const std::string& p_name) const {
                 auto it = morph_name_to_index.find(p_name);
                 assert(it != morph_name_to_index.end());
                 return it->second;
             }
-            ALWAYS_INLINE uint32_t GetMorphTargetCount() const { return (uint32_t)morph_targets.size(); }
+            ALWAYS_INLINE int GetMorphTargetCount() const { return static_cast<int>(morph_targets.size()); }
 
             std::string name;
             PrimitiveType primitive_type;
@@ -128,7 +128,7 @@ namespace ho {
             AABB aabb;
             Sphere sphere;
 
-            std::unordered_map<std::string, std::uint32_t> morph_name_to_index;
+            std::unordered_map<std::string, size_t> morph_name_to_index;
         };
 
         Mesh() = default;
@@ -151,7 +151,7 @@ namespace ho {
                     sphere = Sphere::FromPositionsRitter(all_positions);
                 }
             }
-            for (uint32_t i = 0; i < sub_meshes.size(); i++) {
+            for (size_t i = 0; i < sub_meshes.size(); i++) {
                 sub_mesh_name_to_index[sub_meshes[i].name] = i;
             }
         }
@@ -166,13 +166,13 @@ namespace ho {
             assert(it != sub_mesh_name_to_index.end());
             return sub_meshes[it->second];
         }
-        ALWAYS_INLINE uint32_t GetSubMeshIndex(const std::string& p_name) const {
+        ALWAYS_INLINE size_t GetSubMeshIndex(const std::string& p_name) const {
             auto it = sub_mesh_name_to_index.find(p_name);
             assert(it != sub_mesh_name_to_index.end());
             return it->second;
         }
 
-        ALWAYS_INLINE uint32_t GetSubMeshCount() const { return (uint32_t)sub_meshes.size(); }
+        ALWAYS_INLINE int GetSubMeshCount() const { return static_cast<int>(sub_meshes.size()); }
 
         std::string name;
 
@@ -181,7 +181,7 @@ namespace ho {
         AABB aabb;
         Sphere sphere;
 
-        std::unordered_map<std::string, std::uint32_t> sub_mesh_name_to_index;
+        std::unordered_map<std::string, size_t> sub_mesh_name_to_index;
     };
 
 }  // namespace ho

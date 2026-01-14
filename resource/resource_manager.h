@@ -54,12 +54,12 @@ namespace ho {
         ResourceID GetMaterialID(const std::string& name) const;
         ResourceID GetTextureID(const std::string& name) const;
 
-        uint32_t GetMeshCount() const;
-        uint32_t GetSkeletonCount() const;
-        uint32_t GetAnimationCount() const;
-        uint32_t GetSkinCount() const;
-        uint32_t GetMaterialCount() const;
-        uint32_t GetTextureCount() const;
+        int GetMeshCount() const;
+        int GetSkeletonCount() const;
+        int GetAnimationCount() const;
+        int GetSkinCount() const;
+        int GetMaterialCount() const;
+        int GetTextureCount() const;
 
        private:
         ID_Owner<ResourceID, Mesh> mesh_pool_;

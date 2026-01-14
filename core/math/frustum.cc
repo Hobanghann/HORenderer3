@@ -69,7 +69,7 @@ namespace ho {
     }
 
     bool Frustum::operator==(const Frustum& rhs) const {
-        for (int i = 0; i < PLANE_POS_LAST; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(PLANE_POS_LAST); i++) {
             if (planes[i] != rhs.planes[i]) {
                 return false;
             }
@@ -79,7 +79,7 @@ namespace ho {
     bool Frustum::operator!=(const Frustum& rhs) const { return !(*this == rhs); }
 
     bool Frustum::IsEqualApprox(const Frustum& rhs) const {
-        for (int i = 0; i < PLANE_POS_LAST; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(PLANE_POS_LAST); i++) {
             if (!planes[i].IsEqualApprox(rhs.planes[i])) {
                 return false;
             }
