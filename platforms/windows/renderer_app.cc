@@ -7,7 +7,7 @@
 
 static bool TranslateWin32Key(WPARAM vk, ho::InputKey& out);
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
+static LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam) {
     return RendererApp::GetApp().MsgHandler(hWnd, iMessage, wParam, lParam);
 }
 
@@ -36,14 +36,14 @@ void RendererApp::Initialize() {
     uint32_t* back_buffer = main_window_->CreateCPUBackBuffer(1280, 720);
 
     // Initialize renderer
-    if (!renderer_adapter_.Initialize((uint8_t*)back_buffer, 1280, 720)) {
+    if (!renderer_adapter_.Initialize(reinterpret_cast<uint8_t*>(back_buffer), 1280, 720)) {
         main_window_->ShowMessageBox(L"Error", L"Renderer Initialize() failed");
         return;
     }
 }
 
 void RendererApp::Run() {
-    MSG msg = {0};
+    MSG msg;
     POINT pt;
     timer_.Reset();
 
@@ -64,7 +64,7 @@ void RendererApp::Run() {
             frame_count++;
 
             if ((timer_.TotalTime() - elapsed_time) >= 1.f) {
-                float fps = (float)frame_count;
+                float fps = static_cast<float>(frame_count);
                 float ms_per_frame = 1000.f / fps;
 
                 wchar_t buffer[256];
@@ -145,15 +145,18 @@ void RendererApp::OnMOUSEUP(WPARAM wParam, LPARAM lParam) {
     if (!(wParam & MK_RBUTTON)) renderer_adapter_.ReleaseKey(ho::InputKey::INPUT_KEY_MOUSE_RIGHT);
     if (!(wParam & MK_MBUTTON)) renderer_adapter_.ReleaseKey(ho::InputKey::INPUT_KEY_MOUSE_MIDDLE);
 }
-void RendererApp::OnMOUSEMOVE(WPARAM wParam, LPARAM lParam) { wParam, lParam; }
+void RendererApp::OnMOUSEMOVE(WPARAM wParam, LPARAM lParam) { (void)wParam, (void)lParam; }
 void RendererApp::OnMOUSEWHEEL(WPARAM wParam, LPARAM lParam) {
     (void)lParam;
     short delta = GET_WHEEL_DELTA_WPARAM(wParam);
 
-    renderer_adapter_.UpdateMouseWheel(static_cast<float>(delta) / WHEEL_DELTA);
+    renderer_adapter_.UpdateMouseWheel(static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA));
 }
-void RendererApp::OnSETFOCUS(WPARAM wParam, LPARAM lParam) { wParam, lParam; }
-void RendererApp::OnKILLFOCUS(WPARAM wParam, LPARAM lParam) { wParam, lParam; }
+void RendererApp::OnSETFOCUS(WPARAM wParam, LPARAM lParam) {
+    (void)wParam, (void)lParam;
+    ;
+}
+void RendererApp::OnKILLFOCUS(WPARAM wParam, LPARAM lParam) { (void)wParam, (void)lParam; }
 
 void RendererApp::OnSize(WPARAM wParam, LPARAM lParam) {
     if (!main_window_) {
@@ -189,27 +192,27 @@ void RendererApp::OnSize(WPARAM wParam, LPARAM lParam) {
 }
 
 void RendererApp::OnENTERSIZEMOVE(WPARAM wParam, LPARAM lParam) {
-    wParam, lParam;
+    (void)wParam, (void)lParam;
     is_paused_ = true;
     is_resizing_ = true;
     timer_.Stop();
 }
 
 void RendererApp::OnEXITSIZEMOVE(WPARAM wParam, LPARAM lParam) {
-    wParam, lParam;
+    (void)wParam, (void)lParam;
     is_paused_ = false;
     is_resizing_ = false;
     timer_.Start();
 }
 
 void RendererApp::OnACTIVE(WPARAM wParam, LPARAM lParam) {
-    wParam, lParam;
+    (void)wParam, (void)lParam;
     is_paused_ = false;
     timer_.Start();
 }
 
 void RendererApp::OnINACTIVE(WPARAM wParam, LPARAM lParam) {
-    wParam, lParam;
+    (void)wParam, (void)lParam;
     is_paused_ = true;
     timer_.Stop();
 }

@@ -57,7 +57,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             -Wno-c++98-compat
             -Wno-c++98-compat-pedantic
             -Wno-unused-parameter
-            -Wno-gnu-anonymous-struct    # allow anonymous struct/union
+            -Wno-gnu-anonymous-struct   # allow anonymous struct/union
             -Wno-double-promotion       # allow float to double promotion
         )
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")        

@@ -9,6 +9,8 @@ namespace ho {
         friend class RendererAdapter;
 
        public:
+        virtual ~Renderer() = default;
+
         bool CreateDefaultFramebuffer(uint8_t* color_buffer, int width, int height);
 
         virtual bool Initialize() = 0;

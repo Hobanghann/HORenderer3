@@ -95,7 +95,7 @@ namespace ho {
     // T can be  float, Vector2, Vector3, Vector4, uint8_t, int8_t, uint16_t,
     // int16_t,uint32_t,int32_t
     template <typename T>
-    ALWAYS_INLINE T FetchAttribute(VGuint location, size_t index = 0) {
+    ALWAYS_INLINE T FetchAttribute(VGuint location, size_t index) {
         static uint8_t default_zero[16] = {0};
 
         VirtualGPU& vg = VirtualGPU::GetInstance();
@@ -187,16 +187,16 @@ namespace ho {
     // T can be  float, Vector2, Vector3, Vector4, Matrix2x2, Matrix3x3, Matrix4x4,
     // uint32_t, int32_t
     template <typename T>
-    ALWAYS_INLINE T FetchUniform(uint32_t name_hash, size_t index = 0) {
+    ALWAYS_INLINE T FetchUniform(uint32_t name_hash, size_t index) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         assert(vg.using_program_);
         auto loc_it = vg.using_program_->uniform_name_hash_to_location.find(name_hash);
         assert(loc_it != vg.using_program_->uniform_name_hash_to_location.end());
         VirtualGPU::Uniform& u = vg.using_program_->uniforms[loc_it->second];
         assert((VGsizei)index < u.count);
-        const uint8_t* src = u.data.data() + index * (u.size * vg::GetTypeSize(u.type));
+        const uint8_t* src = u.data.data() + index * static_cast<size_t>(u.size * vg::GetTypeSize(u.type));
         T dst;
-        std::memcpy(&dst, src, sizeof(T));
+        std::memcpy(reinterpret_cast<float*>(&dst), src, sizeof(T));
         return dst;
     }
 
@@ -210,7 +210,7 @@ namespace ho {
         VirtualGPU::BufferBinding& b = it->second;
         const uint8_t* src = b.buffer->memory->data() + b.offset + offset;
         T dst;
-        std::memcpy(&dst, src, sizeof(T));
+        std::memcpy(reinterpret_cast<float*>(&dst), src, sizeof(T));
         return dst;
     }
 

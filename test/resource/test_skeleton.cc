@@ -59,8 +59,8 @@ TEST_F(SkeletonTest, ChildAccessors) {
     EXPECT_EQ(sk.GetChildCount("leg"), 0u);
     EXPECT_EQ(sk.GetChildCount("spine"), 0u);
 
-    uint32_t root_child0 = sk.GetChildIndex("root", 0);
-    uint32_t root_child1 = sk.GetChildIndex("root", 1);
+    size_t root_child0 = sk.GetChildIndex("root", 0);
+    size_t root_child1 = sk.GetChildIndex("root", 1);
 
     EXPECT_TRUE((sk.GetBoneName(root_child0) == "hip" && sk.GetBoneName(root_child1) == "spine") ||
                 (sk.GetBoneName(root_child0) == "spine" && sk.GetBoneName(root_child1) == "hip"));

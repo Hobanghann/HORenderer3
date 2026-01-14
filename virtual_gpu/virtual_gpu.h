@@ -24,6 +24,12 @@
 namespace ho {
     class VirtualGPUTester;
 
+    // prototypes for specifying default argument
+    template <typename T>
+    T FetchAttribute(VGuint location, size_t index = 0);
+    template <typename T>
+    T FetchUniform(uint32_t name_hash, size_t index = 0);
+
     class VirtualGPU {
         static constexpr int WORKER_COUNT = 8;
 
@@ -88,7 +94,7 @@ namespace ho {
                     used_smooth_register_size += static_cast<size_t>(prog->smooth_varying_descs[var_index].size);
                     assert(used_smooth_register_size <= SMOOTH_REGISTER_SIZE);
                 }
-                *(T*)(&smooth_register[reg_index]) = v;
+                *reinterpret_cast<T*>(&smooth_register[reg_index]) = v;
             }
 
             // T can be float, Vector2, Vector3, Vector4
@@ -119,7 +125,7 @@ namespace ho {
                     used_flat_register_size += prog->flat_varying_descs[var_index].size;
                     assert(used_flat_register_size <= FLAT_REGISTER_SIZE);
                 }
-                *(T*)(&flat_register[reg_index]) = v;
+                *reinterpret_cast<T*>(&flat_register[reg_index]) = v;
             }
 
            private:
@@ -151,7 +157,7 @@ namespace ho {
                 }
 
                 assert(reg_index != 0xFFFFFFFF);
-                return *(const T*)(&smooth_register[reg_index]);
+                return *reinterpret_cast<const T*>(&smooth_register[reg_index]);
             }
 
             // T can be float, Vector2, Vector3, Vector4
@@ -170,7 +176,7 @@ namespace ho {
                 }
 
                 assert(reg_index != 0xFFFFFFFF);
-                return *(const T*)(&flat_register[reg_index]);
+                return *reinterpret_cast<const T*>(&flat_register[reg_index]);
             }
 
            private:
