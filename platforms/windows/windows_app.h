@@ -11,8 +11,6 @@
 #include <memory>
 #include <string>
 
-#include "windows_key.h"
-
 class Window {
    public:
     Window(HINSTANCE hOwner, const std::wstring& name, uint32_t width, uint32_t height, WNDPROC msg_handler);

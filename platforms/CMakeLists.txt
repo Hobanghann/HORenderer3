@@ -41,34 +41,61 @@ add_library(${PLATFORMS_NAME} STATIC ${ALL_FILES})
 ################################################################################
 target_link_libraries(
   ${PLATFORMS_NAME}
-  PUBLIC
+  PRIVATE
   warning_flags
+  PUBLIC
+  ${THIRD_PARTY_NAME}
+  ${CORE_NAME}
+  ${RESOURCE_NAME}
+  ${VIRTUAL_GPU_NAME}
+  ${RENDERER_NAME}
+  ${SAMPLES_NAME}
 )
 target_include_directories(
   ${PLATFORMS_NAME}
-  PUBLIC
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 ################################################################################
 # Add executable target
 ################################################################################
-add_executable(${MAIN_PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_FOLDER}/main.cc)
+# Windows
+if (WIN32)
+  add_executable(${MAIN_PROJECT_NAME} WIN32 ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_FOLDER}/main.cc)
+  set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT ${MAIN_PROJECT_NAME})
+  # Apple
+elseif(APPLE)
+  message(FATAL_ERROR "This project only supports windows environment currently.")
+  add_executable(${MAIN_PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_FOLDER}/main.cc)
+# Linux
+elseif(UNIX AND NOT APPLE)
+  message(FATAL_ERROR "This project only supports windows environment currently.")
+  add_executable(${MAIN_PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/${PLATFORM_FOLDER}/main.cc)
+endif()
 
 ################################################################################
 # Set target properties
 ################################################################################
-target_include_directories(
-  ${MAIN_PROJECT_NAME}
-  PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}
-)
+
 target_link_libraries(
   ${MAIN_PROJECT_NAME}
   PUBLIC
   warning_flags
-  ${PLATFORMS_NAME}
   ${THIRD_PARTY_NAME}
-  ${CORE_NAME})
+  ${CORE_NAME}
+  ${RESOURCE_NAME}
+  ${VIRTUAL_GPU_NAME}
+  ${RENDERER_NAME}
+  ${SAMPLES_NAME}
+  ${PLATFORMS_NAME}
+)
 
+target_include_directories(
+  ${MAIN_PROJECT_NAME}
+  PRIVATE
+  ${CMAKE_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
 message("\n\n\n######## Processing ${PLATFORMS_NAME} module finished. ########\n\n\n")

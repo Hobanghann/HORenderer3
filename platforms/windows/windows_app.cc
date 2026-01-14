@@ -24,7 +24,7 @@ Window::Window(HINSTANCE hOwner, const std::wstring& name, uint32_t width, uint3
         return;
     }
 
-    RECT stClientSize = {0, 0, width_, height_};
+    RECT stClientSize = {0, 0, (LONG)width_, (LONG)height_};
     DWORD dwStyle = WS_OVERLAPPEDWINDOW;
     AdjustWindowRect(&stClientSize, dwStyle, FALSE);
     handle_ = CreateWindowW(name_.c_str(), name_.c_str(), dwStyle, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -53,7 +53,7 @@ Window::Window(HINSTANCE hOwner, const std::wstring& name, uint32_t width, uint3
 
     default_bmi_.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     default_bmi_.bmiHeader.biWidth = client_width_;
-    default_bmi_.bmiHeader.biHeight = -client_height_;
+    default_bmi_.bmiHeader.biHeight = -(LONG)client_height_;
     default_bmi_.bmiHeader.biPlanes = 1;
     default_bmi_.bmiHeader.biBitCount = 32;
     default_bmi_.bmiHeader.biCompression = BI_RGB;
@@ -100,7 +100,7 @@ void Window::ResizeClient(uint32_t client_width, uint32_t client_height) {
 void Window::Show(int nCmdShow) { ShowWindow(handle_, nCmdShow); }
 
 void Window::ShowMessageBox(const std::wstring& title, const std::wstring& text, UINT type) {
-    MessageBoxW(handle_, text.c_str(), text.c_str(), type);
+    MessageBoxW(handle_, text.c_str(), title.c_str(), type);
 }
 
 uint32_t* Window::CreateCPUBackBuffer(uint32_t buffer_width, uint32_t buffer_height) {
@@ -111,7 +111,7 @@ uint32_t* Window::CreateCPUBackBuffer(uint32_t buffer_width, uint32_t buffer_hei
     // set back buffer properties
     back_buffers_[back_buffer_count_].info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     back_buffers_[back_buffer_count_].info.bmiHeader.biWidth = buffer_width;
-    back_buffers_[back_buffer_count_].info.bmiHeader.biHeight = -buffer_height;
+    back_buffers_[back_buffer_count_].info.bmiHeader.biHeight = -(LONG)buffer_height;
     back_buffers_[back_buffer_count_].info.bmiHeader.biPlanes = 1;
     back_buffers_[back_buffer_count_].info.bmiHeader.biBitCount = 32;
     back_buffers_[back_buffer_count_].info.bmiHeader.biCompression = BI_RGB;
@@ -175,7 +175,7 @@ void Window::SwapCPUBuffer(uint32_t index) {
 }
 
 void Window::PrintText(const std::wstring& text, uint32_t x, uint32_t y) {
-    if (!TextOutW(front_dc_, x, y, text.c_str(), text.size())) {
+    if (!TextOutW(front_dc_, x, y, text.c_str(), static_cast<int>(text.size()))) {
         MessageBoxW(nullptr, L"TextOutW failed.", L"Error", MB_ICONERROR);
     }
 }
