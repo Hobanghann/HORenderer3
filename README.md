@@ -368,16 +368,16 @@ graph LR;
 >   - mouse_delta_x_, mouse_delta_y_: 이전 프레임 대비 마우스 이동량<br><br>
 >   - mouse_wheel_delta_: 현재 프레임에서 발생한 마우스 휠 변화량
 
-- <b>Render()</b>
+### <b>Render()</b>
 > - 카메라, 광원, 모델 인스턴스를 기반으로 드로우 콜을 수행합니다.<br><br>
 > - 실제 렌더링 로직은 이 함수에서 구현됩니다.
 
-- <b>PostUpdate(float delta_time)</b>
+### <b>PostUpdate(float delta_time)</b>
 > - 렌더링 이후의 상태 업데이트를 수행합니다.<br><br>
 > - mouse_wheel_delta_는 이벤트 성격의 값이므로 이 함수에서 반드시 초기화해야 합니다.<br><br>
 > - 초기화하지 않을 경우, 휠 입력이 지속적으로 발생한 것처럼 동작할 수 있습니다.
 
-- <b>Quit()</b>
+### <b>Quit()</b>
 > - 렌더러 종료 시 한 번 호출됩니다.<br><br>
 > - 리소스 정리 및 종료 처리를 수행합니다.
 
