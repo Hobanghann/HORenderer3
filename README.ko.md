@@ -1,39 +1,38 @@
 <p align="right">
-  <a href="README.md"><b>English</b></a> | <a href="README.ko.md">한국어</a>
+  <a href="README.md">English</a> | <a href="README.ko.md"><b>한국어</b></a>
 </p>
 
 
-# 📌 Project Overview
+# 📌 프로젝트 개요
 
-This project is a **GL-like 3D software renderer** designed based on the OpenGL 3.3 Core Specification, without relying on any external math libraries or graphics APIs.
+본 프로젝트는 외부 수학 라이브러리나 그래픽스 API에 의존하지 않고 OpenGL 3.3 Core Specification을 참고하여 설계된 **GL-like 3D 소프트웨어 렌더러**입니다.
 
-Centered around a `VirtualGPU` layer that emulates real GPU behavior, the renderer defines and implements VRAM-backed resource management, pipeline state handling, and shader execution flow entirely in software.
+실제 GPU 동작을 모사한 `VirtualGPU` 계층을 중심으로, VRAM 관리, 파이프라인 상태, 셰이더 실행 흐름을 소프트웨어적으로 정의하고 구현했습니다.
 
-In addition, the project directly implements an OpenGL 3.3–style API and driver layer based on the official OpenGL Registry headers, enabling developers to write renderers and rendering code in a manner similar to OpenGL.
+또한 OpenGL Registry의 공식 헤더를 기반으로 OpenGL 3.3 스타일의 API와 드라이버 레이어를 직접 구현하여, **OpenGL과 유사한 방식으로 렌더러 및 렌더링 코드를 작성할 수 있도록 구성**되어 있습니다.
 
-The core modules (`core`, `resource`, `virtual_gpu`) are validated through unit tests.  
-However, the GL-like API layer has not yet been fully covered by tests, and some behaviors may differ from the specification in certain edge cases.
+핵심 모듈(`core`, `resource`, `virtual_gpu`)은 단위 테스트로 검증되었으나, GL-like API 계층에 대한 테스트는 아직 수행되지 않아 일부 예외 케이스에서 스펙과 차이가 있을 수 있습니다.
 
-# 🪩 Rendering Samples
+# 🪩 렌더링 샘플
 ### Blinn–Phong Shading
 ![blinn_phong.gif](https://github.com/Hobanghann/HORenderer3/blob/develop/samples/screenshots/blinn_phong.gif)
 
 <details>
-<summary><b>Vertex Shader Code</b></summary>
+<summary><b>Vertex Shader 코드</b></summary>
 
 ```cpp
 void BLINN_PHONG_VS(size_t vertex_index, VirtualGPU::Varying& out) {
-        // fetch attributes
+        // attribute 읽어오기
         Vector3 a_position = FetchAttribute<Vector3>(0, vertex_index);
         Vector3 a_normal = FetchAttribute<Vector3>(1, vertex_index);
         Vector4 a_tangent = FetchAttribute<Vector4>(2, vertex_index);
         Vector2 a_texcoord = FetchAttribute<Vector2>(3, vertex_index);
 
-        // fetch uniforms
+        // uniform 읽어오기
         Matrix4x4 u_model = FetchUniform<Matrix4x4>("u_model"_vg);
         Matrix4x4 u_view_projection = FetchUniform<Matrix4x4>("u_view_projection"_vg);
 
-        // pass data to fragment shader
+        // fragment shader에 데이터 전달
         out.vg_Position = u_view_projection * u_model * a_position.ToHomogeneous();
 
         Vector3 world_pos = (u_model * a_position.ToHomogeneous()).ToCartesian();
@@ -55,32 +54,32 @@ void BLINN_PHONG_VS(size_t vertex_index, VirtualGPU::Varying& out) {
 </details>
 
 <details>
-<summary><b>Fragment Shader Code</b></summary>
+<summary><b>Fragment Shader 코드</b></summary>
 
 ```cpp
 void BLINN_PHONG_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
-        // read vertex shader outputs
+        // vertex shader output 읽어오기
         Vector3 v_world_pos = in.In<Vector3>("world_pos"_vg);
         Vector3 v_tangent = in.In<Vector3>("tangent"_vg).Normalized();
         float v_handedness = in.InFlat<float>("handedness"_vg);
         Vector3 v_normal = in.In<Vector3>("normal"_vg).Normalized();
         Vector2 v_uv = in.In<Vector2>("uv"_vg);
 
-        // fetch uniforms
+        // uniform 읽어오기
         int u_diffuse_sampler = FetchUniform<int>("u_diffuse_sampler"_vg);
         int u_specular_sampler = FetchUniform<int>("u_specular_sampler"_vg);
         int u_normal_sampler = FetchUniform<int>("u_normal_sampler"_vg);
 
         Vector3 bitangent = v_handedness * v_normal.Cross(Vector3(v_tangent));
         Matrix3x3 tbn = Matrix3x3(Vector3(v_tangent), bitangent, v_normal).Transpose();
-        // normal map sampling
+        // normal map 샘플링
         Vector3 normal = Texture2D<Color128>(u_normal_sampler, v_uv).ToVector3();
         normal = (tbn * normal).Normalized();
 
-        // diffuse map sampling
+        // diffuse map 샘플링
         Color128 diffuse = Texture2D<Color128>(u_diffuse_sampler, v_uv);
 
-        // specular map sampling
+        // specular map 샘플링
         Color128 specular = Texture2D<Color128>(u_specular_sampler, v_uv);
 
         Vector3 light_dir_raw = FetchUniform<Vector3>("u_light_directions"_vg, 0);
@@ -108,7 +107,7 @@ void BLINN_PHONG_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) 
         final_color.b = color.b;
         final_color.a = 1.f;
 
-        // output final color to draw buffer 0
+        // 0번 draw buffer에 최종 색상 출력
         out.Out(0, final_color);
     }
 ```
@@ -120,35 +119,35 @@ void BLINN_PHONG_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) 
 ![pbr.gif](https://github.com/Hobanghann/HORenderer3/blob/develop/samples/screenshots/pbr.gif)
 
 <details>
-<summary><b>Vertex Shader Code</b></summary>
+<summary><b>Vertex Shader 코드</b></summary>
 
 ```cpp
 void DEPTHMAP_VS(size_t vertex_index, VirtualGPU::Varying& out) {
-        // fetch attributes
+        // attribute 읽어오기
         Vector3 a_position = FetchAttribute<Vector3>(0, vertex_index);
 
-        // fetch uniforms
+        // uniform 읽어오기
         Matrix4x4 u_model = FetchUniform<Matrix4x4>("u_model"_vg);
         Matrix4x4 u_view_projection = FetchUniform<Matrix4x4>("u_view_projection"_vg);
 
-        // pass data to fragment shader
+        // fragment shader에 데이터 내보내기
         out.vg_Position = u_view_projection * u_model * a_position.ToHomogeneous();
     }
 
 void PBR_VS(size_t vertex_index, VirtualGPU::Varying& out) {
-        // fetch attributes
+        // attribute 읽어오기
         Vector3 a_position = FetchAttribute<Vector3>(0, vertex_index);
         Vector3 a_normal = FetchAttribute<Vector3>(1, vertex_index);
         Vector4 a_tangent = FetchAttribute<Vector4>(2, vertex_index);
         Vector2 a_texcoord = FetchAttribute<Vector2>(3, vertex_index);
 
-        // fetch uniforms
+        // uniform 읽어오기
         Matrix4x4 u_model = FetchUniform<Matrix4x4>("u_model"_vg);
         Matrix4x4 u_view = FetchUniform<Matrix4x4>("u_view"_vg);
         Matrix4x4 u_projection = FetchUniform<Matrix4x4>("u_projection"_vg);
         Matrix4x4 u_light_view_projection = FetchUniform<Matrix4x4>("u_light_view_projection"_vg);
 
-        // pass data to fragment shader
+        // fragment shader에 데이터 내보내기
         out.vg_Position = u_projection * u_view * u_model * a_position.ToHomogeneous();
 
         Vector3 world_pos = (u_model * a_position.ToHomogeneous()).ToCartesian();
@@ -173,7 +172,7 @@ void PBR_VS(size_t vertex_index, VirtualGPU::Varying& out) {
 </details>
 
 <details>
-<summary><b>Fragment Shader Code</b></summary>
+<summary><b>Fragment Shader 코드</b></summary>
 
 ```cpp
 void DEPTHMAP_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
@@ -182,7 +181,7 @@ void DEPTHMAP_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
     }
 
 void PBR_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
-        // read vertex shader outputs
+         // vertex shader output 읽어오기
         Vector3 v_world_pos = in.In<Vector3>("world_pos"_vg);
         Vector3 v_tangent = in.In<Vector3>("tangent"_vg).Normalized();
         float v_handedness = in.InFlat<float>("handedness"_vg);
@@ -190,7 +189,7 @@ void PBR_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
         Vector2 v_uv = in.In<Vector2>("uv"_vg);
         Vector4 v_light_space_pos = in.In<Vector4>("light_space_pos"_vg);
 
-        // fetch uniforms
+        // uniform 읽어오기
         int u_normal_sampler = FetchUniform<int>("u_normal_sampler"_vg);
         int u_albedo_sampler = FetchUniform<int>("u_albedo_sampler"_vg);
         int u_metallic_roughness_sampler = FetchUniform<int>("u_metallic_roughness_sampler"_vg);
@@ -200,25 +199,25 @@ void PBR_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
 
         Vector3 bitangent = v_handedness * v_normal.Cross(Vector3(v_tangent));
         Matrix3x3 tbn = Matrix3x3(Vector3(v_tangent), bitangent, v_normal).Transpose();
-        // normal map sampling
+        // normal map 샘플링
         Vector3 normal = Texture2D<Color128>(u_normal_sampler, v_uv).ToVector3();
         normal = (tbn * normal).Normalized();
 
-        // albedo map sampling
+        // albedo map 샘플링
          Color128 albedo = Texture2D<Color128>(u_albedo_sampler, v_uv);
         albedo = albedo.sRGBToLinear();
 
-        // metallic roughness map sampling
+        // metallic roughness map 샘플링
         Color128 metallic_roughness = Texture2D<Color128>(u_metallic_roughness_sampler, v_uv);
 
-        // emission map sampling
+        // emission map 샘플링
         Color128 emission = Texture2D<Color128>(u_emission_sampler, v_uv);
         emission = emission.sRGBToLinear();
 
-        // ao map sampling
+        // ao map 샘플링
         Color128 ao = Texture2D<Color128>(u_ao_sampler, v_uv);
 
-        // fetch uniforms
+        // uniform 읽어오기
         Vector3 u_light_positions[1];
         u_light_positions[0] = FetchUniform<Vector3>("u_light_positions"_vg, 0);
 
@@ -289,7 +288,7 @@ void PBR_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
         final_color.b = color.z;
         final_color.a = 1.f;
 
-        // output final color to draw buffer 0
+        // 0번 draw buffer에 최종 색상 출력
         out.Out(0, final_color.LinearTosRGB());
     }
 ```
@@ -297,56 +296,56 @@ void PBR_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
 
 
 
-# 🧱 Build Environment and Instructions
+# 🧱 빌드 환경 및 방법
 
-### 🛠️ Build Environment
+### 🛠️ 빌드 환경
 - OS: Windows 10 / 11
 - Compiler:
   - MSVC (`cl`)
   - Clang (`clang`, `clang++`)
-- CMake: 3.20 or later
+- CMake: 3.20 이상
 - C++ Standard: C++17
 
 ---
 
-### 📦 Generate Build Files
+### 📦 빌드 파일 생성
 - MSVC (Visual Studio 2022)
 ```
-cmake -S . -B <build_directory> -G "Visual Studio 17 2022"
+cmake -S . -B <디렉토리 이름> -G "Visual Studio 17 2022"
 ```
 - Clang + Ninja (Debug)
 ```
-cmake -S . -B <build_directory> -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B <디렉토리 이름> -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug
 ```
 - Clang + Ninja (Release)
 ```
-cmake -S . -B <build_directory> -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B <디렉토리 이름> -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release
 ```
 
 ---
 
-### 🔧 Build
+### 🔧 빌드
 - MSVC (Debug)
 ```
-cmake --build <build_directory> --config Debug
+cmake --build <디렉토리 이름> --config Debug
 ```
 - MSVC (Release)
 ```
-cmake --build <build_directory> --config Release
+cmake --build <디렉토리 이름> --config Release
 ```
 - Clang + Ninja (Debug/Release)
 ```
-cmake --build <build_directory>
+cmake --build <디렉토리 이름>
 ```
 
-# 🗂️ Project Structure
+# 🗂️ 프로젝트 구조
 ![project_structure.png](https://github.com/Hobanghann/HORenderer3/blob/develop/docs/project_structure.svg)
 
 
-# 📜 How to Write a Renderer
-This project operates by having the platform layer reference a single renderer instance and invoke its public APIs on a per-frame basis.
+# 📜 렌더러 작성 방법
+본 프로젝트는 platform 계층에서 하나의 렌더러 객체를 참조하고, 해당 렌더러가 제공하는 공용 API를 프레임 단위로 호출하는 구조로 동작합니다.
 
-The renderer follows the frame lifecycle shown below:
+렌더러는 다음과 같은 프레임 라이프사이클을 따라 실행됩니다.
 
 ```mermaid
 graph LR;
@@ -358,50 +357,49 @@ graph LR;
 ```
 
 
-After writing shaders, users define a renderer class that uses those shaders and register it to the renderer adapter to render scenes according to custom logic.
+사용자는 셰이더를 작성한 뒤, 이를 사용하는 렌더러 클래스를 정의하고, 해당 렌더러를 renderer adapter에 등록함으로써 직접 정의한 렌더링 로직에 따라 화면을 출력할 수 있습니다.
 
-Renderer classes must inherit from the Renderer class in the renderer module.
-Each virtual function has the following responsibilities:
+렌더러 클래스는 renderer 모듈의 `Renderer` 클래스를 상속받아 구현해야 하며, 각 가상 함수는 다음과 같은 역할을 가집니다.
 
 ---
 
 ### Initialize()
-> - Initialize the VirtualGPU state.<br><br>
-> - Create cameras, lights, and model instances.<br><br>
-> - Load models and upload them to the VirtualGPU.<br><br>
-> - Models can be loaded via `ResourceLoader::LoadModel()` from the core module.<br><br>
-> - Loaded models are registered in the renderer-owned `resource_manager_`.<br><br>
-> - Models are referenced via `ResourceID`.<br><br>
-> - Currently supported formats: `obj`, `gltf`.<br><br>
-> - Model paths must be specified relative to the assets directory.
+> - VirtualGPU의 초기 상태를 설정합니다.<br><br>
+> - 카메라, 광원, 렌더링할 모델 인스턴스를 생성합니다.<br><br>
+> - 렌더링할 모델을 로드하여 VirtualGPU에 업로드합니다.<br><br>
+> - 모델 로드는 core 모듈의 `ResourceLoader::LoadModel()`을 통해 수행할 수 있습니다.<br><br>
+> - 로드된 모델은 Renderer가 소유한 `resource_manager_`에 등록됩니다.<br><br>
+> - 모델은 `ResourceID`를 통해 참조됩니다.<br><br>
+> - 현재 프로젝트는 `obj`, `gltf` 파일 로드를 지원합니다.<br><br>
+> - 모델 경로는 `assets` 디렉토리를 기준으로 한 상대 경로여야 합니다.
 
 ---
 
 ### <b>PreUpdate(float delta_time)</b>
-> - Update state based on input and time progression.<br><br>
-> - The `Renderer` class provides the following input state members:<br><br>
->   - `input_states_`: keyboard and mouse button states<br><br>
->   - `mouse_x_`, `mouse_y_`: current mouse position (relative to the renderer window)<br><br>
->   - `mouse_delta_x_`, `mouse_delta_y_`: mouse movement since the previous frame<br><br>
->   - `mouse_wheel_delta_`: mouse wheel delta for the current frame
+> - 입력 및 시간 변화에 따른 상태 업데이트를 수행합니다.<br><br>
+> - `Renderer` 클래스는 다음과 같은 입력 상태 멤버를 제공합니다:<br><br>
+>   - `input_states_`: 키보드 및 마우스 버튼의 상태<br><br>
+>   - `mouse_x_`, `mouse_y_`: 현재 마우스 커서의 위치 (렌더러 윈도우 기준 상대 좌표)<br><br>
+>   - `mouse_delta_x_`, `mouse_delta_y_`: 이전 프레임 대비 마우스 이동량<br><br>
+>   - `mouse_wheel_delta_`: 현재 프레임에서 발생한 마우스 휠 변화량
 
 ---
 
 ### <b>Render()</b>
-> - Issue draw calls based on cameras, lights, and model instances.<br><br>
-> - All rendering logic is implemented in this function.
+> - 카메라, 광원, 모델 인스턴스를 기반으로 드로우 콜을 수행합니다.<br><br>
+> - 실제 렌더링 로직은 이 함수에서 구현됩니다.
 
 ---
 
 ### <b>PostUpdate(float delta_time)</b>
-> - Perform post-render state updates.<br><br>
-> - `mouse_wheel_delta_` must be reset here, as it represents an event-based input.<br><br>
-> - Failing to reset it may result in continuous wheel input behavior.
+> - 렌더링 이후의 상태 업데이트를 수행합니다.<br><br>
+> - `mouse_wheel_delta_`는 이벤트 성격의 값이므로 이 함수에서 반드시 초기화해야 합니다.<br><br>
+> - 초기화하지 않을 경우, 휠 입력이 지속적으로 발생한 것처럼 동작할 수 있습니다.
 
 ---
 
 ### <b>Quit()</b>
-> - Called once when the renderer shuts down.<br><br>
-> - Responsible for resource cleanup and shutdown procedures.
+> - 렌더러 종료 시 한 번 호출됩니다.<br><br>
+> - 리소스 정리 및 종료 처리를 수행합니다.
 
 ---
