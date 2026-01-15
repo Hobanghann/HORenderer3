@@ -11,7 +11,6 @@ namespace ho {
        public:
         RendererAdapter() : renderer_(new BlinnPhongRenderer()) {
             // TODO: set your own renderer on 'renderer_' member.
-            // renderer_ = new OwnRenderer();
         }
 
         bool Initialize(uint8_t* color_buffer, int width, int height) {
