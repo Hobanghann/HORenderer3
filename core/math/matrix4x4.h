@@ -286,10 +286,10 @@ namespace ho {
         }
 
         const real inv_det = 1.0_r / det;
-        for (int i = 0; i < 16; ++i) inv[i] *= inv_det;
+        for (size_t i = 0; i < 16; ++i) inv[i] *= inv_det;
 
-        for (int r = 0; r < 4; ++r)
-            for (int c = 0; c < 4; ++c) data[r][c] = inv[r * 4 + c];
+        for (size_t r = 0; r < 4; ++r)
+            for (size_t c = 0; c < 4; ++c) data[r][c] = inv[r * 4 + c];
 
         return *this;
     }

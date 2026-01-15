@@ -178,12 +178,12 @@ namespace ho {
 
             v.used_smooth_register_size = 10;
             for (size_t i = 0; i < static_cast<size_t>(v.used_smooth_register_size); ++i) {
-                v.smooth_register[i] = smooth_start + (float)i;
+                v.smooth_register[i] = smooth_start + static_cast<float>(i);
             }
 
             v.used_flat_register_size = 5;
             for (size_t i = 0; i < static_cast<size_t>(v.used_flat_register_size); ++i) {
-                v.flat_register[i] = flat_val + (float)i;
+                v.flat_register[i] = flat_val + static_cast<float>(i);
             }
         };
     };

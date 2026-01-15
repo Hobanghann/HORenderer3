@@ -65,7 +65,7 @@ namespace ho {
 
         struct MorphingKey {
             MorphingKey() = default;
-            MorphingKey(real p_time, std::vector<uint32_t>&& p_target_indices, std::vector<real>&& p_weights) noexcept
+            MorphingKey(real p_time, std::vector<size_t>&& p_target_indices, std::vector<real>&& p_weights) noexcept
                 : time(p_time), target_indices(std::move(p_target_indices)), weights(std::move(p_weights)) {}
 
             MorphingKey(MorphingKey&& rhs) noexcept = default;
@@ -75,13 +75,13 @@ namespace ho {
             MorphingKey& operator=(const MorphingKey& rhs) = delete;
 
             real time;
-            std::vector<uint32_t> target_indices;
+            std::vector<size_t> target_indices;
             std::vector<real> weights;
         };
 
         struct SkeletalTrack {
             SkeletalTrack() = default;
-            SkeletalTrack(uint32_t p_bone_index, std::vector<TranslationKey>&& p_translation_key_sequence,
+            SkeletalTrack(size_t p_bone_index, std::vector<TranslationKey>&& p_translation_key_sequence,
                           InterpolationMode p_translation_interp_mode,
                           std::vector<RotationKey>&& p_rotation_key_sequence, InterpolationMode p_rotation_interp_mode,
                           std::vector<ScalingKey>&& p_scaling_key_sequence, InterpolationMode p_scaling_interp_mode,
@@ -102,7 +102,7 @@ namespace ho {
             SkeletalTrack(const SkeletalTrack& rhs) = delete;
             SkeletalTrack& operator=(const SkeletalTrack& rhs) = delete;
 
-            std::uint32_t bone_index;
+            size_t bone_index;
             std::vector<TranslationKey> translation_key_sequence;
             InterpolationMode translation_interp_mode;
             std::vector<RotationKey> rotation_key_sequence;
@@ -115,7 +115,7 @@ namespace ho {
 
         struct MorphTargetTrack {
             MorphTargetTrack() = default;
-            MorphTargetTrack(uint32_t p_bone_index, std::vector<MorphingKey>&& p_key_sequence) noexcept
+            MorphTargetTrack(size_t p_bone_index, std::vector<MorphingKey>&& p_key_sequence) noexcept
                 : bone_index(p_bone_index), key_sequence(std::move(p_key_sequence)) {}
             MorphTargetTrack(MorphTargetTrack&& rhs) noexcept = default;
             MorphTargetTrack& operator=(MorphTargetTrack&& rhs) noexcept = default;
@@ -123,7 +123,7 @@ namespace ho {
             MorphTargetTrack(const MorphTargetTrack& rhs) = delete;
             MorphTargetTrack& operator=(const MorphTargetTrack& rhs) = delete;
 
-            uint32_t bone_index;
+            size_t bone_index;
             std::vector<MorphingKey> key_sequence;
         };
 
@@ -134,10 +134,10 @@ namespace ho {
               duration(p_duration),
               skeletal_tracks(std::move(p_skeletal_tracks)),
               morph_target_tracks(std::move(p_morph_target_tracks)) {
-            for (uint32_t i = 0; i < skeletal_tracks.size(); i++) {
+            for (size_t i = 0; i < skeletal_tracks.size(); i++) {
                 bone_index_to_skeletal_track[skeletal_tracks[i].bone_index] = i;
             }
-            for (uint32_t i = 0; i < morph_target_tracks.size(); i++) {
+            for (size_t i = 0; i < morph_target_tracks.size(); i++) {
                 bone_index_to_morph_target_track[morph_target_tracks[i].bone_index] = i;
             }
         }
@@ -148,21 +148,19 @@ namespace ho {
         Animation(const Animation&) = delete;
         Animation& operator=(const Animation&) = delete;
 
-        ALWAYS_INLINE uint32_t GetSkeletalTrackCount() const { return static_cast<uint32_t>(skeletal_tracks.size()); }
-        ALWAYS_INLINE bool HasSkeletalTrack(uint32_t bone_index) const {
+        ALWAYS_INLINE int GetSkeletalTrackCount() const { return static_cast<int>(skeletal_tracks.size()); }
+        ALWAYS_INLINE bool HasSkeletalTrack(size_t bone_index) const {
             return bone_index_to_skeletal_track.find(bone_index) != bone_index_to_skeletal_track.end();
         }
-        ALWAYS_INLINE const SkeletalTrack& GetSkeletalTrack(uint32_t bone_index) const {
+        ALWAYS_INLINE const SkeletalTrack& GetSkeletalTrack(size_t bone_index) const {
             return skeletal_tracks[bone_index_to_skeletal_track.at(bone_index)];
         }
 
-        ALWAYS_INLINE uint32_t GetMorphTargetTrackCount() const {
-            return static_cast<uint32_t>(morph_target_tracks.size());
-        }
-        ALWAYS_INLINE bool HasMorphTargetTrack(uint32_t bone_index) const {
+        ALWAYS_INLINE int GetMorphTargetTrackCount() const { return static_cast<int>(morph_target_tracks.size()); }
+        ALWAYS_INLINE bool HasMorphTargetTrack(size_t bone_index) const {
             return bone_index_to_morph_target_track.find(bone_index) != bone_index_to_morph_target_track.end();
         }
-        ALWAYS_INLINE const MorphTargetTrack& GetMorphTargetTrack(uint32_t bone_index) const {
+        ALWAYS_INLINE const MorphTargetTrack& GetMorphTargetTrack(size_t bone_index) const {
             return morph_target_tracks[bone_index_to_morph_target_track.at(bone_index)];
         }
 
@@ -170,8 +168,8 @@ namespace ho {
         real duration;
         std::vector<SkeletalTrack> skeletal_tracks;
         std::vector<MorphTargetTrack> morph_target_tracks;
-        std::unordered_map<uint32_t, uint32_t> bone_index_to_skeletal_track;
-        std::unordered_map<uint32_t, uint32_t> bone_index_to_morph_target_track;
+        std::unordered_map<size_t, size_t> bone_index_to_skeletal_track;
+        std::unordered_map<size_t, size_t> bone_index_to_morph_target_track;
     };
 
 }  // namespace ho

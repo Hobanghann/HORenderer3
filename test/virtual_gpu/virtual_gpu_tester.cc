@@ -4432,16 +4432,16 @@ namespace ho {
         auto out = gpu.Rasterize(v0, v1);
         if (out.size() < 10u) return false;
 
-        const int x0 = (int)math::Floor(v0.viewport_coord.x);
-        const int y0 = (int)math::Floor(v0.viewport_coord.y);
-        const int x1 = (int)math::Floor(v1.viewport_coord.x);
-        const int y1 = (int)math::Floor(v1.viewport_coord.y);
+        const int x0 = static_cast<int>(math::Floor(v0.viewport_coord.x));
+        const int y0 = static_cast<int>(math::Floor(v0.viewport_coord.y));
+        const int x1 = static_cast<int>(math::Floor(v1.viewport_coord.x));
+        const int y1 = static_cast<int>(math::Floor(v1.viewport_coord.y));
 
-        const real min_sx = (real)math::Min(x0, x1) + 0.5_r;
-        const real max_sx = (real)math::Max(x0, x1) + 0.5_r;
+        const real min_sx = static_cast<real>(math::Min(x0, x1)) + 0.5_r;
+        const real max_sx = static_cast<real>(math::Max(x0, x1)) + 0.5_r;
 
-        const real min_sy = (real)math::Min(y0, y1) + 0.5_r;
-        const real max_sy = (real)math::Max(y0, y1) + 0.5_r;
+        const real min_sy = static_cast<real>(math::Min(y0, y1)) + 0.5_r;
+        const real max_sy = static_cast<real>(math::Max(y0, y1)) + 0.5_r;
 
         const real min_depth = math::Min(v0.viewport_coord.z, v1.viewport_coord.z);
         const real max_depth = math::Max(v0.viewport_coord.z, v1.viewport_coord.z);
@@ -4633,17 +4633,17 @@ namespace ho {
         auto out = gpu.Rasterize(v0, v1, v2);
         if (out.size() < 20u) return false;
 
-        const int x0 = (int)math::Floor(v0.viewport_coord.x);
-        const int y0 = (int)math::Floor(v0.viewport_coord.y);
-        const int x1 = (int)math::Floor(v1.viewport_coord.x);
-        const int y1 = (int)math::Floor(v1.viewport_coord.y);
-        const int x2 = (int)math::Floor(v2.viewport_coord.x);
-        const int y2 = (int)math::Floor(v2.viewport_coord.y);
+        const int x0 = static_cast<int>(math::Floor(v0.viewport_coord.x));
+        const int y0 = static_cast<int>(math::Floor(v0.viewport_coord.y));
+        const int x1 = static_cast<int>(math::Floor(v1.viewport_coord.x));
+        const int y1 = static_cast<int>(math::Floor(v1.viewport_coord.y));
+        const int x2 = static_cast<int>(math::Floor(v2.viewport_coord.x));
+        const int y2 = static_cast<int>(math::Floor(v2.viewport_coord.y));
 
-        const real min_sx = (real)(math::Min(x0, math::Min(x1, x2))) + 0.5_r;
-        const real max_sx = (real)(math::Max(x0, math::Max(x1, x2))) + 0.5_r;
-        const real min_sy = (real)(math::Min(y0, math::Min(y1, y2))) + 0.5_r;
-        const real max_sy = (real)(math::Max(y0, math::Max(y1, y2))) + 0.5_r;
+        const real min_sx = static_cast<real>((math::Min(x0, math::Min(x1, x2)))) + 0.5_r;
+        const real max_sx = static_cast<real>((math::Max(x0, math::Max(x1, x2)))) + 0.5_r;
+        const real min_sy = static_cast<real>((math::Min(y0, math::Min(y1, y2)))) + 0.5_r;
+        const real max_sy = static_cast<real>((math::Max(y0, math::Max(y1, y2)))) + 0.5_r;
 
         const real min_depth = math::Min(v0.viewport_coord.z, math::Min(v1.viewport_coord.z, v2.viewport_coord.z));
         const real max_depth = math::Max(v0.viewport_coord.z, math::Max(v1.viewport_coord.z, v2.viewport_coord.z));

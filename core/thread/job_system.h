@@ -99,7 +99,7 @@ namespace ho {
 
         void KickJobs(const std::vector<JobDeclaration>& jobs) {
             MutexLock lock(mutex_);
-            job_count_.Add((uint32_t)jobs.size());
+            job_count_.Add(static_cast<uint32_t>(jobs.size()));
             for (const JobDeclaration& job : jobs) {
                 job_queue_.push(job);
             }

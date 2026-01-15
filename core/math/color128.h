@@ -165,7 +165,9 @@ namespace ho {
 
     // weights as listed in
     // https://en.wikipedia.org/wiki/Relative_luminance
-    constexpr real Color128::Luminance() const { return 0.2126_r * (real)r + 0.7152_r * (real)g + 0.0722_r * (real)b; }
+    constexpr real Color128::Luminance() const {
+        return 0.2126_r * static_cast<real>(r) + 0.7152_r * static_cast<real>(g) + 0.0722_r * static_cast<real>(b);
+    }
     constexpr real Color128::Luminance(real rweight, real gweight, real bweight) const {
         return static_cast<real>(r) * rweight + static_cast<real>(g) * gweight + static_cast<real>(b) * bweight;
     }

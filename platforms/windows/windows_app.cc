@@ -6,7 +6,7 @@
 #include <cassert>
 #include <cstdint>
 
-Window::Window(HINSTANCE hOwner, const std::wstring& name, uint32_t width, uint32_t height, WNDPROC msg_handler)
+Window::Window(HINSTANCE hOwner, const std::wstring& name, int width, int height, WNDPROC msg_handler)
     : name_(name), width_(width), height_(height), client_width_(0), client_height_(0), back_buffer_count_(0) {
     WNDCLASSEXW stWndClass{};
     stWndClass.cbSize = sizeof(WNDCLASSEXW);
@@ -15,16 +15,17 @@ Window::Window(HINSTANCE hOwner, const std::wstring& name, uint32_t width, uint3
     stWndClass.hInstance = hOwner;
     stWndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
     stWndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    stWndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+    stWndClass.hbrBackground = static_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
     stWndClass.lpszClassName = name_.c_str();
-    stWndClass.hIconSm = (HICON)LoadImage(hOwner, MAKEINTRESOURCE(5), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON),
-                                          GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
+    stWndClass.hIconSm =
+        static_cast<HICON>(LoadImage(hOwner, MAKEINTRESOURCE(5), IMAGE_ICON, GetSystemMetrics(SM_CXSMICON),
+                                     GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR));
     if (!RegisterClassExW(&stWndClass) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
         MessageBoxW(nullptr, L"RegisterClassExW failed.", L"Error", MB_ICONERROR);
         return;
     }
 
-    RECT stClientSize = {0, 0, width_, height_};
+    RECT stClientSize = {0, 0, static_cast<LONG>(width_), static_cast<LONG>(height_)};
     DWORD dwStyle = WS_OVERLAPPEDWINDOW;
     AdjustWindowRect(&stClientSize, dwStyle, FALSE);
     handle_ = CreateWindowW(name_.c_str(), name_.c_str(), dwStyle, CW_USEDEFAULT, CW_USEDEFAULT,
@@ -53,7 +54,7 @@ Window::Window(HINSTANCE hOwner, const std::wstring& name, uint32_t width, uint3
 
     default_bmi_.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     default_bmi_.bmiHeader.biWidth = client_width_;
-    default_bmi_.bmiHeader.biHeight = -client_height_;
+    default_bmi_.bmiHeader.biHeight = -static_cast<LONG>(client_height_);
     default_bmi_.bmiHeader.biPlanes = 1;
     default_bmi_.bmiHeader.biBitCount = 32;
     default_bmi_.bmiHeader.biCompression = BI_RGB;
@@ -63,7 +64,7 @@ Window::Window(HINSTANCE hOwner, const std::wstring& name, uint32_t width, uint3
 }
 
 Window::~Window() {
-    for (uint32_t i = 0; i < back_buffer_count_; i++) {
+    for (size_t i = 0; i < static_cast<size_t>(back_buffer_count_); i++) {
         SelectObject(back_buffers_[i].dc, back_buffers_[i].default_bitmap);
         DeleteObject(back_buffers_[i].bitmap);
         DeleteDC(back_buffers_[i].dc);
@@ -73,12 +74,12 @@ Window::~Window() {
 
 HWND Window::handle() const { return handle_; }
 const std::wstring& Window::name() const { return name_; }
-uint32_t Window::width() const { return width_; }
-uint32_t Window::height() const { return height_; }
-uint32_t Window::client_width() const { return client_width_; }
-uint32_t Window::client_height() const { return client_height_; }
+int Window::width() const { return width_; }
+int Window::height() const { return height_; }
+int Window::client_width() const { return client_width_; }
+int Window::client_height() const { return client_height_; }
 
-void Window::Resize(uint32_t width, uint32_t height) {
+void Window::Resize(int width, int height) {
     width_ = width;
     height_ = height;
 
@@ -87,7 +88,7 @@ void Window::Resize(uint32_t width, uint32_t height) {
     client_width_ = rc.right - rc.left;
     client_height_ = rc.bottom - rc.top;
 }
-void Window::ResizeClient(uint32_t client_width, uint32_t client_height) {
+void Window::ResizeClient(int client_width, int client_height) {
     client_width_ = client_width;
     client_height_ = client_height;
 
@@ -100,44 +101,46 @@ void Window::ResizeClient(uint32_t client_width, uint32_t client_height) {
 void Window::Show(int nCmdShow) { ShowWindow(handle_, nCmdShow); }
 
 void Window::ShowMessageBox(const std::wstring& title, const std::wstring& text, UINT type) {
-    MessageBoxW(handle_, text.c_str(), text.c_str(), type);
+    MessageBoxW(handle_, text.c_str(), title.c_str(), type);
 }
 
-uint32_t* Window::CreateCPUBackBuffer(uint32_t buffer_width, uint32_t buffer_height) {
+uint32_t* Window::CreateCPUBackBuffer(int buffer_width, int buffer_height) {
     if (back_buffer_count_ >= MAX_BACK_BUFFER_COUNT) {
         return nullptr;
     }
 
+    const size_t back_buffer_idx = static_cast<size_t>(back_buffer_count_);
+
     // set back buffer properties
-    back_buffers_[back_buffer_count_].info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    back_buffers_[back_buffer_count_].info.bmiHeader.biWidth = buffer_width;
-    back_buffers_[back_buffer_count_].info.bmiHeader.biHeight = -buffer_height;
-    back_buffers_[back_buffer_count_].info.bmiHeader.biPlanes = 1;
-    back_buffers_[back_buffer_count_].info.bmiHeader.biBitCount = 32;
-    back_buffers_[back_buffer_count_].info.bmiHeader.biCompression = BI_RGB;
+    back_buffers_[back_buffer_idx].info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    back_buffers_[back_buffer_idx].info.bmiHeader.biWidth = buffer_width;
+    back_buffers_[back_buffer_idx].info.bmiHeader.biHeight = -static_cast<LONG>(buffer_height);
+    back_buffers_[back_buffer_idx].info.bmiHeader.biPlanes = 1;
+    back_buffers_[back_buffer_idx].info.bmiHeader.biBitCount = 32;
+    back_buffers_[back_buffer_idx].info.bmiHeader.biCompression = BI_RGB;
 
     // create dc for back buffer
-    back_buffers_[back_buffer_count_].dc = CreateCompatibleDC(front_dc_);
+    back_buffers_[back_buffer_idx].dc = CreateCompatibleDC(front_dc_);
 
-    if (!back_buffers_[back_buffer_count_].dc) {
+    if (!back_buffers_[back_buffer_idx].dc) {
         MessageBoxW(nullptr, L"CreateCompatibleDC failed.", L"Error", MB_ICONERROR);
         return nullptr;
     }
 
     uint32_t* color_buffer = nullptr;
     // create bitmap for back buffer
-    back_buffers_[back_buffer_count_].bitmap =
-        CreateDIBSection(back_buffers_[back_buffer_count_].dc, &back_buffers_[back_buffer_count_].info, DIB_RGB_COLORS,
-                         (void**)&color_buffer, NULL, 0);
+    back_buffers_[back_buffer_idx].bitmap =
+        CreateDIBSection(back_buffers_[back_buffer_idx].dc, &back_buffers_[back_buffer_idx].info, DIB_RGB_COLORS,
+                         reinterpret_cast<void**>(&color_buffer), NULL, 0);
 
-    if (!back_buffers_[back_buffer_count_].bitmap || !color_buffer) {
+    if (!back_buffers_[back_buffer_idx].bitmap || !color_buffer) {
         MessageBoxW(nullptr, L"CreateDIBSection failed.", L"Error", MB_ICONERROR);
         return nullptr;
     }
 
     // binding back buffer dc to bitmap
-    back_buffers_[back_buffer_count_].default_bitmap =
-        (HBITMAP)SelectObject(back_buffers_[back_buffer_count_].dc, back_buffers_[back_buffer_count_].bitmap);
+    back_buffers_[back_buffer_idx].default_bitmap =
+        static_cast<HBITMAP>(SelectObject(back_buffers_[back_buffer_idx].dc, back_buffers_[back_buffer_idx].bitmap));
 
     back_buffer_count_++;
 
@@ -145,7 +148,7 @@ uint32_t* Window::CreateCPUBackBuffer(uint32_t buffer_width, uint32_t buffer_hei
     return color_buffer;
 }
 
-void Window::CopyCPUBuffer(const void* external_memory, uint32_t external_width, uint32_t external_height) {
+void Window::CopyCPUBuffer(const void* external_memory, int external_width, int external_height) {
     if (external_memory == nullptr) {
         return;
     }
@@ -160,8 +163,8 @@ void Window::CopyCPUBuffer(const void* external_memory, uint32_t external_width,
     }
 }
 
-void Window::SwapCPUBuffer(uint32_t index) {
-    if (index >= back_buffer_count_) {
+void Window::SwapCPUBuffer(size_t index) {
+    if (index >= static_cast<size_t>(back_buffer_count_)) {
         MessageBoxW(nullptr, L"SwapCPUBuffer failed.", L"Error", MB_ICONERROR);
         return;
     }
@@ -174,8 +177,8 @@ void Window::SwapCPUBuffer(uint32_t index) {
     }
 }
 
-void Window::PrintText(const std::wstring& text, uint32_t x, uint32_t y) {
-    if (!TextOutW(front_dc_, x, y, text.c_str(), text.size())) {
+void Window::PrintText(const std::wstring& text, int x, int y) {
+    if (!TextOutW(front_dc_, x, y, text.c_str(), static_cast<int>(text.size()))) {
         MessageBoxW(nullptr, L"TextOutW failed.", L"Error", MB_ICONERROR);
     }
 }

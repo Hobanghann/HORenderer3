@@ -9,7 +9,7 @@ class SkinTest : public ::testing::Test {
     ho::Skin MakeSkin() {
         std::vector<Transform3D> inverse_bind{Transform3D(), Transform3D(), Transform3D()};
 
-        std::vector<std::vector<uint32_t>> bind_submeshes{
+        std::vector<std::vector<size_t>> bind_submeshes{
             {0, 1},  // bone 0 binds to submesh 0,1
             {1},     // bone 1 binds to submesh 1
             {}       // bone 2 binds to nothing

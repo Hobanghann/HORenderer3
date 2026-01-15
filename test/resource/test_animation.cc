@@ -27,14 +27,14 @@ class AnimationTestFixture : public ::testing::Test {
 
         {
             std::vector<Animation::MorphingKey> keys;
-            keys.emplace_back(0.0_r, std::vector<uint32_t>{0, 1}, std::vector<real>{0.5_r, 0.5_r});
+            keys.emplace_back(0.0_r, std::vector<size_t>{0, 1}, std::vector<real>{0.5_r, 0.5_r});
 
             morph_tracks.emplace_back(0u, std::move(keys));
         }
 
         {
             std::vector<Animation::MorphingKey> keys;
-            keys.emplace_back(0.0_r, std::vector<uint32_t>{2}, std::vector<real>{1.0_r});
+            keys.emplace_back(0.0_r, std::vector<size_t>{2}, std::vector<real>{1.0_r});
 
             morph_tracks.emplace_back(3u, std::move(keys));
         }

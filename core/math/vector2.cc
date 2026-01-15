@@ -29,7 +29,7 @@ namespace ho {
 
     std::string Vector2::ToString() const {
         char buf[100];
-        snprintf(buf, sizeof(buf), "(%.3f, %.3f)", (float)x, (float)y);
+        snprintf(buf, sizeof(buf), "(%.3f, %.3f)", static_cast<float>(x), static_cast<float>(y));
         return buf;
     }
 }  // namespace ho

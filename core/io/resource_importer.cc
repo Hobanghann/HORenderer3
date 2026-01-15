@@ -16,8 +16,8 @@ namespace ho {
         // optional: set flip
         // stbi_set_flip_vertically_on_load(true);
 
-        std::uint8_t* stbi_bitmap = (std::uint8_t*)(stbi_load(path.ResolvedAssetPath().ToString().c_str(), &width,
-                                                              &height, &num_color_channels, 0));
+        std::uint8_t* stbi_bitmap = reinterpret_cast<std::uint8_t*>(
+            stbi_load(path.ResolvedAssetPath().ToString().c_str(), &width, &height, &num_color_channels, 0));
 
         if (stbi_bitmap == nullptr) {
             return nullptr;
@@ -61,7 +61,7 @@ namespace ho {
             return nullptr;
         }
         TopologicalSort(imported->scene->mRootNode, imported->flatted_scene);
-        for (uint32_t i = 0; i < imported->flatted_scene.size(); i++) {
+        for (size_t i = 0; i < imported->flatted_scene.size(); i++) {
             imported->node_to_index[imported->flatted_scene[i]] = i;
         }
         return imported;
@@ -99,7 +99,8 @@ namespace ho {
             for (int y = 0; y < height; ++y) {
                 for (int x = 0; x < width; ++x) {
                     const aiTexel& texel = aitex->pcData[y * width + x];
-                    int idx = (y * width + x) * num_channels;
+                    size_t idx = (static_cast<size_t>(y) * static_cast<size_t>(width) + static_cast<size_t>(x)) *
+                                 static_cast<size_t>(num_channels);
                     decoded[idx + 0] = texel.r;
                     decoded[idx + 1] = texel.g;
                     decoded[idx + 2] = texel.b;
@@ -142,7 +143,7 @@ namespace ho {
         if (root == nullptr) {
             return;
         }
-        for (unsigned int i = 0; i < root->mNumChildren; i++) {
+        for (size_t i = 0; i < static_cast<size_t>(root->mNumChildren); i++) {
             TopologicalSort(root->mChildren[i], flatted_scene);
         }
         flatted_scene.push_front(root);

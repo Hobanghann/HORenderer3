@@ -62,9 +62,12 @@ namespace ho {
         std::snprintf(res, sizeof(res),
                       "| %.3f , %.3f , %.3f, %.3f |\n| %.3f , %.3f , %.3f, %.3f |\n| "
                       "%.3f , %.3f , %.3f, %.3f |\n| %.3f , %.3f , %.3f, %.3f |",
-                      (float)row0.x, (float)row0.y, (float)row0.z, (float)row0.w, (float)row1.x, (float)row1.y,
-                      (float)row1.z, (float)row1.w, (float)row2.x, (float)row2.y, (float)row2.z, (float)row2.w,
-                      (float)row3.x, (float)row3.y, (float)row3.z, (float)row3.w);
+                      static_cast<float>(row0.x), static_cast<float>(row0.y), static_cast<float>(row0.z),
+                      static_cast<float>(row0.w), static_cast<float>(row1.x), static_cast<float>(row1.y),
+                      static_cast<float>(row1.z), static_cast<float>(row1.w), static_cast<float>(row2.x),
+                      static_cast<float>(row2.y), static_cast<float>(row2.z), static_cast<float>(row2.w),
+                      static_cast<float>(row3.x), static_cast<float>(row3.y), static_cast<float>(row3.z),
+                      static_cast<float>(row3.w));
 
         return res;
     }

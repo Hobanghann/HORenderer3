@@ -16,8 +16,8 @@ namespace ho {
         Vector3 s_center;
         real radius = 0;
 
-        uint32_t n = 0;
-        for (uint32_t i = 0; i < positions.size(); i++) {
+        int n = 0;
+        for (size_t i = 0; i < positions.size(); i++) {
             // construct sphere center
             n += 1;
             const Vector3& x = Vector3(positions[i]);
@@ -26,7 +26,7 @@ namespace ho {
 
         // construct sphere radius
         real max_squared_distance = 0;
-        for (uint32_t i = 0; i < positions.size(); i++) {
+        for (size_t i = 0; i < positions.size(); i++) {
             real squared_distance = math::SqrdDistance(s_center, positions[i]);
             max_squared_distance = math::Max(max_squared_distance, squared_distance);
         }
@@ -69,14 +69,14 @@ namespace ho {
         }
 
         // Seed the initial sphere using the most separated pair among axis extremes
-        std::size_t x_min_idx = 0, x_max_idx = 0;
-        std::size_t y_min_idx = 0, y_max_idx = 0;
-        std::size_t z_min_idx = 0, z_max_idx = 0;
+        size_t x_min_idx = 0, x_max_idx = 0;
+        size_t y_min_idx = 0, y_max_idx = 0;
+        size_t z_min_idx = 0, z_max_idx = 0;
 
         real x_min = math::REAL_MAX, y_min = math::REAL_MAX, z_min = math::REAL_MAX;
         real x_max = -math::REAL_MAX, y_max = -math::REAL_MAX, z_max = -math::REAL_MAX;
 
-        for (uint32_t i = 0; i < positions.size(); i++) {
+        for (size_t i = 0; i < positions.size(); i++) {
             const Vector3& p = positions[i];
             if (p.x < x_min) {
                 x_min = p.x;
@@ -132,7 +132,7 @@ namespace ho {
         real radius = math::Sqrt(math::SqrdDistance(a, b)) * 0.5_r;
 
         // Ritter expansion: adjust only when a point lies outside the current sphere
-        for (uint32_t i = 0; i < positions.size(); i++) {
+        for (size_t i = 0; i < positions.size(); i++) {
             const Vector3& p = positions[i];
             const real d2 = math::SqrdDistance(p, center);
 
@@ -178,8 +178,8 @@ namespace ho {
 
     std::string Sphere::ToString() const {
         char buf[100];
-        snprintf(buf, sizeof(buf), "Center: (%.3f, %.3f, %.3f), Radius : %.3f", (float)center.x, (float)center.y,
-                 (float)center.z, (float)radius);
+        snprintf(buf, sizeof(buf), "Center: (%.3f, %.3f, %.3f), Radius : %.3f", static_cast<float>(center.x),
+                 static_cast<float>(center.y), static_cast<float>(center.z), static_cast<float>(radius));
         return buf;
     }
 }  // namespace ho

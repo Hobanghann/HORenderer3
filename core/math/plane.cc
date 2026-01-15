@@ -48,8 +48,8 @@ namespace ho {
 
     std::string Plane::ToString() const {
         char buf[100];
-        snprintf(buf, sizeof(buf), "%.3f*x + %.3f*y + %.3f*z + %.3f", (float)normal.x, (float)normal.y, (float)normal.z,
-                 (float)d);
+        snprintf(buf, sizeof(buf), "%.3f*x + %.3f*y + %.3f*z + %.3f", static_cast<float>(normal.x),
+                 static_cast<float>(normal.y), static_cast<float>(normal.z), static_cast<float>(d));
         return buf;
     }
 }  // namespace ho

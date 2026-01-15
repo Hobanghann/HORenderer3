@@ -102,7 +102,8 @@ namespace ho {
 
     std::string Quaternion::ToString() const {
         char buf[100];
-        snprintf(buf, sizeof(buf), "%.3f + %.3f*i, + %.3f*j + %.3f*k", (float)x, (float)y, (float)z, (float)w);
+        snprintf(buf, sizeof(buf), "%.3f + %.3f*i, + %.3f*j + %.3f*k", static_cast<float>(x), static_cast<float>(y),
+                 static_cast<float>(z), static_cast<float>(w));
         return buf;
     }
 }  // namespace ho

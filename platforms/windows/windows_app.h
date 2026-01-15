@@ -11,11 +11,9 @@
 #include <memory>
 #include <string>
 
-#include "windows_key.h"
-
 class Window {
    public:
-    Window(HINSTANCE hOwner, const std::wstring& name, uint32_t width, uint32_t height, WNDPROC msg_handler);
+    Window(HINSTANCE hOwner, const std::wstring& name, int width, int height, WNDPROC msg_handler);
     Window(const Window&) = delete;
     Window& operator=(const Window&) = delete;
 
@@ -23,36 +21,36 @@ class Window {
 
     HWND handle() const;
     const std::wstring& name() const;
-    uint32_t width() const;
-    uint32_t height() const;
-    uint32_t client_width() const;
-    uint32_t client_height() const;
+    int width() const;
+    int height() const;
+    int client_width() const;
+    int client_height() const;
 
-    void Resize(uint32_t width, uint32_t height);
-    void ResizeClient(uint32_t client_width, uint32_t client_height);
+    void Resize(int width, int height);
+    void ResizeClient(int client_width, int client_height);
 
     void Show(int nCmdShow = SW_SHOW);
 
     void ShowMessageBox(const std::wstring& title, const std::wstring& text, UINT type = MB_ICONERROR);
 
-    uint32_t* CreateCPUBackBuffer(uint32_t buffer_width, uint32_t buffer_height);
+    uint32_t* CreateCPUBackBuffer(int buffer_width, int buffer_height);
 
-    void CopyCPUBuffer(const void* external_memory, uint32_t external_width, uint32_t external_height);
-    void SwapCPUBuffer(uint32_t index);
+    void CopyCPUBuffer(const void* external_memory, int external_width, int external_height);
+    void SwapCPUBuffer(size_t backbuf_index);
 
-    void PrintText(const std::wstring& text, uint32_t x, uint32_t y);
+    void PrintText(const std::wstring& text, int x, int y);
 
     void PrintTextInTitle(const std::wstring& text);
 
    private:
-    static const uint32_t MAX_BACK_BUFFER_COUNT = 2;
+    static const int MAX_BACK_BUFFER_COUNT = 2;
 
     HWND handle_;
     std::wstring name_;
-    uint32_t width_;
-    uint32_t height_;
-    uint32_t client_width_;
-    uint32_t client_height_;
+    int width_;
+    int height_;
+    int client_width_;
+    int client_height_;
     HDC front_dc_;
     struct BackBuffer {
         HDC dc;
@@ -61,7 +59,7 @@ class Window {
         BITMAPINFO info;
     };
     BackBuffer back_buffers_[MAX_BACK_BUFFER_COUNT] = {};
-    uint32_t back_buffer_count_;
+    int back_buffer_count_;
 
     BITMAPINFO default_bmi_;
 };

@@ -854,25 +854,25 @@ namespace ho {
                 return VG_TRUE;
                 break;
             case VG_CULL_FACE:
-                return (VGboolean)vg.state_.cull_enabled;
+                return static_cast<VGboolean>(vg.state_.cull_enabled);
                 break;
             case VG_DEPTH_TEST:
-                return (VGboolean)vg.state_.depth_test_enabled;
+                return static_cast<VGboolean>(vg.state_.depth_test_enabled);
                 break;
             case VG_SCISSOR_TEST:
-                return (VGboolean)vg.state_.scissor_test_enabled;
+                return static_cast<VGboolean>(vg.state_.scissor_test_enabled);
                 break;
             case VG_STENCIL_TEST:
-                return (VGboolean)vg.state_.stencil_test_enabled;
+                return static_cast<VGboolean>(vg.state_.stencil_test_enabled);
                 break;
             case VG_POLYGON_OFFSET_FILL:
-                return (VGboolean)vg.state_.polygon_offset_enabled;
+                return static_cast<VGboolean>(vg.state_.polygon_offset_enabled);
                 break;
             case VG_POLYGON_OFFSET_LINE:
-                return (VGboolean)vg.state_.line_offset_enabled;
+                return static_cast<VGboolean>(vg.state_.line_offset_enabled);
                 break;
             case VG_POLYGON_OFFSET_POINT:
-                return (VGboolean)vg.state_.point_offset_enabled;
+                return static_cast<VGboolean>(vg.state_.point_offset_enabled);
                 break;
             default:
                 vg.state_.error_state = VG_INVALID_ENUM;
@@ -930,8 +930,8 @@ namespace ho {
         for (int i = first; i < first + count; i += BATCH_SIZE) {
             const int batch_end = math::Min(i + BATCH_SIZE - 1, first + count - 1);
             VirtualGPU::VSJobInput* input = new VirtualGPU::VSJobInput{
-                (VirtualGPU::VertexShader)vg.using_program_->vertex_shader->source, static_cast<size_t>(first),
-                static_cast<size_t>(i), static_cast<size_t>(batch_end)};
+                reinterpret_cast<VirtualGPU::VertexShader>(vg.using_program_->vertex_shader->source),
+                static_cast<size_t>(first), static_cast<size_t>(i), static_cast<size_t>(batch_end)};
 
             JobDeclaration job;
             job.entry = VirtualGPU::VSJobEntry;
@@ -993,7 +993,8 @@ namespace ho {
             }
 
             VirtualGPU::AfterVSJobInput* input = new VirtualGPU::AfterVSJobInput(
-                {std::move(poly), (VirtualGPU::FragmentShader)vg.using_program_->fragment_shader->source});
+                {std::move(poly),
+                 reinterpret_cast<VirtualGPU::FragmentShader>(vg.using_program_->fragment_shader->source)});
 
             after_job.input_data = input;
 
@@ -1056,9 +1057,9 @@ namespace ho {
 
         for (int i = 0; i < vg.bound_vertex_array_->vertex_count; i += BATCH_SIZE) {
             const int batch_end = math::Min((i + BATCH_SIZE - 1), (vg.bound_vertex_array_->vertex_count - 1));
-            VirtualGPU::VSJobInput* input =
-                new VirtualGPU::VSJobInput{(VirtualGPU::VertexShader)vg.using_program_->vertex_shader->source, 0,
-                                           static_cast<size_t>(i), static_cast<size_t>(batch_end)};
+            VirtualGPU::VSJobInput* input = new VirtualGPU::VSJobInput{
+                reinterpret_cast<VirtualGPU::VertexShader>(vg.using_program_->vertex_shader->source), 0,
+                static_cast<size_t>(i), static_cast<size_t>(batch_end)};
 
             JobDeclaration job;
             job.entry = VirtualGPU::VSJobEntry;
@@ -1138,7 +1139,8 @@ namespace ho {
             }
 
             VirtualGPU::AfterVSJobInput* input = new VirtualGPU::AfterVSJobInput(
-                {std::move(poly), (VirtualGPU::FragmentShader)vg.using_program_->fragment_shader->source});
+                {std::move(poly),
+                 reinterpret_cast<VirtualGPU::FragmentShader>(vg.using_program_->fragment_shader->source)});
 
             job.input_data = input;
 
@@ -4844,7 +4846,7 @@ namespace ho {
         tex.refcount++;
         attch->ref_id = texture;
         attch->memory = lvl.memory;
-        attch->offset = (VGsizei)(slice_size * static_cast<size_t>(zoffset));
+        attch->offset = static_cast<VGsizei>(slice_size * static_cast<size_t>(zoffset));
         attch->width = lvl.width;
         attch->height = lvl.height;
         attch->format = tex.internal_format;

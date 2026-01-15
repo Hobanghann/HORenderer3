@@ -271,11 +271,11 @@ namespace ho {
                         }
 
                         case VG_FLOAT:
-                            reinterpret_cast<float*>(dst_comp)[0] = (float)src_value;
+                            reinterpret_cast<float*>(dst_comp)[0] = static_cast<float>(src_value);
                             break;
 
                         case VG_HALF_FLOAT:
-                            reinterpret_cast<uint16_t*>(dst_comp)[0] = FloatToHalf((float)src_value);
+                            reinterpret_cast<uint16_t*>(dst_comp)[0] = FloatToHalf(static_cast<float>(src_value));
                             break;
 
                         default:

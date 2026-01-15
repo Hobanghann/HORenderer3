@@ -95,7 +95,7 @@ namespace ho {
     // T can be  float, Vector2, Vector3, Vector4, uint8_t, int8_t, uint16_t,
     // int16_t,uint32_t,int32_t
     template <typename T>
-    ALWAYS_INLINE T FetchAttribute(VGuint location, size_t index = 0) {
+    ALWAYS_INLINE T FetchAttribute(VGuint location, size_t index) {
         static uint8_t default_zero[16] = {0};
 
         VirtualGPU& vg = VirtualGPU::GetInstance();
@@ -187,16 +187,16 @@ namespace ho {
     // T can be  float, Vector2, Vector3, Vector4, Matrix2x2, Matrix3x3, Matrix4x4,
     // uint32_t, int32_t
     template <typename T>
-    ALWAYS_INLINE T FetchUniform(uint32_t name_hash, size_t index = 0) {
+    ALWAYS_INLINE T FetchUniform(uint32_t name_hash, size_t index) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         assert(vg.using_program_);
         auto loc_it = vg.using_program_->uniform_name_hash_to_location.find(name_hash);
         assert(loc_it != vg.using_program_->uniform_name_hash_to_location.end());
         VirtualGPU::Uniform& u = vg.using_program_->uniforms[loc_it->second];
         assert((VGsizei)index < u.count);
-        const uint8_t* src = u.data.data() + index * (u.size * vg::GetTypeSize(u.type));
+        const uint8_t* src = u.data.data() + index * static_cast<size_t>(u.size * vg::GetTypeSize(u.type));
         T dst;
-        std::memcpy(&dst, src, sizeof(T));
+        std::memcpy(reinterpret_cast<float*>(&dst), src, sizeof(T));
         return dst;
     }
 
@@ -210,11 +210,11 @@ namespace ho {
         VirtualGPU::BufferBinding& b = it->second;
         const uint8_t* src = b.buffer->memory->data() + b.offset + offset;
         T dst;
-        std::memcpy(&dst, src, sizeof(T));
+        std::memcpy(reinterpret_cast<float*>(&dst), src, sizeof(T));
         return dst;
     }
 
-    ALWAYS_INLINE VGfloat ApplyWrap(VGenum wrap_mode, VGfloat coord) {
+    ALWAYS_INLINE VGfloat ApplyWrap(VGenum wrap_mode, real coord) {
         real t = 0.0_r;
         real frac = 0.0_r;
         switch (wrap_mode) {
@@ -426,7 +426,7 @@ namespace ho {
         VirtualGPU::Sampler* sam = unit.bound_sampler == nullptr ? &tex->default_sampler : unit.bound_sampler;
 
         // 1) wrap
-        VGfloat wrap_u = ApplyWrap(sam->wrap_s, u);
+        VGfloat wrap_u = ApplyWrap(static_cast<VGenum>(sam->wrap_s), u);
         if (wrap_u < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -467,7 +467,7 @@ namespace ho {
         VirtualGPU::Sampler* sam = unit.bound_sampler ? unit.bound_sampler : &tex->default_sampler;
 
         // 1) wrap
-        VGfloat wrap_u = ApplyWrap(sam->wrap_s, tex_coord.x);
+        VGfloat wrap_u = ApplyWrap(static_cast<VGenum>(sam->wrap_s), tex_coord.x);
         if (wrap_u < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -478,7 +478,7 @@ namespace ho {
             }
         }
 
-        VGfloat wrap_v = ApplyWrap(sam->wrap_t, tex_coord.y);
+        VGfloat wrap_v = ApplyWrap(static_cast<VGenum>(sam->wrap_t), tex_coord.y);
         if (wrap_v < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -519,7 +519,7 @@ namespace ho {
         VirtualGPU::Sampler* sam = unit.bound_sampler ? unit.bound_sampler : &tex->default_sampler;
 
         // 1) wrap
-        VGfloat wrap_u = ApplyWrap(sam->wrap_s, tex_coord.x);
+        VGfloat wrap_u = ApplyWrap(static_cast<VGenum>(sam->wrap_s), tex_coord.x);
         if (wrap_u < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -530,7 +530,7 @@ namespace ho {
             }
         }
 
-        VGfloat wrap_v = ApplyWrap(sam->wrap_t, tex_coord.y);
+        VGfloat wrap_v = ApplyWrap(static_cast<VGenum>(sam->wrap_t), tex_coord.y);
         if (wrap_v < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();
@@ -541,7 +541,7 @@ namespace ho {
             }
         }
 
-        VGfloat wrap_w = ApplyWrap(sam->wrap_r, tex_coord.z);
+        VGfloat wrap_w = ApplyWrap(static_cast<VGenum>(sam->wrap_r), tex_coord.z);
         if (wrap_w < 0.f) {
             if constexpr (std::is_same_v<T, float>) {
                 return T();

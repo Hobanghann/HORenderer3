@@ -20,8 +20,8 @@ namespace ho {
         Model model;
 
         // Load materials
-        std::unordered_map<std::string, uint32_t> mat_name_count;
-        for (unsigned int mi = 0; mi < imp_model->scene->mNumMaterials; mi++) {
+        std::unordered_map<std::string, int> mat_name_count;
+        for (size_t mi = 0; mi < static_cast<size_t>(imp_model->scene->mNumMaterials); mi++) {
             const aiMaterial* aimat = imp_model->scene->mMaterials[mi];
             aiTexture** emb_textures = imp_model->scene->mTextures;
             std::string mat_name;
@@ -69,8 +69,8 @@ namespace ho {
         model.mesh = mesh_id;
 
         // Load animations
-        std::unordered_map<std::string, uint32_t> anim_name_count;
-        for (unsigned int ai = 0; ai < imp_model->scene->mNumAnimations; ai++) {
+        std::unordered_map<std::string, int> anim_name_count;
+        for (size_t ai = 0; ai < static_cast<size_t>(imp_model->scene->mNumAnimations); ai++) {
             const aiAnimation* aianim = imp_model->scene->mAnimations[ai];
             std::string anim_name;
             if (aianim->mName.Empty()) {
@@ -201,7 +201,7 @@ namespace ho {
             }
 
             mat.textures[engine_type] = tex_id;
-            mat.uv_channels[engine_type] = uv;
+            mat.uv_channels[engine_type] = static_cast<int>(uv);
         };
 
         // Texture in obj
@@ -228,14 +228,14 @@ namespace ho {
         std::vector<std::string> bone_names;
         std::vector<Transform3D> local_transforms;
         std::vector<int> parents;
-        std::unordered_map<std::string, int> bone_name_to_index;
+        std::unordered_map<std::string, size_t> bone_name_to_index;
 
         bone_names.reserve(imp_model.flatted_scene.size());
         local_transforms.reserve(imp_model.flatted_scene.size());
         parents.reserve(imp_model.flatted_scene.size());
 
-        std::unordered_map<std::string, uint32_t> bone_name_count;  // for handling duplicated bone name
-        for (size_t i = 0; i < imp_model.flatted_scene.size(); ++i) {
+        std::unordered_map<std::string, int> bone_name_count;  // for handling duplicated bone name
+        for (size_t i = 0; i < imp_model.flatted_scene.size(); i++) {
             const aiNode* node = imp_model.flatted_scene[i];
 
             // bone name
@@ -261,7 +261,7 @@ namespace ho {
                         Vector4(aim.c1, aim.c2, aim.c3, aim.c4), Vector4(aim.d1, aim.d2, aim.d3, aim.d4));
             local_transforms.emplace_back(Transform3D(m));
 
-            bone_name_to_index[bone_name] = static_cast<int>(i);
+            bone_name_to_index[bone_name] = i;
 
             // parent bone
             if (node->mParent) {
@@ -282,13 +282,15 @@ namespace ho {
         std::string m_name = name;
 
         std::vector<Mesh::SubMesh> sub_meshes;
-        sub_meshes.reserve(imp_model.scene->mNumMeshes);
+        sub_meshes.reserve(static_cast<size_t>(imp_model.scene->mNumMeshes));
 
         // submeshes
-        std::unordered_map<std::string, uint32_t> submesh_name_count;  // for handling duplicated submesh name
-        for (unsigned int mi = 0; mi < imp_model.scene->mNumMeshes; ++mi) {
+        std::unordered_map<std::string, int> submesh_name_count;  // for handling duplicated submesh name
+        for (size_t mi = 0; mi < static_cast<size_t>(imp_model.scene->mNumMeshes); mi++) {
             const aiMesh* aimesh = imp_model.scene->mMeshes[mi];
-            if (!aimesh) continue;
+            if (!aimesh) {
+                continue;
+            }
 
             // name
             std::string sm_name;
@@ -322,128 +324,139 @@ namespace ho {
             }
 
             std::vector<Vector3> positions;
-            positions.reserve(aimesh->mNumVertices);
+            positions.reserve(static_cast<size_t>(aimesh->mNumVertices));
             std::vector<Vector3> normals;
-            normals.reserve(aimesh->mNumVertices);
+            normals.reserve(static_cast<size_t>(aimesh->mNumVertices));
             std::vector<Vector4> tangents;
-            tangents.reserve(aimesh->mNumVertices);
+            tangents.reserve(static_cast<size_t>(aimesh->mNumVertices));
 
-            std::vector<std::array<Vector2, Mesh::MAX_UV_CHANNEL>> uvs(aimesh->mNumVertices);
-            std::vector<std::array<Color32, Mesh::MAX_COLOR_CHANNEL>> colors(aimesh->mNumVertices);
-            std::vector<std::array<Mesh::BoneWeight, Mesh::MAX_BONE_CHANNEL>> bone_weights(aimesh->mNumVertices);
+            std::vector<std::array<Vector2, Mesh::MAX_UV_CHANNEL>> uvs(static_cast<size_t>(aimesh->mNumVertices));
+            std::vector<std::array<Color32, Mesh::MAX_COLOR_CHANNEL>> colors(static_cast<size_t>(aimesh->mNumVertices));
+            std::vector<std::array<Mesh::BoneWeight, Mesh::MAX_BONE_CHANNEL>> bone_weights(
+                static_cast<size_t>(aimesh->mNumVertices));
 
             std::vector<uint32_t> indices;
             indices.reserve(static_cast<size_t>(aimesh->mNumFaces) * 3);
             std::vector<Mesh::MorphTarget> morph_targets;
-            morph_targets.reserve(aimesh->mNumAnimMeshes);
+            morph_targets.reserve(static_cast<size_t>(aimesh->mNumAnimMeshes));
 
             const bool has_pos = aimesh->HasPositions();
             const bool has_normal = aimesh->HasNormals();
             const bool has_tan = aimesh->HasTangentsAndBitangents();
 
-            for (unsigned int vi = 0; vi < aimesh->mNumVertices; ++vi) {
+            for (size_t vi = 0; vi < static_cast<size_t>(aimesh->mNumVertices); vi++) {
                 // Positions
                 if (has_pos) {
                     const aiVector3D& pos = aimesh->mVertices[vi];
-                    positions.emplace_back((real)pos.x, (real)pos.y, (real)pos.z);
+                    positions.emplace_back(static_cast<real>(pos.x), static_cast<real>(pos.y),
+                                           static_cast<real>(pos.z));
                 }
 
                 // Normals
                 if (has_normal) {
                     const aiVector3D& normal = aimesh->mNormals[vi];
-                    normals.emplace_back((real)normal.x, (real)normal.y, (real)normal.z);
+                    normals.emplace_back(static_cast<real>(normal.x), static_cast<real>(normal.y),
+                                         static_cast<real>(normal.z));
                 }
 
                 // Tangents (handedness in w component)
                 if (has_tan) {
                     const aiVector3D& tan = aimesh->mTangents[vi];
                     const aiVector3D& bitan = aimesh->mBitangents[vi];
-                    Vector3 tangent((real)tan.x, (real)tan.y, (real)tan.z);
-                    Vector3 bitangent((real)bitan.x, (real)bitan.y, (real)bitan.z);
+                    Vector3 tangent(static_cast<real>(tan.x), static_cast<real>(tan.y), static_cast<real>(tan.z));
+                    Vector3 bitangent(static_cast<real>(bitan.x), static_cast<real>(bitan.y),
+                                      static_cast<real>(bitan.z));
 
                     // calcuate handedness
-                    real h = 1.f;
+                    real h = 1.0_r;
                     if (has_normal) {
                         const Vector3& normal = normals[vi];
-                        h = (normal.Cross(tangent).Dot(bitangent) > 0) ? 1.f : -1.f;
+                        h = (normal.Cross(tangent).Dot(bitangent) > 0.0_r) ? 1.0_r : -1.0_r;
                     }
                     tangents.emplace_back(tangent.x, tangent.y, tangent.z, h);
                 }
             }
 
             // UVs
-            for (unsigned int vi = 0; vi < aimesh->mNumVertices; ++vi) {
-                for (unsigned int ui = 0; ui < Mesh::MAX_UV_CHANNEL; ++ui) {
-                    if (!aimesh->HasTextureCoords(ui)) continue;
+            for (size_t vi = 0; vi < static_cast<size_t>(aimesh->mNumVertices); vi++) {
+                for (size_t ui = 0; ui < static_cast<size_t>(Mesh::MAX_UV_CHANNEL); ui++) {
+                    if (!aimesh->HasTextureCoords(static_cast<unsigned int>(ui))) {
+                        continue;
+                    }
                     const aiVector3D uv = aimesh->mTextureCoords[ui][vi];
-                    uvs[vi][ui] = Vector2((real)uv.x, (real)uv.y);
+                    uvs[vi][ui] = Vector2(static_cast<real>(uv.x), static_cast<real>(uv.y));
                 }
             }
 
             // Colors
-            for (unsigned int vi = 0; vi < aimesh->mNumVertices; ++vi) {
-                for (unsigned int ci = 0; ci < Mesh::MAX_UV_CHANNEL; ++ci) {
-                    if (!aimesh->HasVertexColors(ci)) continue;
+            for (size_t vi = 0; vi < static_cast<size_t>(aimesh->mNumVertices); vi++) {
+                for (size_t ci = 0; ci < static_cast<size_t>(Mesh::MAX_UV_CHANNEL); ci++) {
+                    if (!aimesh->HasVertexColors(static_cast<unsigned int>(ci))) {
+                        continue;
+                    }
                     const aiColor4D& color = aimesh->mColors[ci][vi];
-                    const Color128 color128((real)color.r, (real)color.g, (real)color.b, (real)color.a);
+                    const Color128 color128(static_cast<float>(color.r), static_cast<float>(color.g),
+                                            static_cast<float>(color.b), static_cast<float>(color.a));
                     colors[vi][ci] = Color32(color128);
                 }
             }
 
             // Bone weights
             std::vector<std::vector<Mesh::BoneWeight>> temp_weights;
-            temp_weights.resize(aimesh->mNumVertices);
+            temp_weights.resize(static_cast<size_t>(aimesh->mNumVertices));
 
             if (aimesh->HasBones()) {
-                for (unsigned int bi = 0; bi < aimesh->mNumBones; ++bi) {
+                for (size_t bi = 0; bi < static_cast<size_t>(aimesh->mNumBones); bi++) {
                     const aiBone* aibone = aimesh->mBones[bi];
-                    const uint32_t bone_index = skeleton->GetBoneIndex(aibone->mName.C_Str());
+                    const size_t bone_index = skeleton->GetBoneIndex(aibone->mName.C_Str());
 
-                    for (unsigned int wi = 0; wi < aibone->mNumWeights; ++wi) {
+                    for (size_t wi = 0; wi < static_cast<size_t>(aibone->mNumWeights); wi++) {
                         const aiVertexWeight& w = aibone->mWeights[wi];
-                        if (w.mVertexId < temp_weights.size()) {
+                        if (static_cast<size_t>(w.mVertexId) < temp_weights.size()) {
                             temp_weights[w.mVertexId].push_back({bone_index, static_cast<real>(w.mWeight)});
                         }
                     }
                 }
             }
 
-            for (uint32_t v = 0; v < temp_weights.size(); ++v) {
+            for (size_t v = 0; v < temp_weights.size(); v++) {
                 auto& src = temp_weights[v];
                 auto& dst = bone_weights[v];
 
-                if (src.empty()) continue;
+                if (src.empty()) {
+                    continue;
+                }
 
                 std::sort(src.begin(), src.end(),
                           [](const Mesh::BoneWeight& a, const Mesh::BoneWeight& b) { return a.weight > b.weight; });
 
-                const uint32_t count = std::min<uint32_t>((uint32_t)src.size(), Mesh::MAX_BONE_CHANNEL);
+                const size_t count = math::Min(src.size(), static_cast<size_t>(Mesh::MAX_BONE_CHANNEL));
 
-                real weight_sum = 0.0f;
+                real weight_sum = 0.0_r;
 
-                for (uint32_t i = 0; i < count; ++i) {
+                for (size_t i = 0; i < count; i++) {
                     dst[i] = src[i];
                     weight_sum += src[i].weight;
                 }
 
-                if (weight_sum > 0.0f) {
-                    for (uint32_t i = 0; i < count; ++i) {
+                if (weight_sum > 0.0_r) {
+                    for (size_t i = 0; i < count; i++) {
                         dst[i].weight /= weight_sum;
                     }
                 }
             }
 
             // Indices
-            for (unsigned int fi = 0; fi < aimesh->mNumFaces; ++fi) {
+            for (size_t fi = 0; fi < static_cast<size_t>(aimesh->mNumFaces); fi++) {
                 const aiFace& face = aimesh->mFaces[fi];
-                for (unsigned int ii = 0; ii < face.mNumIndices; ++ii) {
-                    indices.push_back((uint32_t)face.mIndices[ii]);
+                for (size_t ii = 0; ii < static_cast<size_t>(face.mNumIndices); ii++) {
+                    indices.push_back(static_cast<uint32_t>(face.mIndices[ii]));
                 }
             }
 
             // Morph targets
-            std::unordered_map<std::string, uint32_t> target_name_count;  // for handling duplicated morph target name
-            for (unsigned int mti = 0; mti < aimesh->mNumAnimMeshes; mti++) {
+            std::unordered_map<std::string, int> target_name_count;  // for handling duplicated morph target name
+            for (size_t mti = 0; mti < static_cast<size_t>(aimesh->mNumAnimMeshes); mti++) {
                 const aiAnimMesh* anim_mesh = aimesh->mAnimMeshes[mti];
 
                 std::string mt_name;
@@ -462,41 +475,44 @@ namespace ho {
                 }
 
                 std::vector<Vector3> mt_positions;
-                mt_positions.reserve(anim_mesh->mNumVertices);
+                mt_positions.reserve(static_cast<size_t>(anim_mesh->mNumVertices));
                 std::vector<Vector3> mt_normals;
-                mt_normals.reserve(anim_mesh->mNumVertices);
+                mt_normals.reserve(static_cast<size_t>(anim_mesh->mNumVertices));
                 std::vector<Vector4> mt_tangents;
-                mt_tangents.reserve(anim_mesh->mNumVertices);
+                mt_tangents.reserve(static_cast<size_t>(anim_mesh->mNumVertices));
 
                 const bool mt_has_pos = anim_mesh->HasPositions();
                 const bool mt_has_normal = anim_mesh->HasNormals();
                 const bool mt_has_tan = anim_mesh->HasTangentsAndBitangents();
 
-                for (unsigned int vi = 0; vi < anim_mesh->mNumVertices; ++vi) {
+                for (size_t vi = 0; vi < static_cast<size_t>(anim_mesh->mNumVertices); vi++) {
                     // Morph target positions
                     if (mt_has_pos) {
                         const aiVector3D& pos = anim_mesh->mVertices[vi];
-                        mt_positions.emplace_back((real)pos.x, (real)pos.y, (real)pos.z);
+                        mt_positions.emplace_back(static_cast<real>(pos.x), static_cast<real>(pos.y),
+                                                  static_cast<real>(pos.z));
                     }
 
                     // Morph target Normals
                     if (mt_has_normal) {
                         const aiVector3D& normal = anim_mesh->mNormals[vi];
-                        mt_normals.emplace_back((real)normal.x, (real)normal.y, (real)normal.z);
+                        mt_normals.emplace_back(static_cast<real>(normal.x), static_cast<real>(normal.y),
+                                                static_cast<real>(normal.z));
                     }
 
                     // Morph target tangents (handedness in w component)
                     if (mt_has_tan) {
                         const aiVector3D& tan = anim_mesh->mTangents[vi];
                         const aiVector3D& bitan = anim_mesh->mBitangents[vi];
-                        Vector3 tangent((real)tan.x, (real)tan.y, (real)tan.z);
-                        Vector3 bitangent((real)bitan.x, (real)bitan.y, (real)bitan.z);
+                        Vector3 tangent(static_cast<real>(tan.x), static_cast<real>(tan.y), static_cast<real>(tan.z));
+                        Vector3 bitangent(static_cast<real>(bitan.x), static_cast<real>(bitan.y),
+                                          static_cast<real>(bitan.z));
 
                         // calcuate handedness
-                        real h = 1.f;
+                        real h = 1.0_r;
                         if (has_normal) {
                             const Vector3& normal = normals[vi];
-                            h = (normal.Cross(tangent).Dot(bitangent) > 0) ? 1.f : -1.f;
+                            h = (normal.Cross(tangent).Dot(bitangent) > 0.0_r) ? 1.0_r : -1.0_r;
                         }
                         mt_tangents.emplace_back(tangent.x, tangent.y, tangent.z, h);
                     }
@@ -510,7 +526,7 @@ namespace ho {
                 morph_targets.push_back(std::move(morph_target));
             }
 
-            ResourceID mat_id = materials[aimesh->mMaterialIndex];
+            ResourceID mat_id = materials[static_cast<size_t>(aimesh->mMaterialIndex)];
 
             Mesh::SubMesh sub_mesh(std::move(sm_name), prim_type, std::move(positions), std::move(normals),
                                    std::move(tangents), std::move(uvs), std::move(colors), std::move(bone_weights),
@@ -528,21 +544,24 @@ namespace ho {
                                              const Skeleton* skeleton, ResourceManager& manager) {
         std::string anim_name = name;
 
-        real duration = (aianim->mDuration != 0.0) ? (real)aianim->mDuration : 1.0_r;
-        real ticks_per_sec = (aianim->mTicksPerSecond != 0.0) ? (real)aianim->mTicksPerSecond : 25.0_r;  // fallback
+        real duration = (aianim->mDuration != 0.0) ? static_cast<real>(aianim->mDuration) : 1.0_r;
+        real ticks_per_sec =
+            (aianim->mTicksPerSecond != 0.0) ? static_cast<real>(aianim->mTicksPerSecond) : 25.0_r;  // fallback
 
         // Skeletal tracks
         std::vector<Animation::SkeletalTrack> skeletal_tracks;
         skeletal_tracks.reserve(aianim->mNumChannels);
-        for (unsigned int ci = 0; ci < aianim->mNumChannels; ++ci) {
+        for (size_t ci = 0; ci < static_cast<size_t>(aianim->mNumChannels); ci++) {
             const aiNodeAnim* channel = aianim->mChannels[ci];
-            if (!channel) continue;
+            if (!channel) {
+                continue;
+            }
 
             std::string bone_name = channel->mNodeName.C_Str();
-            uint32_t bone_idx = skeleton->GetBoneIndex(bone_name);
+            size_t bone_idx = skeleton->GetBoneIndex(bone_name);
 
             std::vector<Animation::TranslationKey> translations;
-            translations.reserve(channel->mNumPositionKeys);
+            translations.reserve(static_cast<size_t>(channel->mNumPositionKeys));
             Animation::InterpolationMode translation_interp_mode = Animation::INTERP_MODE_STEP;
             if (channel->mNumPositionKeys > 0) {
                 switch (channel->mPositionKeys[0].mInterpolation) {
@@ -562,14 +581,15 @@ namespace ho {
                         translation_interp_mode = Animation::INTERP_MODE_STEP;
                 }
             }
-            for (unsigned int ki = 0; ki < channel->mNumPositionKeys; ++ki) {
+            for (size_t ki = 0; ki < static_cast<size_t>(channel->mNumPositionKeys); ki++) {
                 const aiVectorKey& k = channel->mPositionKeys[ki];
-                translations.push_back(
-                    {(real)k.mTime / ticks_per_sec, Vector3((real)k.mValue.x, (real)k.mValue.y, (real)k.mValue.z)});
+                translations.push_back({static_cast<real>(k.mTime) / ticks_per_sec,
+                                        Vector3(static_cast<real>(k.mValue.x), static_cast<real>(k.mValue.y),
+                                                static_cast<real>(k.mValue.z))});
             }
 
             std::vector<Animation::RotationKey> rotations;
-            rotations.reserve(channel->mNumRotationKeys);
+            rotations.reserve(static_cast<size_t>(channel->mNumRotationKeys));
             Animation::InterpolationMode rotation_interp_mode = Animation::INTERP_MODE_STEP;
             if (channel->mNumRotationKeys > 0) {
                 switch (channel->mRotationKeys[0].mInterpolation) {
@@ -589,14 +609,15 @@ namespace ho {
                         rotation_interp_mode = Animation::INTERP_MODE_STEP;
                 }
             }
-            for (unsigned int ki = 0; ki < channel->mNumRotationKeys; ++ki) {
+            for (size_t ki = 0; ki < static_cast<size_t>(channel->mNumRotationKeys); ki++) {
                 const aiQuatKey& k = channel->mRotationKeys[ki];
-                rotations.push_back({(real)k.mTime / ticks_per_sec, Quaternion((real)k.mValue.x, (real)k.mValue.y,
-                                                                               (real)k.mValue.z, (real)k.mValue.w)});
+                rotations.push_back({static_cast<real>(k.mTime) / ticks_per_sec,
+                                     Quaternion(static_cast<real>(k.mValue.x), static_cast<real>(k.mValue.y),
+                                                static_cast<real>(k.mValue.z), static_cast<real>(k.mValue.w))});
             }
 
             std::vector<Animation::ScalingKey> scalings;
-            scalings.reserve(channel->mNumScalingKeys);
+            scalings.reserve(static_cast<size_t>(channel->mNumScalingKeys));
             Animation::InterpolationMode scaling_interp_mode = Animation::INTERP_MODE_STEP;
             if (channel->mNumScalingKeys > 0) {
                 switch (channel->mScalingKeys[0].mInterpolation) {
@@ -616,10 +637,11 @@ namespace ho {
                         scaling_interp_mode = Animation::INTERP_MODE_STEP;
                 }
             }
-            for (unsigned int ki = 0; ki < channel->mNumScalingKeys; ++ki) {
+            for (size_t ki = 0; ki < static_cast<size_t>(channel->mNumScalingKeys); ki++) {
                 const aiVectorKey& k = channel->mScalingKeys[ki];
-                scalings.push_back(
-                    {(real)k.mTime / ticks_per_sec, Vector3((real)k.mValue.x, (real)k.mValue.y, (real)k.mValue.z)});
+                scalings.push_back({static_cast<real>(k.mTime) / ticks_per_sec,
+                                    Vector3(static_cast<real>(k.mValue.x), static_cast<real>(k.mValue.y),
+                                            static_cast<real>(k.mValue.z))});
             }
 
             Animation::ExtrapolationMode pre_mode;
@@ -664,27 +686,28 @@ namespace ho {
 
         // Morph Target tracks
         std::vector<Animation::MorphTargetTrack> morph_target_tracks;
-        morph_target_tracks.reserve(aianim->mNumMorphMeshChannels);
-        for (unsigned int ci = 0; ci < aianim->mNumMorphMeshChannels; ++ci) {
+        morph_target_tracks.reserve(static_cast<size_t>(aianim->mNumMorphMeshChannels));
+        for (size_t ci = 0; ci < static_cast<size_t>(aianim->mNumMorphMeshChannels); ci++) {
             const aiMeshMorphAnim* channel = aianim->mMorphMeshChannels[ci];
             if (!channel) continue;
 
             std::string bone_name = channel->mName.C_Str();
-            uint32_t bone_idx = skeleton->GetBoneIndex(bone_name);
+            size_t bone_idx = skeleton->GetBoneIndex(bone_name);
 
             std::vector<Animation::MorphingKey> keys;
-            keys.reserve(channel->mNumKeys);
-            for (unsigned int ki = 0; ki < channel->mNumKeys; ++ki) {
+            keys.reserve(static_cast<size_t>(channel->mNumKeys));
+            for (size_t ki = 0; ki < static_cast<size_t>(channel->mNumKeys); ki++) {
                 const aiMeshMorphKey& k = channel->mKeys[ki];
-                std::vector<std::uint32_t> target_indices;
+                std::vector<size_t> target_indices;
                 std::vector<real> weights;
-                target_indices.reserve(k.mNumValuesAndWeights);
-                weights.reserve(k.mNumValuesAndWeights);
-                for (unsigned int vi = 0; vi < k.mNumValuesAndWeights; ++vi) {
-                    target_indices.push_back(k.mValues[vi]);
+                target_indices.reserve(static_cast<size_t>(k.mNumValuesAndWeights));
+                weights.reserve(static_cast<size_t>(k.mNumValuesAndWeights));
+                for (size_t vi = 0; vi < static_cast<size_t>(k.mNumValuesAndWeights); vi++) {
+                    target_indices.push_back(static_cast<size_t>(k.mValues[vi]));
                     weights.push_back(static_cast<real>(k.mWeights[vi]));
                 }
-                keys.emplace_back((real)k.mTime / ticks_per_sec, std::move(target_indices), std::move(weights));
+                keys.emplace_back(static_cast<real>(k.mTime) / ticks_per_sec, std::move(target_indices),
+                                  std::move(weights));
             }
 
             morph_target_tracks.emplace_back(bone_idx, std::move(keys));
@@ -703,12 +726,12 @@ namespace ho {
         std::vector<Transform3D> inverse_bind_poses(skeleton->bone_names.size());
 
         // inverse bind transform
-        for (uint32_t mi = 0; mi < imp_model.scene->mNumMeshes; ++mi) {
+        for (size_t mi = 0; mi < imp_model.scene->mNumMeshes; mi++) {
             const aiMesh* aimesh = imp_model.scene->mMeshes[mi];
-            for (uint32_t bi = 0; bi < aimesh->mNumBones; ++bi) {
+            for (size_t bi = 0; bi < aimesh->mNumBones; bi++) {
                 aiBone* aibone = aimesh->mBones[bi];
                 std::string bone_name = aibone->mName.C_Str();
-                uint32_t bone_index = skeleton->name_to_index.at(bone_name);
+                size_t bone_index = skeleton->name_to_index.at(bone_name);
                 const aiMatrix4x4& om = aibone->mOffsetMatrix;
                 Matrix4x4 m(Vector4(om.a1, om.a2, om.a3, om.a4), Vector4(om.b1, om.b2, om.b3, om.b4),
                             Vector4(om.c1, om.c2, om.c3, om.c4), Vector4(om.d1, om.d2, om.d3, om.d4));
@@ -716,11 +739,11 @@ namespace ho {
             }
         }
 
-        std::vector<std::vector<uint32_t>> bind_sub_meshes(imp_model.flatted_scene.size());
-        for (uint32_t bi = 0; bi < imp_model.flatted_scene.size(); bi++) {
+        std::vector<std::vector<size_t>> bind_sub_meshes(imp_model.flatted_scene.size());
+        for (size_t bi = 0; bi < imp_model.flatted_scene.size(); bi++) {
             const aiNode* ainode = imp_model.flatted_scene[bi];
             for (uint32_t mi = 0; mi < ainode->mNumMeshes; mi++) {
-                bind_sub_meshes[bi].push_back((uint32_t)ainode->mMeshes[mi]);
+                bind_sub_meshes[bi].push_back(static_cast<size_t>(ainode->mMeshes[mi]));
             }
         }
 

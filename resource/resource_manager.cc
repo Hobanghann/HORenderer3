@@ -180,11 +180,11 @@ namespace ho {
         return it != name_to_texture_.end() ? it->second : ResourceID();
     }
 
-    uint32_t ResourceManager::GetMeshCount() const { return (uint32_t)mesh_pool_.Size(); }
-    uint32_t ResourceManager::GetSkeletonCount() const { return (uint32_t)skeleton_pool_.Size(); }
-    uint32_t ResourceManager::GetAnimationCount() const { return (uint32_t)animation_pool_.Size(); }
-    uint32_t ResourceManager::GetSkinCount() const { return (uint32_t)skin_pool_.Size(); }
-    uint32_t ResourceManager::GetMaterialCount() const { return (uint32_t)material_pool_.Size(); }
-    uint32_t ResourceManager::GetTextureCount() const { return (uint32_t)texture_pool_.Size(); }
+    int ResourceManager::GetMeshCount() const { return static_cast<int>(mesh_pool_.Size()); }
+    int ResourceManager::GetSkeletonCount() const { return static_cast<int>(skeleton_pool_.Size()); }
+    int ResourceManager::GetAnimationCount() const { return static_cast<int>(animation_pool_.Size()); }
+    int ResourceManager::GetSkinCount() const { return static_cast<int>(skin_pool_.Size()); }
+    int ResourceManager::GetMaterialCount() const { return static_cast<int>(material_pool_.Size()); }
+    int ResourceManager::GetTextureCount() const { return static_cast<int>(texture_pool_.Size()); }
 
 }  // namespace ho

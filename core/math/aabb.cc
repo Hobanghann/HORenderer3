@@ -17,7 +17,7 @@ namespace ho {
         Vector3 min_edges = Vector3(math::REAL_MAX, math::REAL_MAX, math::REAL_MAX);
         Vector3 max_edges = Vector3(-math::REAL_MAX, -math::REAL_MAX, -math::REAL_MAX);
 
-        for (uint32_t i = 0; i < positions.size(); i++) {
+        for (size_t i = 0; i < positions.size(); i++) {
             // construct aabb edges
             if (positions[i].x > max_edges.x) {
                 max_edges.x = positions[i].x;
@@ -43,8 +43,9 @@ namespace ho {
 
     std::string AABB::ToString() const {
         char buf[100];
-        snprintf(buf, sizeof(buf), "Min: (%.3f, %.3f, %.3f), Max : (%.3f, %.3f, %.3f)", (float)min_edges.x,
-                 (float)min_edges.y, (float)min_edges.z, (float)max_edges.x, (float)max_edges.y, (float)max_edges.z);
+        snprintf(buf, sizeof(buf), "Min: (%.3f, %.3f, %.3f), Max : (%.3f, %.3f, %.3f)", static_cast<float>(min_edges.x),
+                 static_cast<float>(min_edges.y), static_cast<float>(min_edges.z), static_cast<float>(max_edges.x),
+                 static_cast<float>(max_edges.y), static_cast<float>(max_edges.z));
         return buf;
     }
 }  // namespace ho

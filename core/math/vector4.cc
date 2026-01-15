@@ -32,7 +32,8 @@ namespace ho {
 
     std::string Vector4::ToString() const {
         char buf[100];
-        snprintf(buf, sizeof(buf), "(%.3f, %.3f, %.3f, %.3f)", (float)x, (float)y, (float)z, (float)w);
+        snprintf(buf, sizeof(buf), "(%.3f, %.3f, %.3f, %.3f)", static_cast<float>(x), static_cast<float>(y),
+                 static_cast<float>(z), static_cast<float>(w));
         return buf;
     }
 }  // namespace ho
