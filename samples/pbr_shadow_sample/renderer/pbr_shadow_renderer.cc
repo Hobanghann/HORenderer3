@@ -18,7 +18,7 @@
 namespace ho {
     bool PBRShadowRenderer::Initialize() {
         // Set GPU state
-        vgClearColor(0.1f, 0.1f, 0.1f, 1.f);
+        vgClearColor(0.3f, 0.3f, 0.3f, 1.f);
         vgDepthFunc(VG_LESS);
         vgPolygonMode(VG_FRONT_AND_BACK, VG_FILL);
         vgEnable(VG_CULL_FACE);
@@ -26,7 +26,7 @@ namespace ho {
 
         // Set Light
         light_.color = Color128(1.f, 1.f, 0.5f);
-        light_.intensity = 400.f;
+        light_.intensity = 500.f;
         light_.direction = -Vector3(10.f, 10.f, 10.f);
         light_.view = Transform3D(Basis3D(Vector3::UNIT_X, Vector3::UNIT_Y, Vector3::UNIT_Z), Vector3(10.f, 10.f, 10.f))
                           .LookedAt(Vector3::ZERO, Vector3::UNIT_Y)
@@ -252,8 +252,16 @@ namespace ho {
     }
 
     bool PBRShadowRenderer::PreUpdate(float delta_time) {
+        static float rotate_velocity = 1.5f;
         static float sensitivity = 0.1f;
         static float zoom_speed = 2.f;
+
+        if (input_states[INPUT_KEY_LEFT]) {
+            object_.modeling_transform.RotateAxisAngle(Vector3::UNIT_Y, -rotate_velocity * delta_time);
+        }
+        if (input_states[INPUT_KEY_RIGHT]) {
+            object_.modeling_transform.RotateAxisAngle(Vector3::UNIT_Y, rotate_velocity * delta_time);
+        }
 
         if (input_states[INPUT_KEY_MOUSE_LEFT]) {
             if (mouse_delta_x_ != 0.0f) {

@@ -18,7 +18,7 @@ namespace ho {
         // Set GPU state
         vgClearColor(0.3f, 0.3f, 0.3f, 1.f);
         vgDepthFunc(VG_LESS);
-        vgPolygonMode(VG_FRONT_AND_BACK, VG_LINE);
+        vgPolygonMode(VG_FRONT_AND_BACK, VG_FILL);
         vgEnable(VG_CULL_FACE);
         vgEnable(VG_DEPTH_TEST);
 
@@ -220,8 +220,16 @@ namespace ho {
     }
 
     bool BlinnPhongRenderer::PreUpdate(float delta_time) {
+        static float rotate_velocity = 1.5f;
         static float sensitivity = 0.1f;
         static float zoom_speed = 2.f;
+
+        if (input_states[INPUT_KEY_LEFT]) {
+            object_.modeling_transform.RotateAxisAngle(Vector3::UNIT_Y, -rotate_velocity * delta_time);
+        }
+        if (input_states[INPUT_KEY_RIGHT]) {
+            object_.modeling_transform.RotateAxisAngle(Vector3::UNIT_Y, rotate_velocity * delta_time);
+        }
 
         if (input_states[INPUT_KEY_MOUSE_LEFT]) {
             if (mouse_delta_x_ != 0.0f) {
