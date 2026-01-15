@@ -23,9 +23,6 @@ add_library(${SAMPLES_NAME} STATIC ${ALL_FILES})
 ################################################################################
 target_link_libraries(${SAMPLES_NAME} PUBLIC ${THIRD_PARTY_NAME} ${CORE_NAME} ${RESOURCE_NAME} ${VIRTUAL_GPU_NAME} ${RENDERER_NAME})
 target_include_directories(${SAMPLES_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-
-if (NOT MSVC)
-  target_compile_options(${SAMPLES_NAME} PRIVATE -Wno-microsoft-cast) # to disable compile error on shader attachment code.
-endif()
+target_link_libraries(${SAMPLES_NAME} PRIVATE warning_flags_for_release)
 
 message("\n\n\n######## Processing ${SAMPLES_NAME} module finished. ########\n\n\n")

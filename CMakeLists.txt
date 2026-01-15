@@ -35,8 +35,7 @@ if (MSVC)
         /wd4723           # disable: potential divide by zero (false positive)
     )
 
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        # Clang: careful, do NOT use -Weverything (extremely noisy)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         target_compile_options(
             warning_flags
             INTERFACE
@@ -60,7 +59,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
             -Wno-gnu-anonymous-struct   # allow anonymous struct/union
             -Wno-double-promotion       # allow float to double promotion
         )
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")        
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")        
     message(FATAL_ERROR
         "GCC is not supported by HORenderer due to its restrictions on "
         "anonymous aggregates with non-POD members. "
@@ -73,6 +72,11 @@ else()
         "Compilation may work, but is not tested."
     )
 endif ()
+
+add_library(warning_flags_for_release INTERFACE)
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(warning_flags_for_release INTERFACE -Wno-microsoft-cast)
+endif()
 
 ##########################################################
 # Set module's Name

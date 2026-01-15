@@ -43,7 +43,7 @@ void RendererApp::Initialize() {
 }
 
 void RendererApp::Run() {
-    MSG msg;
+    MSG msg = {};
     POINT pt;
     timer_.Reset();
 
