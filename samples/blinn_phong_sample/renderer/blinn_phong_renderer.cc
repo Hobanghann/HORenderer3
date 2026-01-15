@@ -220,22 +220,28 @@ namespace ho {
     }
 
     bool BlinnPhongRenderer::PreUpdate(float delta_time) {
-        if (input_states[INPUT_KEY_MOUSE_LEFT]) {
-            static float sensitivity = 0.1f;
+        static float rotate_velocity = 1.5f;
+        static float sensitivity = 0.1f;
+        static float zoom_speed = 2.f;
 
+        if (input_states[INPUT_KEY_LEFT]) {
+            object_.modeling_transform.RotateAxisAngle(Vector3::UNIT_Y, -rotate_velocity * delta_time);
+        }
+        if (input_states[INPUT_KEY_RIGHT]) {
+            object_.modeling_transform.RotateAxisAngle(Vector3::UNIT_Y, rotate_velocity * delta_time);
+        }
+
+        if (input_states[INPUT_KEY_MOUSE_LEFT]) {
             if (mouse_delta_x_ != 0.0f) {
-                object_.modeling_transform.RotateAxisAngleLocal(Vector3::UNIT_Y,
-                                                                mouse_delta_x_ * sensitivity * delta_time);
+                object_.modeling_transform.RotateAxisAngle(Vector3::UNIT_Y, mouse_delta_x_ * sensitivity * delta_time);
             }
 
             if (mouse_delta_y_ != 0.0f) {
-                object_.modeling_transform.RotateAxisAngleLocal(Vector3::UNIT_X,
-                                                                mouse_delta_y_ * sensitivity * delta_time);
+                object_.modeling_transform.RotateAxisAngle(Vector3::UNIT_X, mouse_delta_y_ * sensitivity * delta_time);
             }
         }
 
         if (mouse_wheel_delta_ != 0.0f) {
-            float zoom_speed = 2.f;
             object_.modeling_transform.Translate(mouse_wheel_delta_ * zoom_speed * delta_time * Vector3::UNIT_Z);
         }
 
