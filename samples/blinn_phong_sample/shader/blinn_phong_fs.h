@@ -7,9 +7,9 @@ namespace ho {
 
     ALWAYS_INLINE void BLINN_PHONG_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
         Vector3 v_world_pos = in.In<Vector3>("world_pos"_vg);
-        Vector3 v_tangent = in.In<Vector3>("tangent"_vg);
+        Vector3 v_tangent = in.In<Vector3>("tangent"_vg).Normalized();
         float v_handedness = in.InFlat<float>("handedness"_vg);
-        Vector3 v_normal = in.In<Vector3>("normal"_vg);
+        Vector3 v_normal = in.In<Vector3>("normal"_vg).Normalized();
         Vector2 v_uv = in.In<Vector2>("uv"_vg);
 
         int u_diffuse_sampler = FetchUniform<int>("u_diffuse_sampler"_vg);
@@ -19,7 +19,7 @@ namespace ho {
         Vector3 bitangent = v_handedness * v_normal.Cross(Vector3(v_tangent));
         Matrix3x3 tbn = Matrix3x3(Vector3(v_tangent), bitangent, v_normal).Transpose();
         Vector3 normal = Texture2D<Color128>(u_normal_sampler, v_uv).ToVector3();
-        normal = tbn * normal;
+        normal = (tbn * normal).Normalized();
 
         Color128 diffuse = Texture2D<Color128>(u_diffuse_sampler, v_uv);
 

@@ -26,13 +26,12 @@ namespace ho {
 
         // Set Light
         light_.color = Color128(1.f, 1.f, 0.5f);
-        light_.intensity = 600.f;
+        light_.intensity = 400.f;
         light_.direction = -Vector3(10.f, 10.f, 10.f);
-        light_.view =
-            Transform3D(Basis3D(Vector3::UNIT_X, Vector3::UNIT_Y, Vector3::UNIT_Z), Vector3(100.f, 100.f, 100.f))
-                .LookedAt(Vector3::ZERO, Vector3::UNIT_Y)
-                .InverseFast();
-        light_.projection = Projection::CreateOrthographic((real)width_, (real)height_, 1.f, 1000.f);
+        light_.view = Transform3D(Basis3D(Vector3::UNIT_X, Vector3::UNIT_Y, Vector3::UNIT_Z), Vector3(10.f, 10.f, 10.f))
+                          .LookedAt(Vector3::ZERO, Vector3::UNIT_Y)
+                          .InverseFast();
+        light_.projection = Projection::CreateOrthographic((real)width_, (real)height_, 1.f, 500.f);
 
         // Set framebuffer for depth map
         vgGenTextures(1, &depthmap_);
@@ -253,22 +252,20 @@ namespace ho {
     }
 
     bool PBRShadowRenderer::PreUpdate(float delta_time) {
-        if (input_states[INPUT_KEY_MOUSE_LEFT]) {
-            static float sensitivity = 0.1f;
+        static float sensitivity = 0.1f;
+        static float zoom_speed = 2.f;
 
+        if (input_states[INPUT_KEY_MOUSE_LEFT]) {
             if (mouse_delta_x_ != 0.0f) {
-                object_.modeling_transform.RotateAxisAngleLocal(Vector3::UNIT_Y,
-                                                                mouse_delta_x_ * sensitivity * delta_time);
+                object_.modeling_transform.RotateAxisAngle(Vector3::UNIT_Y, mouse_delta_x_ * sensitivity * delta_time);
             }
 
             if (mouse_delta_y_ != 0.0f) {
-                object_.modeling_transform.RotateAxisAngleLocal(Vector3::UNIT_X,
-                                                                mouse_delta_y_ * sensitivity * delta_time);
+                object_.modeling_transform.RotateAxisAngle(Vector3::UNIT_X, mouse_delta_y_ * sensitivity * delta_time);
             }
         }
 
         if (mouse_wheel_delta_ != 0.0f) {
-            float zoom_speed = 2.f;
             object_.modeling_transform.Translate(mouse_wheel_delta_ * zoom_speed * delta_time * Vector3::UNIT_Z);
         }
 
@@ -286,7 +283,7 @@ namespace ho {
 
         vgClear(VG_DEPTH_BUFFER_BIT);
 
-        Matrix4x4 light_PV_mat = light_.projection.matrix * light_.view.ToMatrix();
+        Matrix4x4 light_view_projection = light_.projection.matrix * light_.view.ToMatrix();
 
         // traversal skeleton tree
         const Skeleton* sklt = object_.skeleton;
@@ -300,7 +297,7 @@ namespace ho {
             acc_transforms[bi] = model_t;
 
             // Prepare frustum in local space for bounding volume cullling
-            Matrix4x4 PVM_mat = light_PV_mat * model_t.ToMatrix();
+            Matrix4x4 PVM_mat = light_view_projection * model_t.ToMatrix();
             Frustum frustum = Frustum::FromMatrix4x4(PVM_mat);
 
             // draw submesh bound to bone
@@ -317,8 +314,8 @@ namespace ho {
 
                 VGuint u_model = vgGetUniformLocation(depthmap_program_, "u_model"_vg);
                 vgUniformMatrix4fv(u_model, 1, false, (const VGfloat*)model_t.ToMatrix().data);
-                VGuint u_view = vgGetUniformLocation(depthmap_program_, "u_view_projection"_vg);
-                vgUniformMatrix4fv(u_view, 1, false, (const VGfloat*)&light_PV_mat);
+                VGuint u_view_projection = vgGetUniformLocation(depthmap_program_, "u_view_projection"_vg);
+                vgUniformMatrix4fv(u_view_projection, 1, false, (const VGfloat*)light_view_projection.data);
 
                 vgDrawElements(VG_TRIANGLES, usm.index_count, VG_UNSIGNED_INT, (const void*)0);
             }
@@ -368,8 +365,8 @@ namespace ho {
                 vgUniformMatrix4fv(u_view, 1, false, (const VGfloat*)view_mat.data);
                 VGuint u_projection = vgGetUniformLocation(pbr_program_, "u_projection"_vg);
                 vgUniformMatrix4fv(u_projection, 1, false, (const VGfloat*)camera_.projection.matrix.data);
-                VGuint u_light_vp = vgGetUniformLocation(pbr_program_, "u_light_vp"_vg);
-                vgUniformMatrix4fv(u_light_vp, 1, false, (const VGfloat*)&light_PV_mat);
+                VGuint u_light_view_projection = vgGetUniformLocation(pbr_program_, "u_light_view_projection"_vg);
+                vgUniformMatrix4fv(u_light_view_projection, 1, false, (const VGfloat*)light_view_projection.data);
 
                 // unit - texture mapping
                 // 0: diffuse, 1: specular, 2: shininess, 3: opacitry, 4: normal, 5: albedo, 6: emission,
@@ -413,18 +410,19 @@ namespace ho {
                 VGuint u_depthmap = vgGetUniformLocation(pbr_program_, "u_depthmap_sampler"_vg);
                 vgUniform1i(u_depthmap, 9);
 
-                VGuint u_lightPositions = vgGetUniformLocation(pbr_program_, "u_lightPositions"_vg);
+                VGuint u_light_positions = vgGetUniformLocation(pbr_program_, "u_light_positions"_vg);
                 Vector3 light_pos[1];
                 light_pos[0] = Vector3(5.f, 5.f, 5.f);
-                vgUniform3fv(u_lightPositions, 1, (const VGfloat*)(light_pos));
+                vgUniform3fv(u_light_positions, 1, (const VGfloat*)(light_pos));
 
-                VGuint u_lightColors = vgGetUniformLocation(pbr_program_, "u_lightColors"_vg);
+                VGuint u_lightColors = vgGetUniformLocation(pbr_program_, "u_light_colors"_vg);
                 Vector3 light_colors[1];
-                light_colors[0] = Vector3(700.f, 700.f, 500.f);
+                Color128 lc = light_.color * light_.intensity;
+                light_colors[0] = Vector3(lc.r, lc.g, lc.b);
                 vgUniform3fv(u_lightColors, 1, (const VGfloat*)(light_colors));
 
-                VGuint u_eyePosition = vgGetUniformLocation(pbr_program_, "u_eyePosition"_vg);
-                vgUniform3f(u_eyePosition, camera_.modeling_transform.origin.x, camera_.modeling_transform.origin.y,
+                VGuint u_eye_position = vgGetUniformLocation(pbr_program_, "u_eye_position"_vg);
+                vgUniform3f(u_eye_position, camera_.modeling_transform.origin.x, camera_.modeling_transform.origin.y,
                             camera_.modeling_transform.origin.z);
 
                 vgDrawElements(VG_TRIANGLES, usm.index_count, VG_UNSIGNED_INT, (const void*)0);

@@ -9,7 +9,7 @@
 namespace ho {
     class RendererAdapter {
        public:
-        RendererAdapter() : renderer_(new BlinnPhongRenderer()) {
+        RendererAdapter() : renderer_(new PBRShadowRenderer()) {
             // TODO: set your own renderer on 'renderer_' member.
             // renderer_ = new OwnRenderer();
         }

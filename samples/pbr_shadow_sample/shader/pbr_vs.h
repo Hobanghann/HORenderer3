@@ -12,7 +12,7 @@ namespace ho {
         Matrix4x4 u_model = FetchUniform<Matrix4x4>("u_model"_vg);
         Matrix4x4 u_view = FetchUniform<Matrix4x4>("u_view"_vg);
         Matrix4x4 u_projection = FetchUniform<Matrix4x4>("u_projection"_vg);
-        Matrix4x4 u_light_vp = FetchUniform<Matrix4x4>("u_light_vp"_vg);
+        Matrix4x4 u_light_view_projection = FetchUniform<Matrix4x4>("u_light_view_projection"_vg);
 
         out.vg_Position = u_projection * u_view * u_model * a_position.ToHomogeneous();
 
@@ -31,7 +31,7 @@ namespace ho {
         Vector2 uv = a_texcoord;
         out.Out("uv"_vg, uv);
 
-        Vector4 light_space_pos = u_light_vp * u_model * a_position.ToHomogeneous();
+        Vector4 light_space_pos = u_light_view_projection * u_model * a_position.ToHomogeneous();
         out.Out("light_space_pos"_vg, light_space_pos);
     }
 }  // namespace ho
