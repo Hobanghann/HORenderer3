@@ -1,13 +1,14 @@
-# 프로젝트 개요
-본 프로젝트는 컴퓨터 그래픽스의 이론을 실제 코드로 검증하기 위해 제작된, OpenGL 3.3 Core Specification을 참고하여 설계된 소프트웨어 렌더러입니다.
+# 📌프로젝트 개요
 
-직접 구현한 수학 모듈과 가상 GPU 계층을 통해, OpenGL 3.3의 핵심 개념(셰이더 실행, 파이프라인 상태 관리, 렌더링 흐름)을 유사한 방식으로 재현했습니다.
+본 프로젝트는 외부 수학 라이브러리나 그래픽스 API에 의존하지 않고 OpenGL 3.3 Core Specification을 참고하여 설계된 **GL-like 3D 소프트웨어 렌더러**입니다.
 
-본 프로젝트의 핵심 모듈인 core, resource, virtual_gpu 계층은 단위 테스트를 통해 동작의 정확성이 검증되었습니다.
+실제 GPU 동작을 모사한 `VirtualGPU` 계층을 중심으로, VRAM 관리, 파이프라인 상태, 셰이더 실행 흐름을 소프트웨어적으로 정의하고 구현했습니다.
 
-단, GL-like API는 아직 단위 테스트 커버리지가 부족하여 일부 동작이 스펙과 다르거나 예외 케이스에서 불안정할 수 있습니다.
+또한 OpenGL Registry의 공식 헤더를 기반으로 OpenGL 3.3 스타일의 API와 드라이버 레이어를 직접 구현하여, **OpenGL과 유사한 방식으로 렌더러 및 렌더링 코드를 작성할 수 있도록 구성**되어 있습니다.
 
-# 렌더링 샘플
+핵심 모듈(`core`, `resource`, `virtual_gpu`)은 단위 테스트로 검증되었으나, GL-like API 계층에 대한 테스트는 아직 수행되지 않아 일부 예외 케이스에서 스펙과 차이가 있을 수 있습니다.
+
+# 🪩렌더링 샘플
 ### Blinn–Phong Shading
 ![blinn_phong.gif](https://github.com/Hobanghann/HORenderer3/blob/develop/samples/screenshots/blinn_phong.gif)
 
@@ -106,6 +107,8 @@ void BLINN_PHONG_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) 
     }
 ```
 </details>
+
+---
 
 ### PBR Shading + Shadow Mapping
 ![pbr.gif](https://github.com/Hobanghann/HORenderer3/blob/develop/samples/screenshots/pbr.gif)
@@ -289,9 +292,9 @@ void PBR_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
 
 
 
-# 빌드 환경 및 방법
+# 🧱빌드 환경 및 방법
 
-### 빌드 환경
+### 🛠️빌드 환경
 - OS: Windows 10 / 11
 - Compiler:
   - MSVC (`cl`)
@@ -299,7 +302,9 @@ void PBR_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
 - CMake: 3.20 이상
 - C++ Standard: C++17
 
-### 🧱 빌드 파일 생성
+---
+
+### 📦 빌드 파일 생성
 - MSVC (Visual Studio 2022)
 ```
 cmake -S . -B <디렉토리 이름> -G "Visual Studio 17 2022"
@@ -313,7 +318,9 @@ cmake -S . -B <디렉토리 이름> -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CX
 cmake -S . -B <디렉토리 이름> -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release
 ```
 
-### 🧱 빌드
+---
+
+### 🔧 빌드
 - MSVC (Debug)
 ```
 cmake --build <디렉토리 이름> --config Debug
@@ -327,11 +334,11 @@ cmake --build <디렉토리 이름> --config Release
 cmake --build <디렉토리 이름>
 ```
 
-# 프로젝트 구조
-![project_structure.png](https://github.com/Hobanghann/HORenderer3/blob/develop/docs/HORenderer3_structure.png)
+# 🗂️프로젝트 구조
+![project_structure.png](https://github.com/Hobanghann/HORenderer3/blob/develop/docs/project_structure.svg)
 
 
-# 렌더러 작성 방법
+# 📜렌더러 작성 방법
 본 프로젝트는 platform 계층에서 하나의 렌더러 객체를 참조하고, 해당 렌더러가 제공하는 공용 API를 프레임 단위로 호출하는 구조로 동작합니다.
 
 렌더러는 다음과 같은 프레임 라이프사이클을 따라 실행됩니다.
@@ -350,6 +357,8 @@ graph LR;
 
 렌더러 클래스는 renderer 모듈의 Renderer 클래스를 상속받아 구현해야 하며, 각 가상 함수는 다음과 같은 역할을 가집니다.
 
+---
+
 ### Initialize()
 > - VirtualGPU의 초기 상태를 설정합니다.<br><br>
 > - 카메라, 광원, 렌더링할 모델 인스턴스를 생성합니다.<br><br>
@@ -360,6 +369,8 @@ graph LR;
 > - 현재 프로젝트는 obj, gltf 파일 로드를 지원합니다.<br><br>
 > - 모델 경로는 assets 디렉토리를 기준으로 한 상대 경로여야 합니다.
 
+---
+
 ### <b>PreUpdate(float delta_time)</b>
 > - 입력 및 시간 변화에 따른 상태 업데이트를 수행합니다.<br><br>
 > - Renderer 클래스는 다음과 같은 입력 상태 멤버를 제공합니다:<br><br>
@@ -368,16 +379,23 @@ graph LR;
 >   - mouse_delta_x_, mouse_delta_y_: 이전 프레임 대비 마우스 이동량<br><br>
 >   - mouse_wheel_delta_: 현재 프레임에서 발생한 마우스 휠 변화량
 
+---
+
 ### <b>Render()</b>
 > - 카메라, 광원, 모델 인스턴스를 기반으로 드로우 콜을 수행합니다.<br><br>
 > - 실제 렌더링 로직은 이 함수에서 구현됩니다.
+
+---
 
 ### <b>PostUpdate(float delta_time)</b>
 > - 렌더링 이후의 상태 업데이트를 수행합니다.<br><br>
 > - mouse_wheel_delta_는 이벤트 성격의 값이므로 이 함수에서 반드시 초기화해야 합니다.<br><br>
 > - 초기화하지 않을 경우, 휠 입력이 지속적으로 발생한 것처럼 동작할 수 있습니다.
 
+---
+
 ### <b>Quit()</b>
 > - 렌더러 종료 시 한 번 호출됩니다.<br><br>
 > - 리소스 정리 및 종료 처리를 수행합니다.
 
+---
