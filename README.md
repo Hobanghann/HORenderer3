@@ -3,7 +3,7 @@
 </p>
 
 
-# 📌 Project Overview
+# Project Overview
 
 This project is a **GL-like 3D software renderer** designed based on the OpenGL 3.3 Core Specification, without relying on any external math libraries or graphics APIs.
 
@@ -14,7 +14,7 @@ In addition, the project directly implements an OpenGL 3.3–style API and drive
 The core modules (`core`, `resource`, `virtual_gpu`) are validated through unit tests.  
 However, the GL-like API layer has not yet been fully covered by tests, and some behaviors may differ from the specification in certain edge cases.
 
-# 🪩 Rendering Samples
+# Rendering Samples
 ### Blinn–Phong Shading
 ![blinn_phong.gif](https://github.com/Hobanghann/HORenderer3/blob/develop/custom_renderers/samples/screenshots/blinn_phong.gif)
 
@@ -297,7 +297,7 @@ void PBR_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) {
 
 
 
-# 🧱 Build Environment and Instructions
+# Build Environment and Instructions
 
 ### 🛠️ Build Environment
 - OS: Windows 10 / 11
@@ -339,11 +339,11 @@ cmake --build <build_directory> --config Release
 cmake --build <build_directory>
 ```
 
-# 🗂️ Project Structure
+# Project Structure
 ![project_structure.png](https://github.com/Hobanghann/HORenderer3/blob/develop/docs/project_structure.svg)
 
 
-# 📜 How to Write a Renderer
+# How to Write a Renderer
 This project operates by having the platform layer reference a single renderer instance and invoke its public APIs on a per-frame basis.
 
 The renderer follows the frame lifecycle shown below:
@@ -359,6 +359,11 @@ graph LR;
 
 
 After writing shaders, users define a renderer class that uses those shaders and register it to the renderer adapter to render scenes according to custom logic.
+> ⚠️ **Note**
+> 
+> This project applies strict compiler options and `clang-tidy`–based static analysis to its core modules.
+> 
+> To avoid enforcing the same analysis rules on user-defined renderers, it is recommended to place custom renderers and shaders in the `custom_renderers` module.
 
 Renderer classes must inherit from the Renderer class in the renderer module.
 Each virtual function has the following responsibilities:
@@ -366,42 +371,655 @@ Each virtual function has the following responsibilities:
 ---
 
 ### Initialize()
-> - Initialize the VirtualGPU state.<br><br>
-> - Create cameras, lights, and model instances.<br><br>
-> - Load models and upload them to the VirtualGPU.<br><br>
-> - Models can be loaded via `ResourceLoader::LoadModel()` from the core module.<br><br>
-> - Loaded models are registered in the renderer-owned `resource_manager_`.<br><br>
-> - Models are referenced via `ResourceID`.<br><br>
-> - Currently supported formats: `obj`, `gltf`.<br><br>
-> - Model paths must be specified relative to the assets directory.
+- Initialize the VirtualGPU state.<br><br>
+- Create cameras, lights, and model instances.<br><br>
+- Load models and upload them to the VirtualGPU.<br><br>
+- Models can be loaded via `ResourceLoader::LoadModel()` from the core module.<br><br>
+- Loaded models are registered in the renderer-owned `resource_manager_`.<br><br>
+- Models are referenced via `ResourceID`.<br><br>
+- Currently supported formats: `obj`, `gltf`.<br><br>
+- Model paths must be specified relative to the assets directory.
 
 ---
 
 ### <b>PreUpdate(float delta_time)</b>
-> - Update state based on input and time progression.<br><br>
-> - The `Renderer` class provides the following input state members:<br><br>
->   - `input_states_`: keyboard and mouse button states<br><br>
->   - `mouse_x_`, `mouse_y_`: current mouse position (relative to the renderer window)<br><br>
->   - `mouse_delta_x_`, `mouse_delta_y_`: mouse movement since the previous frame<br><br>
->   - `mouse_wheel_delta_`: mouse wheel delta for the current frame
+- Update state based on input and time progression.<br><br>
+- The `Renderer` class provides the following input state members:<br><br>
+  - `input_states_`: keyboard and mouse button states<br><br>
+  - `mouse_x_`, `mouse_y_`: current mouse position (relative to the renderer window)<br><br>
+  - `mouse_delta_x_`, `mouse_delta_y_`: mouse movement since the previous frame<br><br>
+  - `mouse_wheel_delta_`: mouse wheel delta for the current frame
 
 ---
 
 ### <b>Render()</b>
-> - Issue draw calls based on cameras, lights, and model instances.<br><br>
-> - All rendering logic is implemented in this function.
+- Issue draw calls based on cameras, lights, and model instances.<br><br>
+- All rendering logic is implemented in this function.
 
 ---
 
 ### <b>PostUpdate(float delta_time)</b>
-> - Perform post-render state updates.<br><br>
-> - `mouse_wheel_delta_` must be reset here, as it represents an event-based input.<br><br>
-> - Failing to reset it may result in continuous wheel input behavior.
+- Perform post-render state updates.<br><br>
+- `mouse_wheel_delta_` must be reset here, as it represents an event-based input.<br><br>
+- Failing to reset it may result in continuous wheel input behavior.
 
 ---
 
 ### <b>Quit()</b>
-> - Called once when the renderer shuts down.<br><br>
-> - Responsible for resource cleanup and shutdown procedures.
+- Called once when the renderer shuts down.<br><br>
+- Responsible for resource cleanup and shutdown procedures.
 
 ---
+# How to Write a Shader
+
+In this project, both Vertex Shaders and Fragment Shaders must strictly follow the function signatures defined below.
+
+## Vertex Shader
+- **Signature**: `(void)(size_t, VirtualGPU::Varying&)`
+- `size_t`  
+  Represents the index of the vertex currently being processed by the vertex shader.
+- `VirtualGPU::Varying&`  
+  An abstraction used to store data that will be passed to the fragment shader, providing APIs to write per-vertex outputs.
+
+## Fragment Shader
+- **Signature**: `(void)(const VirtualGPU::Fragment&, VirtualGPU::FSOutputs&)`
+- `const VirtualGPU::Fragment&`  
+  An abstraction of the interpolated data received from the vertex shader, providing read-only access through dedicated APIs.
+- `VirtualGPU::FSOutputs&`  
+  An abstraction representing the final outputs of the fragment shader, allowing output values to be written via the provided APIs.
+
+Accessing attributes, uniforms, or sampling textures inside shaders must be performed through the APIs defined in the `shader_api.h` header.
+
+> ⚠️ **Note**
+>
+> To minimize the cost of runtime string processing, this project provides a user-defined literal that converts string literals into integer values.
+>
+> By appending the `_vg` suffix to a string literal, it is converted into an integer at compile time, and the GL-like API is designed to accept these converted integer values instead of raw strings.
+
+# GL-like API
+The GL-like API in this project is implemented with reference to the official OpenGL API repository, **OpenGL-Registry**, provided by the Khronos Group, specifically the `glcorearb.h` header.
+
+While the overall API structure and ENUM definitions follow the OpenGL 3.3 Core Specification, the `gl` / `GL_` prefixes are replaced with `vg` / `VG_`.
+
+Please refer to the sections below for the list of currently implemented APIs and the available ENUMs.
+
+If you are interested in extending the GL-like API or implementing additional OpenGL features, contributions are very welcome.
+
+
+<details>
+<summary><b>API Implementation Status</b></summary>
+
+### 1.0 API
+- [x] CullFace
+- [x] FrontFace
+- [ ] Hint
+- [ ] LineWidth
+- [ ] PointSize
+- [x] PolygonMode
+- [x] Scissor
+- [x] TexParameterf
+- [x] TexParameterfv
+- [x] TexParameteri
+- [x] TexParameteriv
+- [x] TexImage1D
+- [x] TexImage2D
+- [x] DrawBuffer
+- [x] Clear
+- [x] ClearColor
+- [x] ClearStencil
+- [x] ClearDepth
+- [x] StencilMask
+- [x] ColorMask
+- [x] DepthMask
+- [x] Disable
+- [x] Enable
+- [x] Finish
+- [x] Flush
+- [x] BlendFunc
+- [ ] LogicOp
+- [x] StencilFunc
+- [x] StencilOp
+- [x] DepthFunc
+- [x] PixelStoref
+- [x] PixelStorei
+- [x] ReadBuffer
+- [ ] ReadPixels
+- [x] GetError
+- [ ] GetBooleanv
+- [ ] GetFloatv
+- [ ] GetDoublev
+- [ ] GetIntegerv
+- [ ] GetString
+- [x] GetTexImage
+- [ ] GetTexParameterfv
+- [ ] GetTexParameteriv
+- [ ] GetTexLevelParameterfv
+- [ ] GetTexLevelParameteriv
+- [x] IsEnabled
+- [x] DepthRange
+- [x] Viewport
+
+### 1.1 API
+- [x] DrawArrays
+- [x] DrawElements
+- [ ] GetPointerv
+- [x] PolygonOffset
+- [ ] CopyTexImage1D
+- [ ] CopyTexImage2D
+- [ ] CopyTexSubImage1D
+- [ ] CopyTexSubImage2D
+- [x] TexSubImage1D
+- [x] TexSubImage2D
+- [x] BindTexture
+- [x] DeleteTextures
+- [x] GenTextures
+- [x] IsTexture
+
+### 1.2 API
+- [x] DrawRangeElements
+- [x] TexImage3D
+- [x] TexSubImage3D
+- [ ] CopyTexSubImage3D
+
+### 1.3 API
+- [x] ActiveTexture
+- [ ] SampleCoverage
+- [ ] CompressedTexImage3D
+- [ ] CompressedTexImage2D
+- [ ] CompressedTexImage1D
+- [ ] CompressedTexSubImage3D
+- [ ] CompressedTexSubImage2D
+- [ ] CompressedTexSubImage1D
+- [ ] GetCompressedTexImage
+
+### 1.4 API
+- [x] BlendFuncSeparate
+- [x] MultiDrawArrays
+- [x] MultiDrawElements
+- [ ] PointParameterf
+- [ ] PointParameterfv
+- [ ] PointParameteri
+- [ ] PointParameteriv
+- [x] BlendColor
+- [x] BlendEquation
+
+### 1.5 API
+- [ ] GenQueries
+- [ ] DeleteQueries
+- [ ] IsQuery
+- [ ] BeginQuery
+- [ ] EndQuery
+- [ ] GetQueryiv
+- [ ] GetQueryObjectiv
+- [ ] GetQueryObjectuiv
+- [x] BindBuffer
+- [x] DeleteBuffers
+- [x] GenBuffers
+- [x] IsBuffer
+- [x] BufferData
+- [x] BufferSubData
+- [ ] GetBufferSubData
+- [ ] MapBuffer
+- [ ] UnmapBuffer
+- [ ] GetBufferParameteriv
+- [ ] GetBufferPointerv
+
+### 2.0 API
+- [x] BlendEquationSeparate
+- [x] DrawBuffers
+- [x] StencilOpSeparate
+- [x] StencilFuncSeparate
+- [x] StencilMaskSeparate
+- [x] AttachShader
+- [x] BindAttribLocation
+- [x] CompileShader
+- [x] CreateProgram
+- [x] CreateShader
+- [x] DeleteProgram
+- [x] DeleteShader
+- [x] DetachShader
+- [x] DisableVertexAttribArray
+- [x] EnableVertexAttribArray
+- [ ] GetActiveAttrib
+- [ ] GetActiveUniform
+- [ ] GetAttachedShaders
+- [ ] GetAttribLocation
+- [ ] GetProgramiv
+- [ ] GetProgramInfoLog
+- [ ] GetShaderiv
+- [ ] GetShaderInfoLog
+- [ ] GetShaderSource
+- [x] GetUniformLocation
+- [ ] GetUniformfv
+- [ ] GetUniformiv
+- [ ] GetVertexAttribdv
+- [ ] GetVertexAttribfv
+- [ ] GetVertexAttribiv
+- [ ] GetVertexAttribPointerv
+- [x] IsProgram
+- [x] IsShader
+- [x] LinkProgram
+- [x] ShaderSource
+- [x] UseProgram
+- [x] Uniform1f
+- [x] Uniform2f
+- [x] Uniform3f
+- [x] Uniform4f
+- [x] Uniform1i
+- [x] Uniform2i
+- [x] Uniform3i
+- [x] Uniform4i
+- [x] Uniform1fv
+- [x] Uniform2fv
+- [x] Uniform3fv
+- [x] Uniform4fv
+- [x] Uniform1iv
+- [x] Uniform2iv
+- [x] Uniform3iv
+- [x] Uniform4iv
+- [x] UniformMatrix2fv
+- [x] UniformMatrix3fv
+- [x] UniformMatrix4fv
+- [ ] ValidateProgram
+- [x] VertexAttrib1d
+- [x] VertexAttrib1dv
+- [x] VertexAttrib1f
+- [x] VertexAttrib1fv
+- [x] VertexAttrib1s
+- [x] VertexAttrib1sv
+- [x] VertexAttrib2d
+- [x] VertexAttrib2dv
+- [x] VertexAttrib2f
+- [x] VertexAttrib2fv
+- [x] VertexAttrib2s
+- [x] VertexAttrib2sv
+- [x] VertexAttrib3d
+- [x] VertexAttrib3dv
+- [x] VertexAttrib3f
+- [x] VertexAttrib3fv
+- [x] VertexAttrib3s
+- [x] VertexAttrib3sv
+- [x] VertexAttrib4Nbv
+- [x] VertexAttrib4Niv
+- [x] VertexAttrib4Nsv
+- [x] VertexAttrib4Nub
+- [x] VertexAttrib4Nubv
+- [x] VertexAttrib4Nuiv
+- [x] VertexAttrib4Nusv
+- [x] VertexAttrib4bv
+- [x] VertexAttrib4d
+- [x] VertexAttrib4dv
+- [x] VertexAttrib4f
+- [x] VertexAttrib4fv
+- [x] VertexAttrib4iv
+- [x] VertexAttrib4s
+- [x] VertexAttrib4sv
+- [x] VertexAttrib4ubv
+- [x] VertexAttrib4uiv
+- [x] VertexAttrib4usv
+- [x] VertexAttribPointer
+
+### 2.1 API
+- [ ] UniformMatrix2x3fv
+- [ ] UniformMatrix3x2fv
+- [ ] UniformMatrix2x4fv
+- [ ] UniformMatrix4x2fv
+- [ ] UniformMatrix3x4fv
+- [ ] UniformMatrix4x3fv
+
+### 3.0 API
+- [x] ColorMaski
+- [ ] GetBooleani_v
+- [ ] GetIntegeri_v
+- [x] Enablei
+- [x] Disablei
+- [x] IsEnabledi
+- [ ] BeginTransformFeedback
+- [ ] EndTransformFeedback
+- [x] BindBufferRange
+- [x] BindBufferBase
+- [ ] TransformFeedbackVaryings
+- [ ] GetTransformFeedbackVarying
+- [ ] ClampColor
+- [ ] BeginConditionalRender
+- [ ] EndConditionalRender
+- [x] VertexAttribIPointer
+- [ ] GetVertexAttribIiv
+- [ ] GetVertexAttribIuiv
+- [x] VertexAttribI1i
+- [x] VertexAttribI2i
+- [x] VertexAttribI3i
+- [x] VertexAttribI4i
+- [x] VertexAttribI1ui
+- [x] VertexAttribI2ui
+- [x] VertexAttribI3ui
+- [x] VertexAttribI4ui
+- [x] VertexAttribI1iv
+- [x] VertexAttribI2iv
+- [x] VertexAttribI3iv
+- [x] VertexAttribI4iv
+- [x] VertexAttribI1uiv
+- [x] VertexAttribI2uiv
+- [x] VertexAttribI3uiv
+- [x] VertexAttribI4uiv
+- [x] VertexAttribI4bv
+- [x] VertexAttribI4sv
+- [x] VertexAttribI4ubv
+- [x] VertexAttribI4usv
+- [ ] GetUniformuiv
+- [x] BindFragDataLocation
+- [x] GetFragDataLocation
+- [x] Uniform1ui
+- [x] Uniform2ui
+- [x] Uniform3ui
+- [x] Uniform4ui
+- [x] Uniform1uiv
+- [x] Uniform2uiv
+- [x] Uniform3uiv
+- [x] Uniform4uiv
+- [ ] TexParameterIiv
+- [ ] TexParameterIuiv
+- [ ] GetTexParameterIiv
+- [ ] GetTexParameterIuiv
+- [x] ClearBufferiv
+- [x] ClearBufferuiv
+- [x] ClearBufferfv
+- [x] ClearBufferfi
+- [ ] GetStringi
+- [x] IsRenderbuffer
+- [x] BindRenderbuffer
+- [x] DeleteRenderbuffers
+- [x] GenRenderbuffers
+- [x] RenderbufferStorage
+- [ ] GetRenderbufferParameteriv
+- [x] IsFramebuffer
+- [x] BindFramebuffer
+- [x] DeleteFramebuffers
+- [x] GenFramebuffers
+- [x] CheckFramebufferStatus
+- [x] FramebufferTexture1D
+- [x] FramebufferTexture2D
+- [x] FramebufferTexture3D
+- [x] FramebufferRenderbuffer
+- [ ] GetFramebufferAttachmentParameteriv
+- [ ] GenerateMipmap
+- [ ] BlitFramebuffer
+- [ ] RenderbufferStorageMultisample
+- [ ] FramebufferTextureLayer
+- [ ] MapBufferRange
+- [ ] FlushMappedBufferRange
+- [x] BindVertexArray
+- [x] DeleteVertexArrays
+- [x] GenVertexArrays
+- [x] IsVertexArray
+
+### 3.1 API
+- [ ] DrawArraysInstanced
+- [ ] DrawElementsInstanced
+- [ ] TexBuffer
+- [ ] PrimitiveRestartIndex
+- [ ] CopyBufferSubData
+- [ ] GetUniformIndices
+- [ ] GetActiveUniformsiv
+- [ ] GetActiveUniformName
+- [ ] GetUniformBlockIndex
+- [ ] GetActiveUniformBlockiv
+- [ ] GetActiveUniformBlockName
+- [ ] UniformBlockBinding
+
+### 3.2 API
+- [ ] DrawElementsBaseVertex
+- [ ] DrawRangeElementsBaseVertex
+- [ ] DrawElementsInstancedBaseVertex
+- [ ] MultiDrawElementsBaseVertex
+- [ ] ProvokingVertex
+- [ ] FenceSync
+- [ ] IsSync
+- [ ] DeleteSync
+- [ ] ClientWaitSync
+- [ ] WaitSync
+- [ ] GetInteger64v
+- [ ] GetSynciv
+- [ ] GetInteger64i_v
+- [ ] GetBufferParameteri64v
+- [x] FramebufferTexture
+- [ ] TexImage2DMultisample
+- [ ] TexImage3DMultisample
+- [ ] GetMultisamplefv
+- [ ] SampleMaski
+
+### 3.3 API
+- [ ] BindFragDataLocationIndexed
+- [ ] GetFragDataIndex
+- [x] GenSamplers
+- [x] DeleteSamplers
+- [x] IsSampler
+- [x] BindSampler
+- [x] SamplerParameteri
+- [x] SamplerParameteriv
+- [x] SamplerParameterf
+- [x] SamplerParameterfv
+- [ ] SamplerParameterIiv
+- [ ] SamplerParameterIuiv
+- [ ] GetSamplerParameteriv
+- [ ] GetSamplerParameterIiv
+- [ ] GetSamplerParameterfv
+- [ ] GetSamplerParameterIuiv
+- [ ] QueryCounter
+- [ ] GetQueryObjecti64v
+- [ ] GetQueryObjectui64v
+- [ ] VertexAttribDivisor
+- [ ] VertexAttribP1ui
+- [ ] VertexAttribP1uiv
+- [ ] VertexAttribP2ui
+- [ ] VertexAttribP2uiv
+- [ ] VertexAttribP3ui
+- [ ] VertexAttribP3uiv
+- [ ] VertexAttribP4ui
+- [ ] VertexAttribP4uiv
+
+</details>
+
+<details>
+<summary><b>Available ENUMs</b></summary>
+
+#### Buffer Clear Bits
+- DEPTH_BUFFER_BIT
+- STENCIL_BUFFER_BIT
+- COLOR_BUFFER_BIT
+
+#### Boolean Values
+- FALSE
+- TRUE
+
+#### Primitive Types
+- POINTS
+- LINES
+- LINE_STRIP
+- TRIANGLES
+- TRIANGLE_STRIP
+
+#### Comparison Functions
+- NEVER
+- LESS
+- EQUAL
+- LEQUAL
+- GREATER
+- NOTEQUAL
+- GEQUAL
+- ALWAYS
+
+#### Blend Factors
+- ZERO
+- ONE
+- SRC_COLOR
+- ONE_MINUS_SRC_COLOR
+- SRC_ALPHA
+- ONE_MINUS_SRC_ALPHA
+- DST_COLOR
+- ONE_MINUS_DST_COLOR
+- DST_ALPHA
+- ONE_MINUS_DST_ALPHA
+- SRC_ALPHA_SATURATE
+- CONSTANT_COLOR
+- ONE_MINUS_CONSTANT_COLOR
+- CONSTANT_ALPHA
+- ONE_MINUS_CONSTANT_ALPHA
+
+#### Blend Equations
+- FUNC_ADD
+- FUNC_SUBTRACT
+- FUNC_REVERSE_SUBTRACT
+- MIN
+- MAX
+
+#### Face Selection / Orientation
+- FRONT
+- BACK
+- FRONT_AND_BACK
+- CW
+- CCW
+
+#### Error Codes
+- NO_ERROR
+- INVALID_ENUM
+- INVALID_VALUE
+- INVALID_OPERATION
+- OUT_OF_MEMORY
+
+#### Polygon State
+- POLYGON_MODE
+- POINT
+- LINE
+- FILL
+- POLYGON_OFFSET_POINT
+- POLYGON_OFFSET_LINE
+- POLYGON_OFFSET_FILL
+
+#### Enable / Disable Capabilities
+- CULL_FACE
+- DEPTH_TEST
+- STENCIL_TEST
+- BLEND
+- SCISSOR_TEST
+
+#### Stencil Operations
+- KEEP
+- REPLACE
+- INCR
+- DECR
+- INCR_WRAP
+- DECR_WRAP
+
+#### Draw / Read Buffers
+- DRAW_BUFFER
+- READ_BUFFER
+- DRAW_BUFFER0 … DRAW_BUFFER31
+- MAX_DRAW_BUFFERS
+
+#### Texture Targets
+- TEXTURE_1D
+- TEXTURE_2D
+- TEXTURE_3D
+- PROXY_TEXTURE_1D
+- PROXY_TEXTURE_2D
+- PROXY_TEXTURE_3D
+- TEXTURE_BUFFER
+
+#### Texture Units
+- TEXTURE0 … TEXTURE31
+
+#### Texture Parameters
+- TEXTURE_MIN_FILTER
+- TEXTURE_MAG_FILTER
+- TEXTURE_WRAP_S
+- TEXTURE_WRAP_T
+- TEXTURE_WRAP_R
+- TEXTURE_BORDER_COLOR
+- TEXTURE_SWIZZLE_R
+- TEXTURE_SWIZZLE_G
+- TEXTURE_SWIZZLE_B
+- TEXTURE_SWIZZLE_A
+- TEXTURE_SWIZZLE_RGBA
+
+#### Texture Filtering / Wrapping Modes
+- NEAREST
+- LINEAR
+- REPEAT
+- MIRRORED_REPEAT
+- CLAMP_TO_EDGE
+- CLAMP_TO_BORDER
+
+#### Pixel / Internal Formats
+- RED
+- RG
+- RGB
+- RGBA
+- BGR
+- BGRA
+- DEPTH_COMPONENT
+- DEPTH
+- STENCIL
+- DEPTH_STENCIL
+- COLOR
+
+#### Data Types
+- BYTE
+- UNSIGNED_BYTE
+- SHORT
+- UNSIGNED_SHORT
+- INT
+- UNSIGNED_INT
+- FLOAT
+- DOUBLE
+- HALF_FLOAT
+
+#### Buffer Objects
+- ARRAY_BUFFER
+- ELEMENT_ARRAY_BUFFER
+- UNIFORM_BUFFER
+
+#### Buffer Usage Hints
+- STREAM_DRAW
+- STREAM_READ
+- STREAM_COPY
+- STATIC_DRAW
+- STATIC_READ
+- STATIC_COPY
+- DYNAMIC_DRAW
+- DYNAMIC_READ
+- DYNAMIC_COPY
+
+#### Vertex Attributes
+- VERTEX_ARRAY
+- MAX_VERTEX_ATTRIBS
+
+#### Shader Types
+- VERTEX_SHADER
+- FRAGMENT_SHADER
+
+#### Framebuffers & Renderbuffers
+- FRAMEBUFFER
+- RENDERBUFFER
+- READ_FRAMEBUFFER
+- DRAW_FRAMEBUFFER
+- FRAMEBUFFER_COMPLETE
+- FRAMEBUFFER_UNDEFINED
+- FRAMEBUFFER_UNSUPPORTED
+- FRAMEBUFFER_INCOMPLETE_ATTACHMENT
+- FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT
+- FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER
+- FRAMEBUFFER_INCOMPLETE_READ_BUFFER
+- FRAMEBUFFER_DEFAULT
+- MAX_RENDERBUFFER_SIZE
+
+#### Framebuffer Attachments
+- COLOR_ATTACHMENT0 … COLOR_ATTACHMENT31
+- DEPTH_ATTACHMENT
+- STENCIL_ATTACHMENT
+- DEPTH_STENCIL_ATTACHMENT
+- MAX_COLOR_ATTACHMENTS
+
+</details>
+
+# Reference
