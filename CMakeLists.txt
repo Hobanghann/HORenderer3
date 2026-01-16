@@ -86,7 +86,7 @@ set(CORE_NAME core)
 set(RESOURCE_NAME resource)
 set(VIRTUAL_GPU_NAME virtual_gpu)
 set(RENDERER_NAME renderer)
-set(SAMPLES_NAME samples)
+set(CUSTOM_RENDERERS_NAME custom_renderers)
 set(PLATFORMS_NAME platforms)
 
 ##########################################################
@@ -97,7 +97,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/core)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/resource)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/virtual_gpu)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/renderer)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/samples)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_renderers)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/platforms)
 
 ##########################################################
