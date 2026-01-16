@@ -23,6 +23,6 @@ add_library(${CUSTOM_RENDERERS_NAME} STATIC ${ALL_FILES})
 ################################################################################
 target_link_libraries(${CUSTOM_RENDERERS_NAME} PUBLIC ${THIRD_PARTY_NAME} ${CORE_NAME} ${RESOURCE_NAME} ${VIRTUAL_GPU_NAME} ${RENDERER_NAME})
 target_include_directories(${CUSTOM_RENDERERS_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${SCUSTOM_RENDERERS_NAME} PRIVATE warning_flags_for_release)
+target_link_libraries(${CUSTOM_RENDERERS_NAME} PRIVATE warning_flags_for_release)
 
 message("\n\n\n######## Processing ${CUSTOM_RENDERERS_NAME} module finished. ########\n\n\n")
