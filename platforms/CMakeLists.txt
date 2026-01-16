@@ -49,7 +49,7 @@ target_link_libraries(
   ${RESOURCE_NAME}
   ${VIRTUAL_GPU_NAME}
   ${RENDERER_NAME}
-  ${SAMPLES_NAME}
+  ${CUSTOM_RENDERERS_NAME}
 )
 target_include_directories(
   ${PLATFORMS_NAME}
@@ -89,7 +89,7 @@ target_link_libraries(
   ${RESOURCE_NAME}
   ${VIRTUAL_GPU_NAME}
   ${RENDERER_NAME}
-  ${SAMPLES_NAME}
+  ${CUSTOM_RENDERERS_NAME}
   ${PLATFORMS_NAME}
 )
 

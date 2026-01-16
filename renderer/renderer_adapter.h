@@ -3,8 +3,8 @@
 #include <memory>
 
 #include "renderer.h"
-#include "samples/blinn_phong_sample/renderer/blinn_phong_renderer.h"
-#include "samples/pbr_shadow_sample/renderer/pbr_shadow_renderer.h"
+#include "custom_renderers/samples/blinn_phong_sample/renderer/blinn_phong_renderer.h"
+#include "custom_renderers/samples/pbr_shadow_sample/renderer/pbr_shadow_renderer.h"
 
 namespace ho {
     class RendererAdapter {

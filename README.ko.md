@@ -15,7 +15,7 @@
 
 # 🪩 렌더링 샘플
 ### Blinn–Phong Shading
-![blinn_phong.gif](https://github.com/Hobanghann/HORenderer3/blob/develop/samples/screenshots/blinn_phong.gif)
+![blinn_phong.gif](https://github.com/Hobanghann/HORenderer3/blob/develop/custom_renderers/samples/screenshots/blinn_phong.gif)
 
 <details>
 <summary><b>Vertex Shader 코드</b></summary>
@@ -116,7 +116,7 @@ void BLINN_PHONG_FS(const VirtualGPU::Fragment& in, VirtualGPU::FSOutputs& out) 
 ---
 
 ### PBR Shading + Shadow Mapping
-![pbr.gif](https://github.com/Hobanghann/HORenderer3/blob/develop/samples/screenshots/pbr.gif)
+![pbr.gif](https://github.com/Hobanghann/HORenderer3/blob/develop/custom_renderers/samples/screenshots/pbr.gif)
 
 <details>
 <summary><b>Vertex Shader 코드</b></summary>

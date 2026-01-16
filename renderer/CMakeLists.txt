@@ -1,9 +1,4 @@
 message("\n\n\n######## Start to process ${RENDERER_NAME} module. ########\n\n\n")
-################################################################################
-# define variables
-################################################################################
-set(HO_PROJECT_ROOT "${CMAKE_SOURCE_DIR}")
-set(HO_ASSET_ROOT "${CMAKE_SOURCE_DIR}/assets")
 
 ################################################################################
 # Read source files
