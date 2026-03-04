@@ -39,7 +39,7 @@ namespace ho {
     };
 
     template <typename T>
-    INLINE constexpr ID<T> ID<T>::NULL_ID{};
+    INLINE const ID<T> ID<T>::NULL_ID{};
 
     // dummy structs
     struct OwnedByResourceManager {};
