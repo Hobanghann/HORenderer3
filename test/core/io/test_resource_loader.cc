@@ -325,11 +325,11 @@ TEST_F(ResourceLoaderTest, LoadModelglTFBox) {
 //     Path obj_path(std::string("test_assets/test_gltf/BoxInterleaved/glTF/BoxInterleaved.gltf"));
 //     ResourceLoader::Model model = ResourceLoader::LoadModel(obj_path, resource_manager);
 //     const Mesh* mesh = resource_manager.GetMesh(model.mesh);
-// 
+//
 //     // Check Mesh
 //     EXPECT_EQ(mesh->sub_meshes.size(), 1);
 //     EXPECT_EQ(mesh->sub_meshes[0].name, std::string("Mesh"));
-// 
+//
 //     for (const Mesh::SubMesh& sm : mesh->sub_meshes) {
 //         EXPECT_GT(sm.positions.size(), 0);
 //         if (!sm.normals.empty()) {
@@ -350,10 +350,10 @@ TEST_F(ResourceLoaderTest, LoadModelglTFBox) {
 //         for (uint32_t idx : sm.indices) {
 //             EXPECT_LT(idx, sm.positions.size());
 //         }
-// 
+//
 //         EXPECT_EQ(sm.primitive_type, Mesh::PRIMITIVE_TYPE_TRIANGLE);
 //         EXPECT_EQ(sm.indices.size() % 3, 0);
-// 
+//
 //         for (const Mesh::MorphTarget& mt : sm.morph_targets) {
 //             EXPECT_GT(mt.positions.size(), 0);
 //             if (!mt.normals.empty()) {
@@ -364,24 +364,24 @@ TEST_F(ResourceLoaderTest, LoadModelglTFBox) {
 //             }
 //         }
 //         EXPECT_EQ(sm.morph_targets.size(), sm.morph_name_to_index.size());
-// 
+//
 //         EXPECT_TRUE(sm.material.IsValid());
 //         EXPECT_LT(sm.material.id(), model.materials.size());
 //         EXPECT_LE(sm.aabb.min_edges.x, sm.aabb.max_edges.x);
 //         EXPECT_LE(sm.aabb.min_edges.y, sm.aabb.max_edges.y);
 //         EXPECT_LE(sm.aabb.min_edges.z, sm.aabb.max_edges.z);
-// 
+//
 //         EXPECT_TRUE(sm.sphere.radius > 0.0_r);
 //     }
-// 
+//
 //     EXPECT_EQ(mesh->sub_meshes.size(), mesh->sub_mesh_name_to_index.size());
-// 
+//
 //     EXPECT_LE(mesh->aabb.min_edges.x, mesh->aabb.max_edges.x);
 //     EXPECT_LE(mesh->aabb.min_edges.y, mesh->aabb.max_edges.y);
 //     EXPECT_LE(mesh->aabb.min_edges.z, mesh->aabb.max_edges.z);
-// 
+//
 //     EXPECT_TRUE(mesh->sphere.radius > 0.0_r);
-// 
+//
 //     // Check Material
 //     const Material* material =
 //         resource_manager.GetMaterial(resource_manager.GetMaterialID("BoxInterleaved.gltf_unnamed_material_0"));
@@ -407,7 +407,7 @@ TEST_F(ResourceLoaderTest, LoadModelglTFBox) {
 //     EXPECT_TRUE(material->textures[TEXTURE_TYPE_EMISSION].IsNULL());
 //     EXPECT_TRUE(material->textures[TEXTURE_TYPE_METALLIC_ROUGHNESS].IsNULL());
 //     EXPECT_TRUE(material->textures[TEXTURE_TYPE_AMBIENT_OCCLUSION].IsNULL());
-// 
+//
 //     // Check Skeleton
 //     const Skeleton* skeleton = resource_manager.GetSkeleton(model.skeleton);
 //     EXPECT_EQ(skeleton->bone_names.size(), 2);
@@ -415,7 +415,7 @@ TEST_F(ResourceLoaderTest, LoadModelglTFBox) {
 //     EXPECT_EQ(skeleton->parents.size(), 2);
 //     EXPECT_EQ(skeleton->children.size(), 2);
 //     EXPECT_EQ(skeleton->name_to_index.size(), 2);
-// 
+//
 //     EXPECT_EQ(skeleton->parents[0], -1);
 //     EXPECT_EQ(skeleton->children[0].size(), 1);
 //     EXPECT_EQ(skeleton->children[0][0], 1);
@@ -425,7 +425,7 @@ TEST_F(ResourceLoaderTest, LoadModelglTFBox) {
 //     EXPECT_EQ(skeleton->parents[1], 0);
 //     EXPECT_EQ(skeleton->children[1].size(), 0);
 //     EXPECT_EQ(skeleton->local_transforms[1], Transform3D());
-// 
+//
 //     // Check Skin
 //     const Skin* skin = resource_manager.GetSkin(model.skin);
 //     EXPECT_EQ(skin->inverse_bind_poses.size(), 2);
