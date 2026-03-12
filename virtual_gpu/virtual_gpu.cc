@@ -948,22 +948,22 @@ namespace ho {
                     depth_pass = false;
                     break;
                 case VG_LESS:
-                    depth_pass = (depth < old_depth);
+                    depth_pass = (depth < old_depth + math::EPSILON_DEPTH_TEST);
                     break;
                 case VG_EQUAL:
-                    depth_pass = (depth == old_depth);
+                    depth_pass = math::IsEqualApprox(depth, old_depth, math::EPSILON_DEPTH_TEST);
                     break;
                 case VG_LEQUAL:
-                    depth_pass = (depth <= old_depth);
+                    depth_pass = (depth <= old_depth + math::EPSILON_DEPTH_TEST);
                     break;
                 case VG_GREATER:
-                    depth_pass = (depth > old_depth);
+                    depth_pass = (depth > old_depth - math::EPSILON_DEPTH_TEST);
                     break;
                 case VG_NOTEQUAL:
-                    depth_pass = (depth != old_depth);
+                    depth_pass = math::IsNotEqualApprox(depth, old_depth, math::EPSILON_DEPTH_TEST);
                     break;
                 case VG_GEQUAL:
-                    depth_pass = (depth >= old_depth);
+                    depth_pass = (depth >= old_depth - math::EPSILON_DEPTH_TEST);
                     break;
                 case VG_ALWAYS:
                     depth_pass = true;
