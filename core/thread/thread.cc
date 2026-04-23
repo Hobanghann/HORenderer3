@@ -32,7 +32,7 @@ namespace ho {
     void Thread::SetName(const std::string& name) {
 #ifdef _WIN32
         std::wstring wname(name.begin(), name.end());
-        SetThreadDescription((HANDLE)thread_.native_handle(), wname.c_str());
+        SetThreadDescription(static_cast<HANDLE>(thread_.native_handle()), wname.c_str());
 #elif defined(__linux__)
         pthread_setname_np(thread_.native_handle(), name.c_str());
 #endif
