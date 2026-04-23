@@ -6,9 +6,10 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
+// clang-format off
 #include <windows.h>
 #include <processthreadsapi.h>
-
+// clang-format on
 
 #elif defined(__linux__)
 #include <pthread.h>
