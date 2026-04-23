@@ -11,4 +11,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     RendererApp::GetApp().Initialize();
     RendererApp::GetApp().Run();
     RendererApp::GetApp().Quit();
+
+    return 0;
 }

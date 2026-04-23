@@ -74,6 +74,7 @@ namespace ho {
             worker_pool_.reserve(worker_count);
             for (uint32_t i = 0; i < worker_count; i++) {
                 worker_pool_.emplace_back(std::make_unique<Worker>(this));
+                worker_pool_.back()->SetName(std::string("Worker") + std::to_string(i));
             }
         }
 
