@@ -922,7 +922,8 @@ namespace ho {
         vg.using_program_->varying_buffer.resize(static_cast<size_t>(count));
 
         // Vertex Processing
-        std::vector<JobDeclaration> vs_jobs;
+        static std::vector<JobDeclaration> vs_jobs;
+        vs_jobs.clear();
         vs_jobs.reserve(static_cast<size_t>(count));
 
         const int BATCH_SIZE = 100;
@@ -942,7 +943,6 @@ namespace ho {
         }
 
         vg.job_system_.KickJobsAndWait(vs_jobs);
-
         vs_jobs.clear();
 
         // Primitive Assembly & Kick After Vertex Processing Jobs
@@ -979,22 +979,22 @@ namespace ho {
         after_job.input_size = sizeof(VirtualGPU::AfterVSJobInput);
 
         for (size_t i = 0; i + v_count <= vg.using_program_->varying_buffer.size(); i += gap) {
-            std::vector<VirtualGPU::Varying*> poly;
-            poly.reserve(v_count);
+            VirtualGPU::AfterVSJobInput* input = new VirtualGPU::AfterVSJobInput();
+            input->poly_count = static_cast<int>(v_count);
 
             // Fetch base vertices
+            size_t polyIdx = 0;
             for (size_t j = i; j < i + v_count; j++) {
-                poly.emplace_back(&vg.using_program_->varying_buffer[j]);
+                input->poly[polyIdx] = &vg.using_program_->varying_buffer[j];
+                ++polyIdx;
             }
 
             // TRIANGLE_STRIP: flip winding order on odd triangles
             if (mode == VG_TRIANGLE_STRIP && (i % 2 == 1)) {
-                std::swap(poly[1], poly[2]);
+                std::swap(input->poly[1], input->poly[2]);
             }
 
-            VirtualGPU::AfterVSJobInput* input = new VirtualGPU::AfterVSJobInput(
-                {std::move(poly),
-                 reinterpret_cast<VirtualGPU::FragmentShader>(vg.using_program_->fragment_shader->source)});
+            input->fs = reinterpret_cast<VirtualGPU::FragmentShader>(vg.using_program_->fragment_shader->source);
 
             after_job.input_data = input;
 
@@ -1004,6 +1004,7 @@ namespace ho {
         vg.job_system_.WaitForIdle();
         vg.using_program_->varying_buffer.clear();
     }
+
     void vgDrawElements(VGenum mode, VGsizei count, VGenum type, const void* indices) {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         if (vg.state_.error_state != VG_NO_ERROR) {
@@ -1050,7 +1051,8 @@ namespace ho {
         vg.using_program_->varying_buffer.resize(static_cast<size_t>(vg.bound_vertex_array_->vertex_count));
 
         // Vertex Processing
-        std::vector<JobDeclaration> vs_jobs;
+        static std::vector<JobDeclaration> vs_jobs;
+        vs_jobs.clear();
         vs_jobs.reserve(static_cast<size_t>(vg.bound_vertex_array_->vertex_count));
 
         const int BATCH_SIZE = 100;
@@ -1070,7 +1072,6 @@ namespace ho {
         }
 
         vg.job_system_.KickJobsAndWait(vs_jobs);
-
         vs_jobs.clear();
 
         // Primitive Assembly & Kick After Vertex Processing Jobs
@@ -1120,31 +1121,32 @@ namespace ho {
             }
         };
 
-        JobDeclaration job;
-        job.entry = VirtualGPU::AfterVSJobEntry;
-        job.input_size = sizeof(VirtualGPU::AfterVSJobInput);
+        JobDeclaration after_job;
+        after_job.entry = VirtualGPU::AfterVSJobEntry;
+        after_job.input_size = sizeof(VirtualGPU::AfterVSJobInput);
 
         for (size_t i = 0; i + v_count <= static_cast<size_t>(count); i += gap) {
-            std::vector<VirtualGPU::Varying*> poly;
-            poly.reserve(v_count);
+            VirtualGPU::AfterVSJobInput* input = new VirtualGPU::AfterVSJobInput();
+            input->poly_count = static_cast<int>(v_count);
 
+            // Fetch base vertices
+            size_t polyIdx = 0;
             for (size_t j = 0; j < v_count; j++) {
                 size_t idx = FetchIndex(i + j);
-                poly.emplace_back(&(vg.using_program_->varying_buffer[idx]));
+                input->poly[polyIdx] = &vg.using_program_->varying_buffer[idx];
+                ++polyIdx;
             }
 
             // TRIANGLE_STRIP: flip winding order on odd triangles
-            if (mode == VG_TRIANGLE_STRIP && ((i / gap) % 2 == 1)) {
-                std::swap(poly[1], poly[2]);
+            if (mode == VG_TRIANGLE_STRIP && (i % 2 == 1)) {
+                std::swap(input->poly[1], input->poly[2]);
             }
 
-            VirtualGPU::AfterVSJobInput* input = new VirtualGPU::AfterVSJobInput(
-                {std::move(poly),
-                 reinterpret_cast<VirtualGPU::FragmentShader>(vg.using_program_->fragment_shader->source)});
+            input->fs = reinterpret_cast<VirtualGPU::FragmentShader>(vg.using_program_->fragment_shader->source);
 
-            job.input_data = input;
+            after_job.input_data = input;
 
-            vg.job_system_.KickJob(job);
+            vg.job_system_.KickJob(after_job);
         }
 
         vg.job_system_.WaitForIdle();
