@@ -13,7 +13,7 @@ jobs:
     name: Run Format Check
     runs-on: ubuntu-latest
 
-    steps: 
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -32,12 +32,12 @@ jobs:
       - name: Run clang-format check
         id: format_check
         run: |
-          echo "Running clang-format check..."  
+          echo "Running clang-format check..."
           mkdir formatted
-          error_count=0  
+          error_count=0
           for file in $(find core platforms virtual_gpu test -type f \( -name "*.h" -o -name "*.cc" \)); do
             mkdir -p formatted/$(dirname "$file")
-            clang-format-21 "$file" > formatted/"$file"  
+            clang-format-21 "$file" > formatted/"$file"
             if ! diff -q "$file" formatted/"$file" >/dev/null; then
               echo ""
               echo "-------------------------------------"
@@ -46,7 +46,7 @@ jobs:
               diff -u "$file" formatted/"$file"
               error_count=$((error_count+1))
             fi
-          done  
+          done
           echo ""
           echo "======== SUMMARY ========"
           if [ "$error_count" -eq 0 ]; then
@@ -76,7 +76,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    steps:        
+    steps:
       - name: Checkout source
         uses: actions/checkout@v4
 
@@ -107,12 +107,12 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            build_tool: Visual Studio 17 2022
+            build_tool: Visual Studio
             build_type: Debug
             c_compiler: cl
             cpp_compiler: cl
           - os: windows-latest
-            build_tool: Visual Studio 17 2022
+            build_tool: Visual Studio
             build_type: Release
             c_compiler: cl
             cpp_compiler: cl
@@ -132,16 +132,29 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-        
-      - name: Configure CMake
+
+       - name: Configure CMake
         shell: bash
         run: |
-          cmake -S "${{ github.workspace }}" \
-          -B "${{ github.workspace }}/build" \
-          -G "${{ matrix.build_tool }}" \
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
-          -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }} 
+          CMAKE_ARGS=(
+            -S "${{ github.workspace }}"
+            -B "${{ github.workspace }}/build"
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          )
+
+          if [ "${{ matrix.build_tool }}" = "Visual Studio" ]; then
+            echo "Configuring for Visual Studio (Automatic Visual Studio detection)..."
+
+          elif [ "${{ matrix.build_tool }}" = "Ninja" ]; then
+            echo "Configuring for Ninja with Clang..."
+            CMAKE_ARGS+=(
+              -G "Ninja"
+              -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+              -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+            )
+          fi
+
+          cmake "${CMAKE_ARGS[@]}"
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
