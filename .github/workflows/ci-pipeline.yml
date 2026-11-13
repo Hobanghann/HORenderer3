@@ -133,28 +133,28 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-       - name: Configure CMake
+      - name: Configure CMake
         shell: bash
         run: |
-          CMAKE_ARGS=(
-            -S "${{ github.workspace }}"
-            -B "${{ github.workspace }}/build"
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          )
+           CMAKE_ARGS=(
+             -S "${{ github.workspace }}"
+             -B "${{ github.workspace }}/build"
+             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+           )
 
-          if [ "${{ matrix.build_tool }}" = "Visual Studio" ]; then
-            echo "Configuring for Visual Studio (Automatic Visual Studio detection)..."
+           if [ "${{ matrix.build_tool }}" = "Visual Studio" ]; then
+             echo "Configuring for Visual Studio (Automatic Visual Studio detection)..."
 
-          elif [ "${{ matrix.build_tool }}" = "Ninja" ]; then
-            echo "Configuring for Ninja with Clang..."
-            CMAKE_ARGS+=(
-              -G "Ninja"
-              -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
-              -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
-            )
-          fi
+           elif [ "${{ matrix.build_tool }}" = "Ninja" ]; then
+             echo "Configuring for Ninja with Clang..."
+             CMAKE_ARGS+=(
+               -G "Ninja"
+               -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+               -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+             )
+           fi
 
-          cmake "${CMAKE_ARGS[@]}"
+           cmake "${CMAKE_ARGS[@]}"
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
