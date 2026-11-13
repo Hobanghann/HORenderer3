@@ -31,7 +31,7 @@ namespace ho {
     T FetchUniform(uint32_t name_hash, size_t index = 0);
 
     class VirtualGPU {
-        static constexpr int WORKER_COUNT = 8;
+        static constexpr int WORKER_COUNT = 4;
 
         static constexpr int TILE_WIDTH = 16;
         static constexpr int TILE_HEIGHT = 16;
@@ -527,6 +527,9 @@ namespace ho {
         State state_;
 
         JobSystem job_system_;
+        static thread_local std::vector<Varying> poly_buffer_;
+        static thread_local std::vector<Varying> clip_buffer_;
+        static thread_local std::vector<Fragment> frag_buffer_;
 
         // ======================================================
         // Rendering Pipeline API
@@ -581,8 +584,8 @@ namespace ho {
             VG_PLANE_POS_LAST
         };
 
-        std::vector<Varying> Clip(const std::vector<Varying>& polygon) const;
-        std::vector<Varying> ClipAgainstPlane(const std::vector<Varying>& polygon, PlanePos plane_pos) const;
+        void Clip(std::vector<Varying>* out_polygons) const;
+        void ClipAgainstPlane(std::vector<Varying>* out_polygons, PlanePos plane_pos) const;
         real EvalFrustumPlane(const Vector4& clip_coord, PlanePos plane_pos) const;
         bool IsInside(const Vector4& clip_coord, PlanePos plane_pos) const;
         Vector2 GetClipBarycentric(const Vector4& clip_coord1, const Vector4& clip_coord2, PlanePos plane_pos) const;
@@ -591,8 +594,8 @@ namespace ho {
         void PerspectiveDivide(Varying& v) const;
         void ViewportTransform(Varying& v) const;
 
-        std::vector<Fragment> Rasterize(const Varying& v);
-        std::vector<Fragment> Rasterize(const Varying& v1, const Varying& v2);
+        void Rasterize(std::vector<Fragment>* out_frags, const Varying& v);
+        void Rasterize(std::vector<Fragment>* out_frags, const Varying& v1, const Varying& v2);
 
         struct BoundingBox2D {
             BoundingBox2D(const Vector2& v1, const Vector2& v2, const Vector2& v3)
@@ -613,7 +616,7 @@ namespace ho {
             real initial_value;
         };
 
-        std::vector<Fragment> Rasterize(const Varying& v1, const Varying& v2, const Varying& v3);
+        void Rasterize(std::vector<Fragment>* out_frags, const Varying& v1, const Varying& v2, const Varying& v3);
 
         // Output Merging
         bool ScissorTest(real x, real y) const;
@@ -631,7 +634,8 @@ namespace ho {
         void WriteColor(real x, real y, const Color128& color, size_t slot);
 
         struct AfterVSJobInput {
-            std::vector<Varying*> poly;
+            int poly_count = 0;
+            Varying* poly[3] = {};
             FragmentShader fs;
         };
 

@@ -334,46 +334,45 @@ namespace ho {
         delete in;
     }
 
-    std::vector<VirtualGPU::Varying> VirtualGPU::Clip(const std::vector<Varying>& polygon) const {
-        std::vector<Varying> out_polygon = polygon;
+    void VirtualGPU::Clip(std::vector<Varying>* out_polygons) const {
         for (PlanePos plane_pos : {VG_PLANE_POS_LEFT, VG_PLANE_POS_RIGHT, VG_PLANE_POS_BOTTOM, VG_PLANE_POS_TOP,
                                    VG_PLANE_POS_NEAR, VG_PLANE_POS_FAR}) {
-            out_polygon = ClipAgainstPlane(out_polygon, plane_pos);
-            if (out_polygon.empty()) {
+            ClipAgainstPlane(out_polygons, plane_pos);
+            if (out_polygons->empty()) {
                 // When polygon is totally out of frustum.
-                break;
+                return;
             }
         }
-        return out_polygon;
     }
 
-    std::vector<VirtualGPU::Varying> VirtualGPU::ClipAgainstPlane(const std::vector<Varying>& polygon,
-                                                                  PlanePos plane_pos) const {
+    void VirtualGPU::ClipAgainstPlane(std::vector<Varying>* out_polygons, PlanePos plane_pos) const {
         // Sutherland-Hodgman Polygon Clipping Loop (Vertices always be treated as polygon)
-        std::vector<Varying> out_polygon;
-        if (polygon.empty()) {
-            return out_polygon;
+        if (out_polygons->empty()) {
+            return;
         }
 
-        const size_t v_count = polygon.size();
+        std::swap(clip_buffer_, *out_polygons);
+        out_polygons->clear();
+
+        const size_t v_count = clip_buffer_.size();
 
         for (size_t i = 0; i < v_count; i++) {
-            const Varying& prev_v = polygon[(i - 1 + v_count) % v_count];
-            const Varying& curr_v = polygon[i];
+            const Varying& prev_v = clip_buffer_[(i - 1 + v_count) % v_count];
+            const Varying& curr_v = clip_buffer_[i];
 
             const bool is_prev_in = IsInside(prev_v.vg_Position, plane_pos);
             const bool is_curr_in = IsInside(curr_v.vg_Position, plane_pos);
 
             if (is_prev_in && is_curr_in) {
                 // Case 1: in to in
-                out_polygon.emplace_back(curr_v);
+                out_polygons->emplace_back(curr_v);
             } else if (is_prev_in && !is_curr_in) {
                 // Case 2: in to out
                 Vector2 bary = GetClipBarycentric(prev_v.vg_Position, curr_v.vg_Position, plane_pos);
                 // if clip isn't parallel on plane or degenerated push interpolated
                 // varying.
                 if (!math::IsNaN(bary.x) && !math::IsNaN(bary.y)) {
-                    out_polygon.emplace_back(LerpVarying(prev_v, curr_v, bary));
+                    out_polygons->emplace_back(LerpVarying(prev_v, curr_v, bary));
                 }
             } else if (!is_prev_in && is_curr_in) {
                 // Case 3: out to in
@@ -381,16 +380,14 @@ namespace ho {
                 // if clip isn't parallel on plane or degenerated push interpolated
                 // varying.
                 if (!math::IsNaN(bary.x) && !math::IsNaN(bary.y)) {
-                    out_polygon.emplace_back(LerpVarying(prev_v, curr_v, bary));
+                    out_polygons->emplace_back(LerpVarying(prev_v, curr_v, bary));
                 }
-                out_polygon.emplace_back(curr_v);
+                out_polygons->emplace_back(curr_v);
             } else {
                 // Case 4: out to out
                 // Do Nothing.
             }
         }
-
-        return out_polygon;
     }
 
     real VirtualGPU::EvalFrustumPlane(const Vector4& clip_coord, PlanePos plane_pos) const {
@@ -464,8 +461,7 @@ namespace ho {
         v.viewport_coord = Vector3(x, y, z);
     }
 
-    std::vector<VirtualGPU::Fragment> VirtualGPU::Rasterize(const Varying& v) {
-        std::vector<Fragment> out;
+    void VirtualGPU::Rasterize(std::vector<Fragment>* out_frags, const Varying& v) {
         Fragment frag;
         frag.screen_coord = Vector2(math::Floor(v.viewport_coord.x) + 0.5_r, math::Floor(v.viewport_coord.y) + 0.5_r);
         const uint64_t depth_bit =
@@ -478,17 +474,13 @@ namespace ho {
             std::copy_n(v.smooth_register.begin(), v.used_smooth_register_size, frag.smooth_register.begin());
             frag.used_flat_register_size = v.used_flat_register_size;
             std::copy_n(v.flat_register.begin(), v.used_flat_register_size, frag.flat_register.begin());
-            out.emplace_back(frag);
+            out_frags->emplace_back(frag);
         }
-
-        return out;
     }
 
-    std::vector<VirtualGPU::Fragment> VirtualGPU::Rasterize(const Varying& v1, const Varying& v2) {
+    void VirtualGPU::Rasterize(std::vector<Fragment>* out_frags, const Varying& v1, const Varying& v2) {
         assert(v1.used_smooth_register_size == v2.used_smooth_register_size);
         assert(v1.used_flat_register_size == v2.used_flat_register_size);
-
-        std::vector<Fragment> out;
 
         const int x0 = static_cast<int>(math::Floor(v1.viewport_coord.x));
         const int y0 = static_cast<int>(math::Floor(v1.viewport_coord.y));
@@ -503,10 +495,10 @@ namespace ho {
         int err = dx - dy;
 
         if (dx == 0 && dy == 0) {
-            return out;
+            return;
         }
 
-        out.reserve(static_cast<size_t>(dx) + static_cast<size_t>(dy) + 1);
+        out_frags->reserve(out_frags->size() + static_cast<size_t>(dx) + static_cast<size_t>(dy) + 1);
 
         // Calculate gradient
         const real Dx = static_cast<real>(x1 - x0);
@@ -568,7 +560,7 @@ namespace ho {
                 frag.used_flat_register_size = v2.used_flat_register_size;
                 std::copy_n(v2.flat_register.begin(), frag.used_flat_register_size, frag.flat_register.begin());
 
-                out.emplace_back(frag);
+                out_frags->emplace_back(frag);
             }
 
             if (x == x1 && y == y1) {
@@ -605,18 +597,16 @@ namespace ho {
                 }
             }
         }
-        return out;
     }
 
-    std::vector<VirtualGPU::Fragment> VirtualGPU::Rasterize(const Varying& v1, const Varying& v2, const Varying& v3) {
+    void VirtualGPU::Rasterize(std::vector<Fragment>* out_frags, const Varying& v1, const Varying& v2,
+                               const Varying& v3) {
         assert(v1.used_smooth_register_size == v2.used_smooth_register_size);
         assert(v1.used_flat_register_size == v2.used_flat_register_size);
         assert(v2.used_smooth_register_size == v3.used_smooth_register_size);
         assert(v2.used_flat_register_size == v3.used_flat_register_size);
 
         // Edge Function and Incremental Perspective Correct Interpolation
-        std::vector<Fragment> out;
-
         const BoundingBox2D b =
             BoundingBox2D(Vector2(v1.viewport_coord), Vector2(v2.viewport_coord), Vector2(v3.viewport_coord));
 
@@ -642,7 +632,7 @@ namespace ho {
 
         if (math::IsEqualApprox(area, math::EPSILON_RASTERIZATION)) {
             // degenerate case
-            return out;
+            return;
         }
 
         // Face culling: Since screen space is Y-down, CCW winding results in negative area.
@@ -650,14 +640,14 @@ namespace ho {
         if (state_.cull_enabled) {
             switch (state_.cull_face) {
                 case VG_BACK:
-                    if (!is_front) return out;
+                    if (!is_front) return;
                     break;
                 case VG_FRONT:
-                    if (is_front) return out;
+                    if (is_front) return;
                     break;
                 case VG_FRONT_AND_BACK:
                 default:
-                    return out;
+                    return;
             }
         }
 
@@ -740,7 +730,7 @@ namespace ho {
         const int y_min = static_cast<int>(math::Ceil(b.min.y - 0.5_r));
         const int y_max = static_cast<int>(math::Floor(b.max.y - 0.5_r)) + 1;
 
-        out.reserve(static_cast<size_t>((x_max - x_min) * (y_max - y_min) / 2));
+        out_frags->reserve(static_cast<size_t>(out_frags->size() + (x_max - x_min) * (y_max - y_min) / 2));
         // Raster loop
         for (int y = y_min; y < y_max; ++y) {
             real f12_ev = f12_row;
@@ -783,7 +773,7 @@ namespace ho {
                         std::copy_n(v3.flat_register.begin(), frag.used_flat_register_size, frag.flat_register.begin());
 
                         frag.is_front = is_front;
-                        out.emplace_back(frag);
+                        out_frags->emplace_back(frag);
                     }
                 }
 
@@ -811,8 +801,6 @@ namespace ho {
                 smooth_register_row[i] += smooth_register_dy[i];  // NOLINT
             }
         }
-
-        return out;
     }
 
     bool VirtualGPU::ScissorTest(real x, real y) const {
@@ -1270,60 +1258,52 @@ namespace ho {
         VirtualGPU& vg = VirtualGPU::GetInstance();
         AfterVSJobInput* in = static_cast<AfterVSJobInput*>(input);
 
-        std::vector<Varying> poly;
-        poly.reserve(in->poly.size());
+        poly_buffer_.clear();
 
         for (Varying* v : in->poly) {
-            poly.emplace_back(*v);
+            poly_buffer_.emplace_back(*v);
         }
 
         // Clipping
-        poly = vg.Clip(poly);
+        vg.Clip(&poly_buffer_);
 
-        if (poly.empty()) {
+        if (poly_buffer_.empty()) {
             delete in;
             return;
         }
 
         // Perspective devide, Viewport transform
-        for (Varying& v : poly) {
+        for (Varying& v : poly_buffer_) {
             vg.PerspectiveDivide(v);
             vg.ViewportTransform(v);
         }
 
         // Rasterization
-        std::vector<Fragment> frags;
-        std::vector<Fragment> temp_frags;
+        frag_buffer_.clear();
         const VGenum pmode = vg.state_.polygon_mode;
 
-        if (poly.size() == 1) {
-            frags = vg.Rasterize(poly[0]);
-        } else if (poly.size() == 2) {
-            frags = vg.Rasterize(poly[0], poly[1]);
+        if (poly_buffer_.size() == 1) {
+            vg.Rasterize(&frag_buffer_, poly_buffer_[0]);
+        } else if (poly_buffer_.size() == 2) {
+            vg.Rasterize(&frag_buffer_, poly_buffer_[0], poly_buffer_[1]);
         } else {
             switch (pmode) {
                 case VG_POINT:
-                    for (const Varying& v : poly) {
-                        temp_frags = vg.Rasterize(v);
-                        frags.insert(frags.end(), std::make_move_iterator(temp_frags.begin()),
-                                     std::make_move_iterator(temp_frags.end()));
+                    for (const Varying& v : poly_buffer_) {
+                        vg.Rasterize(&frag_buffer_, v);
                     }
                     break;
 
                 case VG_LINE:
-                    for (size_t i = 0; i < poly.size(); i++) {
-                        const Varying& a = poly[i];
-                        const Varying& b = poly[(i + 1) % poly.size()];
-                        temp_frags = vg.Rasterize(a, b);
-                        frags.insert(frags.end(), std::make_move_iterator(temp_frags.begin()),
-                                     std::make_move_iterator(temp_frags.end()));
+                    for (size_t i = 0; i < poly_buffer_.size(); i++) {
+                        const Varying& a = poly_buffer_[i];
+                        const Varying& b = poly_buffer_[(i + 1) % poly_buffer_.size()];
+                        vg.Rasterize(&frag_buffer_, a, b);
                     }
                     break;
                 case VG_FILL:
-                    for (size_t i = 1; i + 1 < poly.size(); i++) {
-                        temp_frags = vg.Rasterize(poly[0], poly[i], poly[i + 1]);
-                        frags.insert(frags.end(), std::make_move_iterator(temp_frags.begin()),
-                                     std::make_move_iterator(temp_frags.end()));
+                    for (size_t i = 1; i + 1 < poly_buffer_.size(); i++) {
+                        vg.Rasterize(&frag_buffer_, poly_buffer_[0], poly_buffer_[i], poly_buffer_[i + 1]);
                     }
                     break;
                 default:
@@ -1332,14 +1312,14 @@ namespace ho {
             }
         }
 
-        if (frags.empty()) {
+        if (frag_buffer_.empty()) {
             delete in;
             return;
         }
 
         // Output merger
         FSOutputs outputs;
-        for (const Fragment& frag : frags) {
+        for (const Fragment& frag : frag_buffer_) {
             outputs.Reset();
             in->fs(frag, outputs);
             if (!vg.TestDepthStencil(frag.screen_coord.x, frag.screen_coord.y, frag.depth, frag.is_front)) {
@@ -1355,4 +1335,8 @@ namespace ho {
         }
         delete in;
     }
+
+    thread_local std::vector<VirtualGPU::Varying> VirtualGPU::poly_buffer_;
+    thread_local std::vector<VirtualGPU::Varying> VirtualGPU::clip_buffer_;
+    thread_local std::vector<VirtualGPU::Fragment> VirtualGPU::frag_buffer_;
 }  // namespace ho
